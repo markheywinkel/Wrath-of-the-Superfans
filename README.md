@@ -43,11 +43,28 @@ Es gibt drei Fan-Typen für Attacken und Gegner: **Old Trek**, **New Trek**, **S
 
 - Der Spieler startet auf **Level 0** mit 50 Energie (HP) und 20 Attackenenergie (AP).
 - Pro Level: **+10 max. Energie**, **+4 max. Attackenenergie** (siehe `src/game/state/leveling.ts`).
-- Erfahrungsbedarf für Level *n → n+1*: `100 + n·40`.
+- Erfahrungsbedarf für Level *n → n+1*: `15 + n·7` (bewusst flach kalibriert, siehe unten).
 - Ein besiegter Gegner gibt `Gegnerlevel × 15` Erfahrungspunkte.
 - Jede Attacke kostet AP; ist der Attackenbalken leer, bleibt nur der kostenlose
   „Verzweifelte Klaps“ (5 Schaden, nie typ-effektiv).
 - Schaden = `Angriffskraft × (1 + Level·0,03) × Typ-Multiplikator`.
+
+### Kampf-Dialoge
+
+Jede Begegnung mit einem NPC läuft nach demselben Schema ab (Zeilen zufällig aus
+Pools in `src/game/data/battleDialogues.ts`):
+
+1. **Dialog 1** beim Ansprechen eines noch unbesiegten Gegners → Kampf beginnt.
+2. **Dialog 2**, wenn der Spieler gewinnt → zurück ins Feld. Der Sieg ist **endgültig**:
+   ein erneutes Ansprechen startet keinen neuen Kampf mehr.
+3. **Dialog 3**, wenn der Spieler verliert → Wiederbelebung mit halber Energie am
+   Raumeingang, der Gegner bleibt aktiv und kann erneut angesprochen werden (zurück zu Dialog 1).
+4. **Dialog 4** beim erneuten Ansprechen eines bereits besiegten Gegners → nur Small-Talk, kein Kampf.
+
+Da Kämpfe dadurch einmalig sind, ist die XP-Kurve so kalibriert, dass die
+Rivalen **jedes einzelnen Raums** gerade ausreichen, um das nächste
+Gate-Boss-Level zu erreichen – kein Grinding nötig, aber auch kein Fight
+auslassbar.
 
 ### Rundenkampf
 
@@ -109,7 +126,6 @@ src/
 - Die **New-Trek-Attackenliste** enthielt in der Anfrage nur 3 Einträge; sie wurde um 7 thematisch
   passende Attacken ergänzt, damit der Typ ausbalanciert spielbar ist (siehe Kommentar in
   `src/game/data/attacks.ts` – jederzeit ersetzbar).
-- Regeln, die in der Aufgabenstellung offen blieben, wurden pragmatisch festgelegt: Niederlage im Kampf
-  führt zu Wiederbelebung mit halber Energie am Raumeingang (kein Game Over, kein Item-Verlust);
-  der Spieler hat von Anfang an Zugriff auf alle Attacken aller drei Typen (Leveling verbessert nur die
-  Balken, keine Attacken-Freischaltung).
+- Der Spieler hat von Anfang an Zugriff auf alle Attacken aller drei Typen (Leveling verbessert nur
+  die Balken, keine Attacken-Freischaltung) – das war in der Aufgabenstellung offen und wurde
+  pragmatisch so festgelegt.
