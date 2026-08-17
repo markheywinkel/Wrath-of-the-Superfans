@@ -50,6 +50,11 @@ export default function GameRoot() {
       const dir = KEY_TO_DIR[e.key];
       if (dir) {
         e.preventDefault();
+        // Nur auf den echten ersten Tastendruck reagieren - der Browser feuert
+        // sonst eigene, viel schnellere Auto-Repeat-keydown-Events (e.repeat),
+        // die sich sonst mit der Throttle-Loop unten überlagern und die Figur
+        // immer schneller wirken lassen ("beschleunigt").
+        if (e.repeat) return;
         heldDirs.current.add(dir);
         if (stateScreenRef.current === "field" && !inventoryOpenRef.current) {
           movePlayer(dir);
@@ -115,7 +120,7 @@ export default function GameRoot() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "16px 8px" }}>
-      <HUD player={state.player} roomName={room.name} ambient={room.ambient} />
+      <HUD player={state.player} roomName={room.name} />
       <div style={{ position: "relative", width: "100%", maxWidth: CANVAS_WIDTH, margin: "0 auto" }}>
         <GameCanvas
           roomId={state.currentRoomId}
@@ -132,6 +137,7 @@ export default function GameRoot() {
           <BattleScreen
             battle={state.battle}
             player={state.player}
+            knownAttackIds={state.knownAttackIds}
             inventory={state.inventory}
             onSetMenu={setBattleMenu}
             onAttack={useAttack}

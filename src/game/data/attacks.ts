@@ -61,3 +61,6 @@ export function getAttack(id: string): Attack {
 export const OLD_TREK_ATTACK_IDS = oldTrekAttacks.map((a) => a.id);
 export const NEW_TREK_ATTACK_IDS = newTrekAttacks.map((a) => a.id);
 export const SUPERFAN_ATTACK_IDS = superfanAttacks.map((a) => a.id);
+
+/** Der Spieler startet mit genau diesen 4 Attacken (2 Old-Trek, 2 New-Trek). */
+export const STARTER_ATTACK_IDS = ["kirk_trivia", "spock_trivia", "jj_abrams_trivia", "kelvin_timeline_fakten"];

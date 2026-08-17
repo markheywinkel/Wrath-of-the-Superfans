@@ -1,7 +1,7 @@
 import type { EnemyDefinition } from "@/game/types";
 
 export const ENEMIES: EnemyDefinition[] = [
-  // ---------- Raum 1: Convention-Halle (Level 1-4) ----------
+  // ---------- Raum 1: Convention-Halle (alle Level 1, nur Old/New, Endgegner Level 3) ----------
   {
     id: "rival_trekkie_ola",
     name: "Trekkie Ola",
@@ -13,28 +13,28 @@ export const ENEMIES: EnemyDefinition[] = [
     id: "rival_streamer_ben",
     name: "Streamer Ben",
     type: "new",
-    level: 2,
+    level: 1,
     attackIds: ["jj_abrams_trivia", "kelvin_timeline_fakten"],
   },
   {
     id: "rival_cosplay_una",
     name: "Cosplayerin Una",
-    type: "super",
-    level: 3,
-    attackIds: ["klingonisch_c2"],
+    type: "new",
+    level: 1,
+    attackIds: ["burnham_trivia", "pike_trivia"],
   },
   {
     id: "rival_quiz_master_devi",
     name: "Quizmaster Devi",
     type: "old",
-    level: 4,
+    level: 1,
     attackIds: ["mccoy_trivia", "uhura_trivia", "gorn_trivia"],
   },
   {
     id: "gate_boss_1",
     name: "Original-Cast-Zelot",
     type: "old",
-    level: 5,
+    level: 3,
     attackIds: ["kirk_trivia", "spock_trivia", "picard_manöver"],
     isGateBoss: true,
   },

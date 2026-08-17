@@ -3,13 +3,14 @@
 import type { CSSProperties } from "react";
 import type { BattleMenu, BattleState } from "@/game/state/useGame";
 import type { InventoryEntry, PlayerStats } from "@/game/types";
-import { ATTACKS, OLD_TREK_ATTACK_IDS, NEW_TREK_ATTACK_IDS, SUPERFAN_ATTACK_IDS, getAttack } from "@/game/data/attacks";
+import { ATTACKS_BY_ID, OLD_TREK_ATTACK_IDS, NEW_TREK_ATTACK_IDS, SUPERFAN_ATTACK_IDS, getAttack } from "@/game/data/attacks";
 import { getItem } from "@/game/data/items";
 import PixelSprite from "@/game/components/PixelSprite";
 
 interface Props {
   battle: BattleState;
   player: PlayerStats;
+  knownAttackIds: string[];
   inventory: InventoryEntry[];
   onSetMenu: (menu: BattleMenu) => void;
   onAttack: (attackId: string) => void;
@@ -48,9 +49,10 @@ function AttackGroup({
   playerAp: number;
   onAttack: (id: string) => void;
 }) {
+  if (ids.length === 0) return null;
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ fontSize: 9, color: TYPE_COLOR[ids.length ? getAttack(ids[0]).type : "old"], marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 9, color: TYPE_COLOR[getAttack(ids[0]).type], marginBottom: 4 }}>{title}</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
         {ids.map((id) => {
           const a = getAttack(id);
@@ -84,11 +86,14 @@ function AttackGroup({
   );
 }
 
-export default function BattleScreen({ battle, player, inventory, onSetMenu, onAttack, onItem, onCloseResult }: Props) {
+export default function BattleScreen({ battle, player, knownAttackIds, inventory, onSetMenu, onAttack, onItem, onCloseResult }: Props) {
   const battleItems = inventory.filter((e) => {
     const item = getItem(e.itemId);
     return item.usableIn.includes("battle") && e.count > 0;
   });
+  const knownOld = OLD_TREK_ATTACK_IDS.filter((id) => knownAttackIds.includes(id));
+  const knownNew = NEW_TREK_ATTACK_IDS.filter((id) => knownAttackIds.includes(id));
+  const knownSuper = SUPERFAN_ATTACK_IDS.filter((id) => knownAttackIds.includes(id));
 
   return (
     <div
@@ -159,10 +164,10 @@ export default function BattleScreen({ battle, player, inventory, onSetMenu, onA
               <button onClick={() => onSetMenu("main")} style={backBtnStyle}>
                 ◂ zurück
               </button>
-              <AttackGroup title="Old-Trek-Attacken" ids={OLD_TREK_ATTACK_IDS} playerAp={player.ap} onAttack={onAttack} />
-              <AttackGroup title="New-Trek-Attacken" ids={NEW_TREK_ATTACK_IDS} playerAp={player.ap} onAttack={onAttack} />
-              <AttackGroup title="Superfan-Attacken" ids={SUPERFAN_ATTACK_IDS} playerAp={player.ap} onAttack={onAttack} />
-              {!ATTACKS.some((a) => a.apCost <= player.ap) && (
+              <AttackGroup title="Old-Trek-Attacken" ids={knownOld} playerAp={player.ap} onAttack={onAttack} />
+              <AttackGroup title="New-Trek-Attacken" ids={knownNew} playerAp={player.ap} onAttack={onAttack} />
+              <AttackGroup title="Superfan-Attacken" ids={knownSuper} playerAp={player.ap} onAttack={onAttack} />
+              {!knownAttackIds.some((id) => ATTACKS_BY_ID[id].apCost <= player.ap) && (
                 <button onClick={() => onAttack("desperate_slap")} style={{ ...menuBtnStyle, width: "100%" }}>
                   Verzweifelter Klaps (0 AP)
                 </button>

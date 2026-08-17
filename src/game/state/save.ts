@@ -4,6 +4,7 @@ const SAVE_KEY = "wrath-of-the-superfans:save:v1";
 
 export interface SaveData {
   player: PlayerStats;
+  knownAttackIds?: string[];
   inventory: InventoryEntry[];
   currentRoomId: string;
   playerX: number;

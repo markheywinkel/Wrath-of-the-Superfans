@@ -11,7 +11,7 @@ import type {
 } from "@/game/types";
 import { getRoom, FIRST_ROOM_ID } from "@/game/data/rooms";
 import { getEnemy, FINAL_GAUNTLET_IDS } from "@/game/data/enemies";
-import { getAttack } from "@/game/data/attacks";
+import { getAttack, STARTER_ATTACK_IDS } from "@/game/data/attacks";
 import { getItem } from "@/game/data/items";
 import { DIALOG_1, DIALOG_2, DIALOG_3, DIALOG_4, pickRandom } from "@/game/data/battleDialogues";
 import {
@@ -66,6 +66,7 @@ export interface GameState {
   playerY: number;
   facing: Direction;
   player: PlayerStats;
+  knownAttackIds: string[];
   inventory: InventoryEntry[];
   defeatedEnemyIds: Record<string, true>;
   collectedItemIds: Record<string, true>;
@@ -76,8 +77,17 @@ export interface GameState {
   hasSave: boolean;
 }
 
+const STARTING_LEVEL = 1;
+
 function freshPlayer(): PlayerStats {
-  return { level: 0, xp: 0, hp: maxHpForLevel(0), maxHp: maxHpForLevel(0), ap: maxApForLevel(0), maxAp: maxApForLevel(0) };
+  return {
+    level: STARTING_LEVEL,
+    xp: 0,
+    hp: maxHpForLevel(STARTING_LEVEL),
+    maxHp: maxHpForLevel(STARTING_LEVEL),
+    ap: maxApForLevel(STARTING_LEVEL),
+    maxAp: maxApForLevel(STARTING_LEVEL),
+  };
 }
 
 function initialState(): GameState {
@@ -88,6 +98,7 @@ function initialState(): GameState {
     playerY: 7,
     facing: "down",
     player: freshPlayer(),
+    knownAttackIds: [...STARTER_ATTACK_IDS],
     inventory: [],
     defeatedEnemyIds: {},
     collectedItemIds: {},
@@ -171,6 +182,7 @@ function reducer(state: GameState, action: Action): GameState {
         playerX: s.playerX,
         playerY: s.playerY,
         player: s.player,
+        knownAttackIds: s.knownAttackIds ?? [...STARTER_ATTACK_IDS],
         inventory: s.inventory,
         defeatedEnemyIds: Object.fromEntries(s.defeatedEnemyIds.map((id) => [id, true as const])),
         collectedItemIds: Object.fromEntries(s.collectedItemIds.map((id) => [id, true as const])),
@@ -464,6 +476,7 @@ export function useGame() {
     if (state.screen === "start") return;
     const data: SaveData = {
       player: state.player,
+      knownAttackIds: state.knownAttackIds,
       inventory: state.inventory,
       currentRoomId: state.currentRoomId,
       playerX: state.playerX,
@@ -472,7 +485,17 @@ export function useGame() {
       collectedItemIds: Object.keys(state.collectedItemIds),
     };
     writeSave(data);
-  }, [state.screen, state.player, state.inventory, state.currentRoomId, state.playerX, state.playerY, state.defeatedEnemyIds, state.collectedItemIds]);
+  }, [
+    state.screen,
+    state.player,
+    state.knownAttackIds,
+    state.inventory,
+    state.currentRoomId,
+    state.playerX,
+    state.playerY,
+    state.defeatedEnemyIds,
+    state.collectedItemIds,
+  ]);
 
   // Auto-clear toast messages after a few seconds.
   useEffect(() => {
@@ -519,7 +542,9 @@ export function useGame() {
       const tile = room.tiles[ny]?.[nx];
       if (!tile || tile === "wall") return;
 
-      const blocked = room.npcs.some((npc) => isNpcActive(npc) && npc.x === nx && npc.y === ny);
+      const blocked =
+        room.npcs.some((npc) => isNpcActive(npc) && npc.x === nx && npc.y === ny) ||
+        room.items.some((item) => !s.collectedItemIds[item.id] && item.x === nx && item.y === ny);
       if (blocked) return;
 
       dispatch({ type: "SET_PLAYER_POS", x: nx, y: ny, facing: dir });
@@ -571,9 +596,9 @@ export function useGame() {
       return;
     }
 
-    const pickup = room.items.find(
-      (p) => !s.collectedItemIds[p.id] && ((p.x === tx && p.y === ty) || (p.x === s.playerX && p.y === s.playerY))
-    );
+    // Items sind solide (siehe movePlayer) - der Spieler kann also nur noch
+    // von einer Nachbar-Kachel aus mit ihnen interagieren, nie darauf stehen.
+    const pickup = room.items.find((p) => !s.collectedItemIds[p.id] && p.x === tx && p.y === ty);
     if (pickup) {
       dispatch({ type: "COLLECT_ITEM", pickupId: pickup.id, itemId: pickup.itemId });
     }
@@ -612,6 +637,7 @@ export function useGame() {
     (attackId: string) => {
       const s = stateRef.current;
       if (!s.battle || s.battle.turn !== "player" || s.battle.outcome !== "ongoing") return;
+      if (attackId !== DESPERATE_ATTACK.id && !s.knownAttackIds.includes(attackId)) return;
       const attack = attackId === DESPERATE_ATTACK.id ? DESPERATE_ATTACK : getAttack(attackId);
       if (attack.apCost > s.player.ap) return;
 

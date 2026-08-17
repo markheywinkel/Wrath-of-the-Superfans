@@ -8,5 +8,5 @@ export const VIEW_TILES_Y = 9;
 export const CANVAS_WIDTH = VIEW_TILES_X * RENDER_TILE;
 export const CANVAS_HEIGHT = VIEW_TILES_Y * RENDER_TILE;
 
-/** Milliseconds between grid steps while a direction is held. */
-export const MOVE_INTERVAL_MS = 150;
+/** Milliseconds between grid steps while a direction is held. Konstant, keine Beschleunigung. */
+export const MOVE_INTERVAL_MS = 180;

@@ -41,12 +41,16 @@ Es gibt drei Fan-Typen für Attacken und Gegner: **Old Trek**, **New Trek**, **S
 
 ### Werte & Level
 
-- Der Spieler startet auf **Level 0** mit 50 Energie (HP) und 20 Attackenenergie (AP).
-- Pro Level: **+10 max. Energie**, **+4 max. Attackenenergie** (siehe `src/game/state/leveling.ts`).
+- Der Spieler startet auf **Level 1** mit den entsprechenden Energie-/Attackenwerten (siehe
+  `src/game/state/leveling.ts`).
+- Pro Level: **+10 max. Energie**, **+4 max. Attackenenergie**.
 - Erfahrungsbedarf für Level *n → n+1*: `15 + n·7` (bewusst flach kalibriert, siehe unten).
 - Ein besiegter Gegner gibt `Gegnerlevel × 15` Erfahrungspunkte.
-- Jede Attacke kostet AP; ist der Attackenbalken leer, bleibt nur der kostenlose
-  „Verzweifelte Klaps“ (5 Schaden, nie typ-effektiv).
+- Der Spieler startet mit genau **4 Attacken** (2 Old-Trek: Kirk-Trivia, Spock-Trivia; 2 New-Trek:
+  J.J.-Abrams-Trivia, Kelvin-Timeline-Fakten) statt dem vollen Repertoire – siehe
+  `STARTER_ATTACK_IDS` in `src/game/data/attacks.ts` und `knownAttackIds` im Spielzustand.
+- Jede Attacke kostet AP; ist der Attackenbalken leer (oder reicht für keine bekannte Attacke),
+  bleibt nur der kostenlose „Verzweifelte Klaps“ (5 Schaden, nie typ-effektiv).
 - Schaden = `Angriffskraft × (1 + Level·0,03) × Typ-Multiplikator`.
 
 ### Kampf-Dialoge
@@ -69,16 +73,20 @@ auslassbar.
 ### Rundenkampf
 
 Kampfbildschirm im Pokémon-Stil: Energie- und Attackenenergie-Balken für Spieler und Gegner,
-Menü mit **Attacke** (alle 30 Attacken, gruppiert nach Typ, deaktiviert wenn zu teuer) und
-**Item** (nur kampftaugliche Items). Gegner wählen zufällig aus ihren erlernten, bezahlbaren Attacken.
+Menü mit **Attacke** (nur die aktuell bekannten Attacken, gruppiert nach Typ, deaktiviert wenn zu
+teuer) und **Item** (nur kampftaugliche Items). Gegner wählen zufällig aus ihren erlernten,
+bezahlbaren Attacken.
 
 ### Die Convention (7 Räume)
 
 Ein zusammenhängendes Gelände aus sieben Bereichen, verbunden durch Türen. Jeder Übergang wird von
-einem **Gate-Boss** mit festem Level bewacht (5 / 10 / 15 / 20 / 25 / 30) – erst wer dieses
-Spielerlevel erreicht hat, kann ihn bezwingen; danach ist der Weg dauerhaft frei.
+einem **Gate-Boss** mit festem Level bewacht (3 / 10 / 15 / 20 / 25 / 30) – erst wer dieses
+Spielerlevel erreicht hat, kann ihn bezwingen; danach ist der Weg dauerhaft frei. Items liegen
+sichtbar (oder gut versteckt) im Raum und sind – genau wie NPCs – **solide**: man muss direkt davor
+stehen und mit Leertaste interagieren, um sie einzusammeln.
 
-1. **Convention-Halle** (Start) – mehrere Merchandise-Stände mit vielen Items.
+1. **Convention-Halle** (Start) – nur Level-1-Gegner (Old & New Trek), Endgegner Level 3. Mehrere
+   Merchandise-Stände mit vielen Items.
 2. **Brücke der TOS-Enterprise**
 3. **Holodeck**
 4. **Brücke der Enterprise-D**
@@ -86,10 +94,6 @@ Spielerlevel erreicht hat, kann ihn bezwingen; danach ist der Weg dauerhaft frei
 6. **Brücke der Discovery**
 7. **Holodeck-Finale** – drei Level-40-Gegner (Old, New, Super) direkt hintereinander, das
    Holodeck "rekonfiguriert" sich zwischen den Kämpfen. Sieg über alle drei = Spielende.
-
-Die normalen Rivalen in jedem Raum sind **beliebig oft wiederholbar** (klassisches „Rematch"), damit
-genug Erfahrung für die Level-Sprünge zwischen den Gate-Bossen gesammelt werden kann. Gate-Bosse und
-die drei Finale-Gegner sind dagegen **einmalig**.
 
 ### Items
 

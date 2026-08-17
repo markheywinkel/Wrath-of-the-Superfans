@@ -50,9 +50,9 @@ const hallRoom: RoomDefinition = {
   npcs: [
     { id: "rival_trekkie_ola", name: "Trekkie Ola", x: 6, y: 6, sprite: "old", interaction: { kind: "battle", enemyId: "rival_trekkie_ola" } },
     { id: "rival_streamer_ben", name: "Streamer Ben", x: 11, y: 6, sprite: "new", interaction: { kind: "battle", enemyId: "rival_streamer_ben" } },
-    { id: "rival_cosplay_una", name: "Cosplayerin Una", x: 16, y: 6, sprite: "super", interaction: { kind: "battle", enemyId: "rival_cosplay_una" } },
+    { id: "rival_cosplay_una", name: "Cosplayerin Una", x: 16, y: 6, sprite: "new", interaction: { kind: "battle", enemyId: "rival_cosplay_una" } },
     { id: "rival_quiz_master_devi", name: "Quizmaster Devi", x: 19, y: 11, sprite: "old", interaction: { kind: "battle", enemyId: "rival_quiz_master_devi" } },
-    { id: "npc_organizer", name: "Congress-Organisatorin", x: 12, y: 12, sprite: "neutral", interaction: { kind: "chat", lines: [{ speaker: "Organisatorin", text: "Willkommen bei WRATH CON! Sammle Items an den Ständen und beweise dich im Kampf." }, { speaker: "Organisatorin", text: "Hinter der Absperrung im Osten wartet der erste Wächter. Level 5 solltest du schon sein." }] } },
+    { id: "npc_organizer", name: "Congress-Organisatorin", x: 12, y: 12, sprite: "neutral", interaction: { kind: "chat", lines: [{ speaker: "Organisatorin", text: "Willkommen bei WRATH CON! Sammle Items an den Ständen und beweise dich im Kampf." }, { speaker: "Organisatorin", text: "Hinter der Absperrung im Osten wartet der erste Wächter. Level 3 solltest du schon sein." }] } },
     { id: "gate_boss_1", name: "Original-Cast-Zelot", x: hallPartitionX, y: 7, sprite: "boss", interaction: { kind: "battle", enemyId: "gate_boss_1" } },
   ],
   items: [
