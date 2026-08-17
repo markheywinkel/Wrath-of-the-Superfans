@@ -80,7 +80,7 @@ bezahlbaren Attacken.
 ### Die Convention (7 Räume)
 
 Ein zusammenhängendes Gelände aus sieben Bereichen, verbunden durch Türen. Jeder Übergang wird von
-einem **Gate-Boss** mit festem Level bewacht (3 / 10 / 15 / 20 / 25 / 30) – erst wer dieses
+einem **Gate-Boss** mit festem Level bewacht (3 / 8 / 13 / 18 / 23 / 28) – erst wer dieses
 Spielerlevel erreicht hat, kann ihn bezwingen; danach ist der Weg dauerhaft frei. Items liegen
 sichtbar (oder gut versteckt) im Raum und sind – genau wie NPCs – **solide**: man muss direkt davor
 stehen und mit Leertaste interagieren, um sie einzusammeln.

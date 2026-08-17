@@ -39,157 +39,157 @@ export const ENEMIES: EnemyDefinition[] = [
     isGateBoss: true,
   },
 
-  // ---------- Raum 2: Brücke der TOS-Enterprise (Level 6-9) ----------
+  // ---------- Raum 2: Brücke der TOS-Enterprise (Level 4-7) ----------
   {
     id: "rival_sulu_fan",
     name: "Steuermann-Fan Cem",
     type: "old",
-    level: 6,
+    level: 4,
     attackIds: ["uhura_trivia", "gorn_trivia"],
   },
   {
     id: "rival_trivia_champ",
     name: "Trivia-Champ Noor",
     type: "new",
-    level: 7,
+    level: 5,
     attackIds: ["jj_abrams_trivia", "burnham_trivia"],
   },
   {
     id: "rival_prime_directive_purist",
     name: "Direktiven-Purist Kalle",
     type: "old",
-    level: 9,
+    level: 7,
     attackIds: ["picard_trivia", "borg_wissen"],
   },
   {
     id: "gate_boss_2",
     name: "Nu-Trek-Enthusiast",
     type: "new",
-    level: 10,
+    level: 8,
     attackIds: ["sporenantrieb", "snap_wende", "kelvin_timeline_fakten"],
     isGateBoss: true,
   },
 
-  // ---------- Raum 3: Holodeck (Level 11-14) ----------
+  // ---------- Raum 3: Holodeck (Level 9-12) ----------
   {
     id: "rival_holodeck_glitch",
     name: "Simulierter Glitch-Fan",
     type: "new",
-    level: 11,
+    level: 9,
     attackIds: ["holo_ansager_sprüche", "short_treks_wissen"],
   },
   {
     id: "rival_costume_contest_king",
     name: "Kostümwettbewerbs-König Theo",
     type: "old",
-    level: 12,
+    level: 10,
     attackIds: ["riker_anmachsprüche", "troy_trivia"],
   },
   {
     id: "rival_simulation_addict",
     name: "Simulations-Süchtiger Farid",
     type: "super",
-    level: 14,
+    level: 12,
     attackIds: ["q_wissen", "klingonisch_c2"],
   },
   {
     id: "gate_boss_3",
     name: "TNG-Purist",
     type: "old",
-    level: 15,
+    level: 13,
     attackIds: ["picard_manöver", "riker_manöver", "borg_wissen"],
     isGateBoss: true,
   },
 
-  // ---------- Raum 4: Brücke der Enterprise D (Level 16-19) ----------
+  // ---------- Raum 4: Brücke der Enterprise D (Level 14-17) ----------
   {
     id: "rival_ops_officer",
     name: "Ops-Offizier Lena",
     type: "old",
-    level: 16,
+    level: 14,
     attackIds: ["riker_trivia", "troy_trivia"],
   },
   {
     id: "rival_replicator_fan",
     name: "Replikator-Fan Timo",
     type: "new",
-    level: 18,
+    level: 16,
     attackIds: ["klingon_redesign_wissen", "seven_of_nine_trivia"],
   },
   {
     id: "rival_bridge_tourist",
     name: "Brücken-Tourist Anke",
     type: "old",
-    level: 19,
+    level: 17,
     attackIds: ["janeway_trivia", "sisko_trivia"],
   },
   {
     id: "gate_boss_4",
     name: "Borg-Kollektiv-Fanatiker",
     type: "old",
-    level: 20,
+    level: 18,
     attackIds: ["borg_wissen", "picard_manöver", "riker_manöver"],
     isGateBoss: true,
   },
 
-  // ---------- Raum 5: Borg-Schiff (Level 21-24) ----------
+  // ---------- Raum 5: Borg-Schiff (Level 19-22) ----------
   {
     id: "rival_assimilated_fan",
     name: "Assimilierter Fan #3 von 9",
     type: "old",
-    level: 21,
+    level: 19,
     attackIds: ["borg_wissen", "gorn_trivia"],
   },
   {
     id: "rival_resistance_cell",
     name: "Widerstandszelle Priya",
     type: "new",
-    level: 22,
+    level: 20,
     attackIds: ["sporenantrieb", "snap_wende"],
   },
   {
     id: "rival_drone_cosplayer",
     name: "Drohnen-Cosplayer Mo",
     type: "super",
-    level: 24,
+    level: 22,
     attackIds: ["fal_tor_voh", "vulkanisch_c2"],
   },
   {
     id: "gate_boss_5",
     name: "Discovery-Stan",
     type: "new",
-    level: 25,
+    level: 23,
     attackIds: ["sporenantrieb", "snap_wende", "holo_ansager_sprüche"],
     isGateBoss: true,
   },
 
-  // ---------- Raum 6: Brücke der Discovery (Level 26-29) ----------
+  // ---------- Raum 6: Brücke der Discovery (Level 24-27) ----------
   {
     id: "rival_spore_drive_engineer",
     name: "Sporenantrieb-Ingenieurin Zeynep",
     type: "new",
-    level: 26,
+    level: 24,
     attackIds: ["sporenantrieb", "klingon_redesign_wissen"],
   },
   {
     id: "rival_burnham_superfan",
     name: "Burnham-Superfan Jonas",
     type: "new",
-    level: 28,
+    level: 26,
     attackIds: ["burnham_trivia", "pike_trivia"],
   },
   {
     id: "rival_lower_decks_fan",
     name: "Lower-Decks-Fan Robin",
     type: "new",
-    level: 29,
+    level: 27,
     attackIds: ["holo_ansager_sprüche", "short_treks_wissen"],
   },
   {
     id: "gate_boss_6",
     name: "Der ultimative Convention-Champion",
     type: "super",
-    level: 30,
+    level: 28,
     attackIds: ["kobayashi_maru", "q_wissen", "fal_tor_voh"],
     isGateBoss: true,
   },
