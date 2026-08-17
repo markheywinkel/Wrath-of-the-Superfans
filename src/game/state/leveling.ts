@@ -11,9 +11,17 @@ export function maxApForLevel(level: number): number {
   return BASE_MAX_AP + level * AP_PER_LEVEL;
 }
 
-/** XP required to go from `level` to `level + 1`. */
+/**
+ * XP required to go from `level` to `level + 1`.
+ *
+ * Kämpfe sind jetzt einmalig (siehe Dialog-1..4-System) statt beliebig oft
+ * wiederholbar, daher ist die Kurve bewusst flach kalibriert: Die Summe der
+ * Erfahrung aus den Rivalen JEDES einzelnen Raums reicht knapp, um bis zum
+ * jeweils nächsten Gate-Boss-Level (5/10/15/20/25/30) zu leveln - kein Grinding
+ * nötig, aber auch keine Fights auslassen.
+ */
 export function xpToNextLevel(level: number): number {
-  return 100 + level * 40;
+  return 15 + level * 7;
 }
 
 /** XP granted for defeating an enemy of the given level. */

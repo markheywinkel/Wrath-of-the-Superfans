@@ -38,10 +38,6 @@ export interface EnemyDefinition {
   type: FanType;
   level: number;
   attackIds: string[];
-  /** Flavor line shown when the fight starts. */
-  tauntLine: string;
-  /** Flavor line shown when the enemy is defeated. */
-  defeatLine: string;
   /** Is this a gate boss that blocks a room transition? */
   isGateBoss?: boolean;
   isFinalGauntlet?: boolean;
@@ -52,8 +48,12 @@ export interface DialogueLine {
   text: string;
 }
 
+// Vor jedem Kampf (Dialog 1), nach Sieg (Dialog 2), nach Niederlage (Dialog 3)
+// und beim erneuten Ansprechen eines bereits besiegten Gegners (Dialog 4)
+// werden zufällige Zeilen aus den globalen Pools in src/game/data/battleDialogues.ts
+// gezogen - Gegner brauchen dafür keine eigenen Dialogzeilen mehr.
 export type NpcInteraction =
-  | { kind: "battle"; enemyId: string; pre: DialogueLine[]; post: DialogueLine[] }
+  | { kind: "battle"; enemyId: string }
   | { kind: "chat"; lines: DialogueLine[] }
   | { kind: "giveItem"; itemId: string; lines: DialogueLine[]; oneTime?: boolean };
 

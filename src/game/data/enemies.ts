@@ -8,8 +8,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 1,
     attackIds: ["kirk_trivia", "spock_trivia"],
-    tauntLine: "Ola: \"Ich kenne JEDE Stardate auswendig. Bereit zu verlieren?\"",
-    defeatLine: "Ola: \"Okay... du kennst dich wirklich aus.\"",
   },
   {
     id: "rival_streamer_ben",
@@ -17,8 +15,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 2,
     attackIds: ["jj_abrams_trivia", "kelvin_timeline_fakten"],
-    tauntLine: "Ben: \"Ich hab 40.000 Follower. Lass sehen, was DU drauf hast.\"",
-    defeatLine: "Ben: \"Das streame ich jetzt lieber nicht...\"",
   },
   {
     id: "rival_cosplay_una",
@@ -26,8 +22,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "super",
     level: 3,
     attackIds: ["klingonisch_c2"],
-    tauntLine: "Una: \"Mein Kostüm ist perfekt. Mein Wissen auch.\"",
-    defeatLine: "Una: \"Respekt. Echter Respekt.\"",
   },
   {
     id: "rival_quiz_master_devi",
@@ -35,8 +29,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 4,
     attackIds: ["mccoy_trivia", "uhura_trivia", "gorn_trivia"],
-    tauntLine: "Devi: \"Ich bin die Quizkönigin dieser Halle!\"",
-    defeatLine: "Devi: \"Die Krone gebührt dir. Vorerst.\"",
   },
   {
     id: "gate_boss_1",
@@ -44,8 +36,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 5,
     attackIds: ["kirk_trivia", "spock_trivia", "picard_manöver"],
-    tauntLine: "Zelot: \"Niemand betritt die Brücke, der nicht TOS in- und auswendig kennt!\"",
-    defeatLine: "Zelot: \"...Live long and prosper. Der Weg ist frei.\"",
     isGateBoss: true,
   },
 
@@ -56,8 +46,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 6,
     attackIds: ["uhura_trivia", "gorn_trivia"],
-    tauntLine: "Cem: \"Ahead warp factor one – und du bist am Ende.\"",
-    defeatLine: "Cem: \"Sauberer Kurs, den du da gefahren bist.\"",
   },
   {
     id: "rival_trivia_champ",
@@ -65,8 +53,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 7,
     attackIds: ["jj_abrams_trivia", "burnham_trivia"],
-    tauntLine: "Noor: \"Alte Serien sind nett. Ich bin auf dem neusten Stand.\"",
-    defeatLine: "Noor: \"Okay, vielleicht kenn ich die Klassiker doch nicht gut genug.\"",
   },
   {
     id: "rival_prime_directive_purist",
@@ -74,8 +60,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 9,
     attackIds: ["picard_trivia", "borg_wissen"],
-    tauntLine: "Kalle: \"Die Erste Direktive verbietet dir nicht, zu verlieren.\"",
-    defeatLine: "Kalle: \"Direktive hin oder her – gut gespielt.\"",
   },
   {
     id: "gate_boss_2",
@@ -83,8 +67,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 10,
     attackIds: ["sporenantrieb", "snap_wende", "kelvin_timeline_fakten"],
-    tauntLine: "Enthusiast: \"Das Holodeck gehört der neuen Generation von Fans!\"",
-    defeatLine: "Enthusiast: \"Alle Achtung – das Holodeck ist frei.\"",
     isGateBoss: true,
   },
 
@@ -95,8 +77,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 11,
     attackIds: ["holo_ansager_sprüche", "short_treks_wissen"],
-    tauntLine: "Glitch-Fan: \"Programm läuft. Bereit für eine Niederlage?\"",
-    defeatLine: "Glitch-Fan: \"Programm... beendet.\"",
   },
   {
     id: "rival_costume_contest_king",
@@ -104,8 +84,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 12,
     attackIds: ["riker_anmachsprüche", "troy_trivia"],
-    tauntLine: "Theo: \"Mein Riker-Bart ist unschlagbar. Genau wie ich.\"",
-    defeatLine: "Theo: \"Der Bart bleibt. Der Sieg geht an dich.\"",
   },
   {
     id: "rival_simulation_addict",
@@ -113,8 +91,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "super",
     level: 14,
     attackIds: ["q_wissen", "klingonisch_c2"],
-    tauntLine: "Farid: \"Ich hab dieses Programm schon tausendmal durchgespielt!\"",
-    defeatLine: "Farid: \"Tausendundein Mal reicht wohl nicht.\"",
   },
   {
     id: "gate_boss_3",
@@ -122,8 +98,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 15,
     attackIds: ["picard_manöver", "riker_manöver", "borg_wissen"],
-    tauntLine: "Purist: \"Ohne Picard-Niveau kommst du nicht auf diese Brücke!\"",
-    defeatLine: "Purist: \"Make it so. Du darfst passieren.\"",
     isGateBoss: true,
   },
 
@@ -134,8 +108,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 16,
     attackIds: ["riker_trivia", "troy_trivia"],
-    tauntLine: "Lena: \"Schilde oben! Mein Wissen ist unangreifbar.\"",
-    defeatLine: "Lena: \"Schilde... gefallen.\"",
   },
   {
     id: "rival_replicator_fan",
@@ -143,8 +115,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 18,
     attackIds: ["klingon_redesign_wissen", "seven_of_nine_trivia"],
-    tauntLine: "Timo: \"Tee, Earl Grey, du bist gleich weg vom Fenster.\"",
-    defeatLine: "Timo: \"Warm serviert und trotzdem verloren.\"",
   },
   {
     id: "rival_bridge_tourist",
@@ -152,8 +122,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 19,
     attackIds: ["janeway_trivia", "sisko_trivia"],
-    tauntLine: "Anke: \"Ich hab jede Brücke der Flotte auswendig gelernt!\"",
-    defeatLine: "Anke: \"Kurs korrigiert. Du gewinnst.\"",
   },
   {
     id: "gate_boss_4",
@@ -161,8 +129,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 20,
     attackIds: ["borg_wissen", "picard_manöver", "riker_manöver"],
-    tauntLine: "Fanatiker: \"Widerstand ist zwecklos. Du wirst assimiliert.\"",
-    defeatLine: "Fanatiker: \"Individualität... wiederhergestellt. Geh weiter.\"",
     isGateBoss: true,
   },
 
@@ -173,8 +139,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 21,
     attackIds: ["borg_wissen", "gorn_trivia"],
-    tauntLine: "#3 von 9: \"Ihre biologische und technologische Trivia wird zu unserer.\"",
-    defeatLine: "#3 von 9: \"Verbindung... unterbrochen.\"",
   },
   {
     id: "rival_resistance_cell",
@@ -182,8 +146,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 22,
     attackIds: ["sporenantrieb", "snap_wende"],
-    tauntLine: "Priya: \"Wir kämpfen für die neue Generation von Sternenflotten-Wissen!\"",
-    defeatLine: "Priya: \"Rückzug... aber wir kommen wieder.\"",
   },
   {
     id: "rival_drone_cosplayer",
@@ -191,8 +153,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "super",
     level: 24,
     attackIds: ["fal_tor_voh", "vulkanisch_c2"],
-    tauntLine: "Mo: \"Perfektion ist erreichbar. Beobachte.\"",
-    defeatLine: "Mo: \"Perfektion... angepasst.\"",
   },
   {
     id: "gate_boss_5",
@@ -200,8 +160,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 25,
     attackIds: ["sporenantrieb", "snap_wende", "holo_ansager_sprüche"],
-    tauntLine: "Stan: \"Die Brücke der Discovery ist nur für echte Fans der neuen Ära!\"",
-    defeatLine: "Stan: \"Respekt – du hast den Sprung geschafft.\"",
     isGateBoss: true,
   },
 
@@ -212,8 +170,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 26,
     attackIds: ["sporenantrieb", "klingon_redesign_wissen"],
-    tauntLine: "Zeynep: \"Ich navigiere durch das Mycel-Netzwerk – und durch dich hindurch.\"",
-    defeatLine: "Zeynep: \"Kurs verloren. Gut gemacht.\"",
   },
   {
     id: "rival_burnham_superfan",
@@ -221,8 +177,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 28,
     attackIds: ["burnham_trivia", "pike_trivia"],
-    tauntLine: "Jonas: \"Ich habe jede Episode dreimal gesehen. Und du?\"",
-    defeatLine: "Jonas: \"Vielleicht schau ich mir nochmal alles an. Respekt.\"",
   },
   {
     id: "rival_lower_decks_fan",
@@ -230,8 +184,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 29,
     attackIds: ["holo_ansager_sprüche", "short_treks_wissen"],
-    tauntLine: "Robin: \"Mangelnder Ernst ist meine stärkste Waffe!\"",
-    defeatLine: "Robin: \"Okay, das war tatsächlich lustig UND stark.\"",
   },
   {
     id: "gate_boss_6",
@@ -239,8 +191,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "super",
     level: 30,
     attackIds: ["kobayashi_maru", "q_wissen", "fal_tor_voh"],
-    tauntLine: "Champion: \"Bevor du ins letzte Holodeck darfst, musst du an MIR vorbei!\"",
-    defeatLine: "Champion: \"Unmöglich... aber wahr. Das Holodeck ist dein.\"",
     isGateBoss: true,
   },
 
@@ -251,8 +201,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "old",
     level: 40,
     attackIds: ["enterprise_baupläne", "picard_manöver", "borg_wissen", "riker_manöver"],
-    tauntLine: "Ur-Fan: \"Ich BIN die klassische Ära, verkörpert von einer Simulation.\"",
-    defeatLine: "Ur-Fan: \"...die alte Garde verneigt sich.\"",
     isFinalGauntlet: true,
   },
   {
@@ -261,8 +209,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "new",
     level: 40,
     attackIds: ["sporenantrieb", "snap_wende", "holo_ansager_sprüche", "kelvin_timeline_fakten"],
-    tauntLine: "Streaming-Ära: \"Die Zukunft von Star Trek – das bin ich.\"",
-    defeatLine: "Streaming-Ära: \"...auch die Zukunft muss sich geschlagen geben.\"",
     isFinalGauntlet: true,
   },
   {
@@ -271,8 +217,6 @@ export const ENEMIES: EnemyDefinition[] = [
     type: "super",
     level: 40,
     attackIds: ["kobayashi_maru", "fal_tor_voh", "q_wissen", "klingonisch_c2"],
-    tauntLine: "Superfan: \"Ich bin jede Ära zugleich. Niemand schlägt mich.\"",
-    defeatLine: "Superfan: \"...du bist der ultimative Superfan. Nicht ich.\"",
     isFinalGauntlet: true,
   },
 ];

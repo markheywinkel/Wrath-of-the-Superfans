@@ -13,6 +13,7 @@ import { getRoom, FIRST_ROOM_ID } from "@/game/data/rooms";
 import { getEnemy, FINAL_GAUNTLET_IDS } from "@/game/data/enemies";
 import { getAttack } from "@/game/data/attacks";
 import { getItem } from "@/game/data/items";
+import { DIALOG_1, DIALOG_2, DIALOG_3, DIALOG_4, pickRandom } from "@/game/data/battleDialogues";
 import {
   applyLevelUp,
   applyXp,
@@ -49,7 +50,8 @@ export interface BattleState {
 
 type DialogueAfter =
   | { type: "none" }
-  | { type: "startBattle"; enemyId: string; npcId: string };
+  | { type: "startBattle"; enemyId: string; npcId: string }
+  | { type: "toWin" };
 
 interface DialogueState {
   lines: DialogueLine[];
@@ -117,6 +119,7 @@ type Action =
   | { type: "SET_BATTLE_TURN"; turn: "player" | "enemy" }
   | { type: "END_BATTLE"; outcome: "win" | "lose" }
   | { type: "CLOSE_BATTLE_TO_FIELD" }
+  | { type: "APPLY_LOSS_REVIVE"; x: number; y: number }
   | { type: "GAIN_XP"; amount: number }
   | { type: "GRANT_ITEM"; itemId: string }
   | { type: "COLLECT_ITEM"; pickupId: string; itemId: string }
@@ -204,7 +207,10 @@ function reducer(state: GameState, action: Action): GameState {
       if (after.type === "startBattle") {
         return startBattleState(state, after.npcId, after.enemyId);
       }
-      return { ...state, screen: "field", dialogue: null };
+      if (after.type === "toWin") {
+        return { ...state, screen: "win", dialogue: null, battle: null };
+      }
+      return { ...state, screen: "field", dialogue: null, battle: null };
     }
 
     case "START_BATTLE":
@@ -254,38 +260,29 @@ function reducer(state: GameState, action: Action): GameState {
     case "END_BATTLE": {
       if (!state.battle) return state;
       const battle = { ...state.battle, outcome: action.outcome };
+      // Jeder gewonnene Kampf ist endgültig: ein erneutes Ansprechen löst nur
+      // noch Dialog 4 aus (siehe interact()), keinen weiteren Kampf.
       let defeatedEnemyIds = state.defeatedEnemyIds;
-      if (action.outcome === "win" && (battle.isGateBoss || battle.isFinalGauntlet)) {
+      if (action.outcome === "win") {
         defeatedEnemyIds = { ...defeatedEnemyIds, [battle.enemyId]: true };
       }
       return { ...state, battle, defeatedEnemyIds };
     }
 
-    case "CLOSE_BATTLE_TO_FIELD": {
-      if (!state.battle) return { ...state, screen: "field" };
-      const wasWin = state.battle.outcome === "win";
-      const isFinaleWin =
-        wasWin && state.battle.isFinalGauntlet && FINAL_GAUNTLET_IDS.every((id) => state.defeatedEnemyIds[id] || id === state.battle!.enemyId);
-
-      if (isFinaleWin) {
-        return { ...state, screen: "win", battle: null };
-      }
-
-      if (!wasWin) {
-        // Player lost: revive at the entry of the current room with half HP.
-        const room = getRoom(state.currentRoomId);
-        const entry = Object.values(room.entryPoints)[0] ?? { x: 2, y: 7 };
-        return {
-          ...state,
-          screen: "field",
-          battle: null,
-          playerX: entry.x,
-          playerY: entry.y,
-          player: { ...state.player, hp: Math.max(1, Math.round(state.player.maxHp / 2)), ap: state.player.maxAp },
-          toast: "Du wachst im Sanitätszelt wieder auf...",
-        };
-      }
+    // Fallback ohne Dialog (z.B. falls kein battle-Objekt mehr existiert). Der
+    // reguläre Weg zurück ins Feld läuft über eine OPEN_DIALOGUE mit Dialog
+    // 2/3, siehe closeBattleToField() im Hook weiter unten.
+    case "CLOSE_BATTLE_TO_FIELD":
       return { ...state, screen: "field", battle: null };
+
+    case "APPLY_LOSS_REVIVE": {
+      return {
+        ...state,
+        battle: null,
+        playerX: action.x,
+        playerY: action.y,
+        player: { ...state.player, hp: Math.max(1, Math.round(state.player.maxHp / 2)), ap: state.player.maxAp },
+      };
     }
 
     case "GAIN_XP": {
@@ -359,7 +356,7 @@ function startBattleState(state: GameState, npcId: string | undefined, enemyId: 
       enemyMaxAp: maxApForLevel(enemy.level),
       enemyAttackIds: enemy.attackIds,
       menu: "main",
-      log: [enemy.tauntLine],
+      log: [`${enemy.name} tritt zum Kampf an!`],
       turn: "player",
       outcome: "ongoing",
       isGateBoss: !!enemy.isGateBoss,
@@ -552,11 +549,21 @@ export function useGame() {
       if (npc.interaction.kind === "chat") {
         dispatch({ type: "OPEN_DIALOGUE", lines: npc.interaction.lines, after: { type: "none" } });
       } else if (npc.interaction.kind === "battle") {
-        dispatch({
-          type: "OPEN_DIALOGUE",
-          lines: npc.interaction.pre,
-          after: { type: "startBattle", npcId: npc.id, enemyId: npc.interaction.enemyId },
-        });
+        const enemy = getEnemy(npc.interaction.enemyId);
+        if (s.defeatedEnemyIds[enemy.id]) {
+          // Bereits besiegt: nur noch Small-Talk (Dialog 4), kein erneuter Kampf.
+          dispatch({
+            type: "OPEN_DIALOGUE",
+            lines: [{ speaker: npc.name, text: pickRandom(DIALOG_4) }],
+            after: { type: "none" },
+          });
+        } else {
+          dispatch({
+            type: "OPEN_DIALOGUE",
+            lines: [{ speaker: npc.name, text: pickRandom(DIALOG_1) }],
+            after: { type: "startBattle", npcId: npc.id, enemyId: enemy.id },
+          });
+        }
       } else if (npc.interaction.kind === "giveItem") {
         dispatch({ type: "OPEN_DIALOGUE", lines: npc.interaction.lines, after: { type: "none" } });
         dispatch({ type: "GRANT_ITEM", itemId: npc.interaction.itemId });
@@ -623,7 +630,7 @@ export function useGame() {
       if (newEnemyHp <= 0) {
         dispatch({ type: "END_BATTLE", outcome: "win" });
         const enemy = getEnemy(s.battle.enemyId);
-        dispatch({ type: "BATTLE_LOG", lines: [enemy.defeatLine] });
+        dispatch({ type: "BATTLE_LOG", lines: [`${enemy.name} ist besiegt!`] });
         dispatch({ type: "GAIN_XP", amount: xpForDefeatingEnemy(s.battle.enemyLevel) });
       } else {
         window.setTimeout(runEnemyTurn, 900);
@@ -649,7 +656,7 @@ export function useGame() {
       if (newEnemyHp <= 0) {
         dispatch({ type: "END_BATTLE", outcome: "win" });
         const enemy = getEnemy(s.battle.enemyId);
-        dispatch({ type: "BATTLE_LOG", lines: [enemy.defeatLine] });
+        dispatch({ type: "BATTLE_LOG", lines: [`${enemy.name} ist besiegt!`] });
         dispatch({ type: "GAIN_XP", amount: xpForDefeatingEnemy(s.battle.enemyLevel) });
       } else {
         window.setTimeout(runEnemyTurn, 900);
@@ -666,18 +673,34 @@ export function useGame() {
 
   const closeBattleToField = useCallback(() => {
     const s = stateRef.current;
-    const wasWinWithNpcDialogue =
-      s.battle?.outcome === "win" && s.battle.npcId && !s.battle.isFinalGauntlet;
-    if (wasWinWithNpcDialogue) {
-      const room = getRoom(s.currentRoomId);
-      const npc = room.npcs.find((n) => n.id === s.battle!.npcId);
-      if (npc && npc.interaction.kind === "battle" && npc.interaction.post.length > 0) {
-        dispatch({ type: "CLOSE_BATTLE_TO_FIELD" });
-        dispatch({ type: "OPEN_DIALOGUE", lines: npc.interaction.post, after: { type: "none" } });
-        return;
-      }
+    const battle = s.battle;
+    if (!battle || battle.outcome === "ongoing") {
+      dispatch({ type: "CLOSE_BATTLE_TO_FIELD" });
+      return;
     }
-    dispatch({ type: "CLOSE_BATTLE_TO_FIELD" });
+
+    if (battle.outcome === "win") {
+      // Dialog 2: der Gegner gibt sich geschlagen. Nur nach dem LETZTEN der
+      // drei Finale-Kämpfe geht es danach direkt zum Sieg-Screen.
+      const isLastFinaleFight = battle.isFinalGauntlet && FINAL_GAUNTLET_IDS.every((id) => s.defeatedEnemyIds[id]);
+      dispatch({
+        type: "OPEN_DIALOGUE",
+        lines: [{ speaker: battle.enemyName, text: pickRandom(DIALOG_2) }],
+        after: isLastFinaleFight ? { type: "toWin" } : { type: "none" },
+      });
+      return;
+    }
+
+    // Niederlage: Dialog 3, Wiederbelebung mit halber Energie am Raumeingang.
+    // Der Gegner bleibt aktiv - man muss ihn erneut ansprechen (Dialog 1).
+    const room = getRoom(s.currentRoomId);
+    const entry = Object.values(room.entryPoints)[0] ?? { x: 2, y: 7 };
+    dispatch({ type: "APPLY_LOSS_REVIVE", x: entry.x, y: entry.y });
+    dispatch({
+      type: "OPEN_DIALOGUE",
+      lines: [{ speaker: battle.enemyName, text: pickRandom(DIALOG_3) }],
+      after: { type: "none" },
+    });
   }, []);
 
   const toggleInventory = useCallback((open?: boolean) => dispatch({ type: "TOGGLE_INVENTORY", open }), []);
