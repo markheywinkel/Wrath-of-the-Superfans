@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "PixelFont";
+  src: local("Courier New");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #0a0a12;
+  color: #e8e8f0;
+  overflow: hidden;
+  height: 100%;
+  font-family: "Press Start 2P", "PixelFont", ui-monospace, monospace;
+  -webkit-font-smoothing: none;
+}
+
+#__next {
+  height: 100%;
+}
+
+button {
+  font-family: inherit;
+}
+
+canvas {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+::selection {
+  background: #ffcc00;
+  color: #000;
+}
