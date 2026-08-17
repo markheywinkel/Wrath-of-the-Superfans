@@ -119,7 +119,7 @@ export default function GameRoot() {
   const dialogueLine = state.dialogue ? state.dialogue.lines[state.dialogue.index] : null;
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", padding: "16px 8px" }}>
+    <div style={{ height: "100%", minHeight: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: "16px 8px" }}>
       <HUD player={state.player} roomName={room.name} />
       <div style={{ position: "relative", width: "100%", maxWidth: CANVAS_WIDTH, margin: "0 auto" }}>
         <GameCanvas

@@ -12,7 +12,8 @@ export default function WinScreen({ player, onRestart }: Props) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100%",
+        minHeight: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

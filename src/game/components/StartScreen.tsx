@@ -13,7 +13,8 @@ export default function StartScreen({ hasSave, onNewGame, onContinue }: Props) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100%",
+        minHeight: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
