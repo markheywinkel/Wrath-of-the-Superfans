@@ -1,7 +1,13 @@
-import GameRoot from "@/game/components/GameRoot";
+import type { Metadata } from "next";
+import NarratorGameRoot from "@/narrator-game/NarratorGameRoot";
 import Starfield from "@/game/components/Starfield";
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: "Der Abgrund",
+  description: "Ein 2D-Jump'n'Run mit Erzähler-Voice-Over und Untertiteln.",
+};
+
+export default function AbgrundPage() {
   return (
     <>
       <Starfield />
@@ -28,41 +34,28 @@ export default function Home() {
               textShadow: "0 0 12px rgba(255,204,0,0.35)",
             }}
           >
-            WRATH OF THE SUPERFANS
+            DER ABGRUND
           </h1>
           <p style={{ margin: "8px 0 0", fontSize: 10, color: "#8a8a9a", letterSpacing: 1 }}>
-            Ein 8-Bit-Rollenspiel von der größten Star-Trek-Convention aller Zeiten
+            Ein 2D-Jump&apos;n&apos;Run mit Erzähler
           </p>
         </header>
 
-        <div
-          style={{
-            width: "min(720px, 96vw)",
-            height: 640,
-            maxHeight: "80vh",
-            overflow: "auto",
-            border: "4px solid #000",
-            borderRadius: 6,
-            boxShadow: "0 0 0 4px #333, 0 24px 70px rgba(0,0,0,0.65)",
-            background: "#05050a",
-          }}
-        >
-          <GameRoot />
-        </div>
+        <NarratorGameRoot />
 
         <a
-          href="/abgrund"
+          href="/"
           style={{
-            fontSize: 9,
-            color: "#ffcc00",
+            fontSize: 8,
+            color: "#8a8a9a",
             letterSpacing: 0.5,
             textDecoration: "none",
-            border: "2px solid #ffcc00",
+            border: "1px solid #333",
             borderRadius: 3,
-            padding: "8px 14px",
+            padding: "6px 10px",
           }}
         >
-          → weiteres Spiel: Der Abgrund (2D-Jump&apos;n&apos;Run mit Erzähler)
+          ← zurück zu Wrath of the Superfans
         </a>
 
         <footer style={{ fontSize: 8, color: "#555", letterSpacing: 0.5 }}>WRATH CON &middot; alle Rechte bei den Superfans</footer>
