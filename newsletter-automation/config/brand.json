@@ -1,0 +1,57 @@
+{
+  "_hinweis": "Hausdesign des Newsletters. Farben, Schriften, Logo und Footer hier anpassen – das Template (src/pipeline/mjml.js) liest alles von hier.",
+  "name": "Mein Verlag",
+  "newsletterName": "Der Newsletter",
+  "locale": "de_DE",
+  "width": 600,
+  "showDate": true,
+  "logo": {
+    "url": "",
+    "width": 160,
+    "alt": "Mein Verlag",
+    "href": "https://www.example.com"
+  },
+  "colors": {
+    "background": "#f2f0eb",
+    "content": "#ffffff",
+    "text": "#222222",
+    "headline": "#111111",
+    "primary": "#c8102e",
+    "primaryText": "#ffffff",
+    "link": "#c8102e",
+    "muted": "#6b6b6b",
+    "divider": "#e3e0d8",
+    "adBackground": "#faf8f3"
+  },
+  "fonts": {
+    "headline": {
+      "name": "Merriweather",
+      "url": "https://fonts.googleapis.com/css2?family=Merriweather:wght@700&display=swap",
+      "stack": "Merriweather, Georgia, 'Times New Roman', serif"
+    },
+    "body": {
+      "name": "Source Sans 3",
+      "url": "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700&display=swap",
+      "stack": "'Source Sans 3', Helvetica, Arial, sans-serif"
+    }
+  },
+  "fontSizes": {
+    "title": "32px",
+    "articleHeading": "24px",
+    "subheading": "19px",
+    "body": "17px",
+    "small": "13px"
+  },
+  "adLabel": "Anzeige",
+  "footer": {
+    "text": "Sie erhalten diesen Newsletter, weil Sie ihn auf www.example.com abonniert haben.",
+    "address": "Mein Verlag GmbH · Musterstraße 1 · 12345 Musterstadt",
+    "links": [
+      { "label": "Impressum", "href": "https://www.example.com/impressum" },
+      { "label": "Datenschutz", "href": "https://www.example.com/datenschutz" }
+    ],
+    "unsubscribeLabel": "Newsletter abbestellen",
+    "unsubscribeTag": "[[UNSUB_LINK_DE]]"
+  },
+  "styleMap": []
+}

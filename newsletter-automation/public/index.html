@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Newsletter-Produktion</title>
+    <link rel="icon" href="assets/icon-32.png" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Office.js: nur nötig, wenn die Seite als Word-Add-in läuft. Im Browser schadet es nicht. -->
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="buddy" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="40" height="40">
+          <rect x="4" y="10" width="40" height="28" rx="5" fill="var(--accent)" />
+          <path d="M6 13 L24 27 L42 13" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="17" cy="33" r="2" fill="#fff" /><circle cx="31" cy="33" r="2" fill="#fff" />
+        </svg>
+      </div>
+      <div>
+        <h1>Newsletter-Assistent</h1>
+        <p class="bubble" id="buddy-says">Hallo! Ich mache aus dem fertigen Dokument den Newsletter im Hausdesign und übergebe ihn an Mailjet.</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel" id="settings">
+        <!-- 1. Dokument -->
+        <fieldset class="step">
+          <legend><span class="num">1</span> Dokument</legend>
+          <div id="word-source" hidden>
+            <p class="hint">Ich lese das gerade geöffnete Word-Dokument ein.</p>
+            <button type="button" id="load-word" class="secondary">Dokument (neu) einlesen</button>
+          </div>
+          <div id="file-source">
+            <label class="drop" id="drop">
+              <input type="file" id="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+              <strong>Word-Datei (.docx) hier ablegen</strong>
+              <span>oder klicken zum Auswählen · in Word Online: Datei → Speichern unter → Kopie herunterladen</span>
+            </label>
+          </div>
+          <p class="doc-name" id="doc-name"></p>
+          <div id="review-box" class="review" hidden></div>
+        </fieldset>
+
+        <!-- 2. Betreff -->
+        <fieldset class="step" disabled id="step-content">
+          <legend><span class="num">2</span> Betreff &amp; Vorschautext</legend>
+          <label>Betreffzeile
+            <input type="text" id="subject" maxlength="200" placeholder="wird aus dem Titel übernommen" />
+          </label>
+          <label>Preheader (Vorschautext im Posteingang)
+            <input type="text" id="preheader" maxlength="200" placeholder="wird aus dem Untertitel übernommen" />
+          </label>
+          <label class="check"><input type="checkbox" id="ab-enabled" /> Betreff im A/B-Test prüfen</label>
+          <div id="ab-box" hidden>
+            <label>Betreff B
+              <input type="text" id="subject-b" maxlength="200" />
+            </label>
+            <p class="hint">Die Empfängerliste wird zufällig 50/50 aufgeteilt; jede Hälfte bekommt eine Betreffvariante. Die Öffnungsraten vergleichen Sie danach in Mailjet.</p>
+          </div>
+        </fieldset>
+
+        <!-- 3. Anzeigen -->
+        <fieldset class="step" disabled id="step-ads">
+          <legend><span class="num">3</span> Anzeigen</legend>
+          <div id="ad-slots"><p class="hint">Im Dokument markiert ein eigener Absatz <code>[ANZEIGE]</code> oder <code>[ANZEIGE: Name]</code> einen Werbeplatz.</p></div>
+        </fieldset>
+
+        <!-- 4. Versand -->
+        <fieldset class="step" disabled id="step-send">
+          <legend><span class="num">4</span> Versand</legend>
+          <label>Empfängerliste
+            <select id="list"></select>
+          </label>
+          <div class="radios" id="mode">
+            <label class="check"><input type="radio" name="mode" value="schedule" checked /> Zu einem Zeitpunkt versenden</label>
+            <label class="check"><input type="radio" name="mode" value="now" /> Sofort versenden</label>
+            <label class="check"><input type="radio" name="mode" value="draft" /> Nur als Entwurf in Mailjet anlegen</label>
+            <label class="check"><input type="radio" name="mode" value="archive" /> Nur MJML/HTML ablegen (nichts an Mailjet)</label>
+          </div>
+          <label id="at-box">Versandzeitpunkt
+            <input type="datetime-local" id="at" />
+          </label>
+          <label>Testmail vorher an (optional, mehrere mit Komma)
+            <input type="text" id="test-emails" placeholder="name@verlag.de" />
+          </label>
+          <label class="check confirm"><input type="checkbox" id="proofread" /> Das Korrektorat ist abgeschlossen.</label>
+          <label class="check" id="ignore-review-box" hidden><input type="checkbox" id="ignore-review" /> Offene Kommentare/Änderungen ignorieren</label>
+        </fieldset>
+
+        <div class="checks" id="checks"></div>
+        <button type="button" id="publish" class="primary" disabled>Newsletter produzieren</button>
+        <div id="result" class="result" hidden></div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="preview-bar">
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab active" data-tab="html">Vorschau</button>
+            <button type="button" class="tab" data-tab="mjml">MJML</button>
+            <button type="button" class="tab" data-tab="text">Text</button>
+          </div>
+          <div class="tabs">
+            <button type="button" class="tab active" data-width="desktop" title="Desktop">Desktop</button>
+            <button type="button" class="tab" data-width="mobile" title="Smartphone">Mobil</button>
+            <button type="button" class="tab" id="download-mjml" title="MJML herunterladen">⬇ MJML</button>
+          </div>
+        </div>
+        <div class="preview-frame" id="frame-wrap">
+          <iframe id="preview" title="Newsletter-Vorschau" sandbox="allow-popups allow-popups-to-escape-sandbox"></iframe>
+          <pre id="code" hidden></pre>
+          <div class="empty" id="empty">Noch kein Dokument eingelesen.</div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="confirm">
+      <form method="dialog">
+        <h2>Wirklich produzieren?</h2>
+        <div id="confirm-text"></div>
+        <menu>
+          <button value="cancel" class="secondary">Abbrechen</button>
+          <button value="ok" class="primary" id="confirm-ok">Ja, los</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="token-dialog">
+      <form method="dialog">
+        <h2>Zugangsschlüssel</h2>
+        <p>Bitte den Zugangsschlüssel für die Newsletter-Produktion eingeben (bekommen Sie vom Admin).</p>
+        <input type="password" id="token-input" autocomplete="current-password" />
+        <menu><button value="ok" class="primary">Speichern</button></menu>
+      </form>
+    </dialog>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

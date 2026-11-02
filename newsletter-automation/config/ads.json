@@ -1,0 +1,34 @@
+{
+  "_hinweis": "Anzeigen-Inventar. Im Dokument markiert ein Absatz [ANZEIGE] oder [ANZEIGE: Name] einen Werbeplatz; beim Produzieren wird pro Platz eine Anzeige aus dieser Liste gewählt. 'default' gilt, wenn nichts gewählt wird.",
+  "ads": [
+    {
+      "id": "partner-a-herbst",
+      "name": "Partner A – Herbstkampagne",
+      "sponsor": "Partner A",
+      "image": "https://placehold.co/1200x400/png?text=Partner+A",
+      "href": "https://www.example.com/partner-a?utm_source=newsletter",
+      "alt": "Partner A – jetzt entdecken",
+      "text": "",
+      "default": true
+    },
+    {
+      "id": "partner-b-text",
+      "name": "Partner B – Textanzeige",
+      "sponsor": "Partner B",
+      "image": "",
+      "href": "https://www.example.com/partner-b?utm_source=newsletter",
+      "alt": "",
+      "headline": "Partner B: 20 % Rabatt für Leserinnen und Leser",
+      "text": "Mit dem Code NEWSLETTER20 sparen Sie bis Ende des Monats.",
+      "cta": "Zum Angebot"
+    },
+    {
+      "id": "eigenwerbung-abo",
+      "name": "Eigenwerbung – Digitalabo",
+      "sponsor": "",
+      "image": "https://placehold.co/1200x400/png?text=Digitalabo",
+      "href": "https://www.example.com/abo?utm_source=newsletter",
+      "alt": "Jetzt Digitalabo testen"
+    }
+  ]
+}
