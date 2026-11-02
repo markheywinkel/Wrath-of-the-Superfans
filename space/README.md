@@ -35,7 +35,7 @@ python3 -m http.server 8000
   - Tourist: alle fünf Planeten besucht
   - Amor: Liebesbrief überbracht
   - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
-- Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, beim Beschleunigen, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
+- Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 
 ## Deployment auf space.markheywinkel.de
