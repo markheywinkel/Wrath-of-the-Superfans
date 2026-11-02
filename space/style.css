@@ -106,10 +106,31 @@ canvas {
 .quests li .to { color: var(--muted); }
 
 /* ---------- Badges rechts oben ---------- */
-.badges {
+.top-right {
   position: fixed;
-  top: calc(14px + env(safe-area-inset-top));
-  right: calc(14px + env(safe-area-inset-right));
+  top: calc(10px + env(safe-area-inset-top));
+  right: calc(10px + env(safe-area-inset-right));
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.sound {
+  width: 36px;
+  height: 32px;
+  padding: 6px;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+}
+.sound svg { width: 22px; height: 18px; display: block; }
+.sound .off { display: none; }
+.sound.muted { color: var(--muted); }
+.sound.muted .on { display: none; }
+.sound.muted .off { display: inline; }
+.badges {
+  padding-top: 4px;
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;

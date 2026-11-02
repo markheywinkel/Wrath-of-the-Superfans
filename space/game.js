@@ -779,7 +779,7 @@
       const t = TEXTS.stations[b.id];
       if (t) {
         const g = giverLines(t);
-        openDialog(t.with, g.lines, '', g.after);
+        openDialog(t.with, g.lines, t.name || '', g.after);
       }
       return;
     }
@@ -846,6 +846,9 @@
       src.start(t0); src.stop(t0 + dur);
     }
     let lastBoost = 0;
+    // Ton an/aus (nur diese Einstellung merkt sich der Browser, kein Spielstand)
+    let muted = false;
+    try { muted = localStorage.getItem('space.muted') === '1'; } catch (_) { /* egal */ }
     const play = {
       // Kristall: zartes, glockiges Glitzern
       crystal() { tone(1318.5, 0, 0.5, 0.32); tone(1975.5, 0.07, 0.6, 0.22); tone(2637, 0.14, 0.5, 0.08); },
@@ -865,7 +868,12 @@
     };
     return {
       init,
-      play(name) { try { if (ac && ac.state === 'running' && play[name]) play[name](); } catch (_) { /* ohne Ton weiter */ } },
+      play(name) { try { if (!muted && ac && ac.state === 'running' && play[name]) play[name](); } catch (_) { /* ohne Ton weiter */ } },
+      get muted() { return muted; },
+      setMuted(m) {
+        muted = m;
+        try { localStorage.setItem('space.muted', m ? '1' : '0'); } catch (_) { /* egal */ }
+      },
     };
   })();
 
@@ -1806,6 +1814,18 @@
     setTimeout(pump, 500);
   }
   dialogEl.querySelector('.next').addEventListener('click', dialogNext);
+
+  // --- Ton-Schalter oben rechts
+  const soundBtn = document.getElementById('sound');
+  function renderSound() {
+    const m = sfx.muted;
+    soundBtn.classList.toggle('muted', m);
+    soundBtn.setAttribute('aria-pressed', String(!m));
+    soundBtn.title = m ? 'Ton an' : 'Ton aus';
+    soundBtn.setAttribute('aria-label', soundBtn.title);
+  }
+  soundBtn.addEventListener('click', () => { sfx.setMuted(!sfx.muted); renderSound(); if (!sfx.muted) sfx.play('crystal'); });
+  renderSound();
 
   // --- Meldungen und Belohnungen: eine Warteschlange, alles nacheinander
   const toastEl = document.getElementById('toasts');

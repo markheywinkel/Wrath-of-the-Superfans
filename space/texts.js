@@ -18,10 +18,10 @@ window.SPACE_TEXTS = {
   characters: {
     gwen: { name: 'Gwen', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
     quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
-    norman: { name: 'Norman', tier: 'Mechaniker', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
-    sid: { name: 'Sid', tier: 'Pilot', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
-    ivy: { name: 'Ivy', tier: 'Kommandantin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
-    west: { name: 'West', tier: 'Forscher', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
+    norman: { name: 'Norman', tier: 'Navigator', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
+    sie: { name: 'Sie', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
+    ivy: { name: 'Ivy', tier: 'Wissenschaftlerin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
+    west: { name: 'West', tier: 'Notar', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
   },
 
   /*
@@ -57,7 +57,7 @@ window.SPACE_TEXTS = {
    */
   ships: [
     {
-      name: 'Lorem-Kreuzer',
+      name: 'Handelskreuzer Normandy',
       with: 'quentin',
       quest: 'brief',
       offer: [
@@ -69,7 +69,7 @@ window.SPACE_TEXTS = {
       thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank, Gwen!']],
     },
     {
-      name: 'Ipsum-Fähre',
+      name: 'Fährschiff Nostromo',
       with: 'norman',
       quest: 'aquarium',
       offer: [
@@ -81,22 +81,23 @@ window.SPACE_TEXTS = {
       thanks: [['norman', 'Lorem ipsum, danke dir!']],
     },
     {
-      name: 'Dolor-Shuttle',
-      with: 'sid',
+      name: 'Polizeifregatte Condor',
+      with: 'sie',
       quest: 'fotobuch',
       offer: [
-        ['sid', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
-        ['sid', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
+        ['sie', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
+        ['sie', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
         ['gwen', 'Lorem ipsum, klar!'],
       ],
-      waiting: [['sid', 'Lorem ipsum – Glacies liegt ganz außen.']],
-      thanks: [['sid', 'Lorem ipsum, großartig!']],
+      waiting: [['sie', 'Lorem ipsum – Glacies liegt ganz außen.']],
+      thanks: [['sie', 'Lorem ipsum, großartig!']],
     },
   ],
 
   /* Die beiden Raumstationen, ebenfalls mit je einer Figur (»with«) und einer Quest */
   stations: {
     inner: {
+      name: 'Forschungsstation Genesis',
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
@@ -108,6 +109,7 @@ window.SPACE_TEXTS = {
       thanks: [['ivy', 'Lorem ipsum, danke, Gwen!']],
     },
     outer: {
+      name: 'Handelsposten Orion',
       with: 'west',
       quest: 'ocarina',
       offer: [
