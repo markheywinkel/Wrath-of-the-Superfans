@@ -779,7 +779,7 @@
       const t = TEXTS.stations[b.id];
       if (t) {
         const g = giverLines(t);
-        openDialog(t.with, g.lines, `${t.kicker} · ${t.name}`, g.after);
+        openDialog(t.with, g.lines, '', g.after);
       }
       return;
     }
@@ -884,7 +884,7 @@
     if (quests[id] !== 'open') return;
     quests[id] = 'active';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${esc(it.name)} → ${esc(bodyName(it.target))}`);
+    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${esc(it.name)} → <span class="nm">${esc(bodyName(it.target))}</span>`);
     renderQuests();
   }
   function deliver(id) {
@@ -1656,7 +1656,7 @@
       const it = TEXTS.items[id];
       const li = document.createElement('li');
       li.className = 'box';
-      li.innerHTML = `${esc(it.name)} <span class="to">→ ${esc(bodyName(it.target))}</span>`;
+      li.innerHTML = `${esc(it.name)} <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`;
       questEl.append(li);
     }
   }
@@ -1784,7 +1784,12 @@
     figThem.classList.toggle('active', !isMe);
     figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
-    dialogEl.querySelector('.role').textContent = isMe ? c.tier : [c.tier, dialog.role].filter(Boolean).join(' · ');
+    const roleEl = dialogEl.querySelector('.role');
+    roleEl.textContent = c.tier || '';
+    if (!isMe && dialog.role) {
+      if (c.tier) roleEl.append(' · ');
+      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = dialog.role; roleEl.append(nm);
+    }
     dialogEl.querySelector('.line').textContent = text;
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;

@@ -97,8 +97,6 @@ window.SPACE_TEXTS = {
   /* Die beiden Raumstationen, ebenfalls mit je einer Figur (»with«) und einer Quest */
   stations: {
     inner: {
-      kicker: 'Raumstation',
-      name: 'Station Lorem',
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
@@ -110,8 +108,6 @@ window.SPACE_TEXTS = {
       thanks: [['ivy', 'Lorem ipsum, danke, Gwen!']],
     },
     outer: {
-      kicker: 'Raumstation',
-      name: 'Station Ipsum',
       with: 'west',
       quest: 'ocarina',
       offer: [
