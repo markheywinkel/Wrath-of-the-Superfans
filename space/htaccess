@@ -1,0 +1,14 @@
+# Wird beim Upload als .htaccess in den Ordner der Subdomain gelegt.
+AddDefaultCharset utf-8
+DirectoryIndex index.html
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  <FilesMatch "\.(woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

@@ -28,31 +28,17 @@ python3 -m http.server 8000
 - Gesammelte Münzen werden im Browser (`localStorage`) gespeichert.
 - Sind alle 30 gesammelt, kann der Dialog über den Münzzähler erneut geöffnet werden.
 
-## Deployment auf space.markheywinkel.de (eigener Webserver)
+## Deployment auf space.markheywinkel.de
 
-Die Seite besteht nur aus vier statischen Dateien, die direkt im Document-Root der
-Subdomain liegen müssen:
+Läuft automatisch über die GitHub Action `.github/workflows/onecom.yml` (»Website auf One.com«):
+Bei jedem Push auf den Hauptzweig werden `index.html`, `style.css`, `texts.js`, `game.js`,
+`fonts/` und `htaccess` (als `.htaccess`) per SFTP nach `webroots/www/space` hochgeladen,
+genauso wie Storytelling und Verticals.
 
-```
-index.html
-style.css
-texts.js
-game.js
-```
+Nach Textänderungen in `texts.js` also einfach committen und pushen.
 
-1. Beim Hoster die Subdomain `space.markheywinkel.de` anlegen und ihr ein eigenes
-   Verzeichnis zuweisen (z. B. `/space`). Der DNS-Eintrag zeigt dann wie bei den anderen
-   Seiten auf den eigenen Server.
-2. Die vier Dateien per FTP/SFTP in dieses Verzeichnis hochladen, oder per rsync:
+Einmalig bei One.com nötig: die Subdomain `space.markheywinkel.de` anlegen, sodass sie auf
+den Ordner `space` zeigt (wie bei `storytelling` und `verticals`).
 
-   ```bash
-   rsync -av --exclude README.md space/ USER@SERVER:/pfad/zum/space-verzeichnis/
-   ```
-
-3. HTTPS-Zertifikat für die Subdomain aktivieren (z. B. Let's Encrypt im Hoster-Panel).
-
-Es wird kein PHP, keine Datenbank und kein Build benötigt. Einzige externe Ressource ist
-die Schrift „Pixelify Sans“ von Google Fonts. Fehlt sie, fällt die Seite auf eine
-Monospace-Schrift zurück.
-
-Nach Textänderungen in `texts.js` reicht es, nur diese Datei neu hochzuladen.
+Die Schrift »Pixelify Sans« (SIL Open Font License, `fonts/OFL.txt`) wird selbst ausgeliefert,
+die Seite lädt nichts von fremden Servern.
