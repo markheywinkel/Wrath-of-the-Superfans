@@ -229,8 +229,10 @@ canvas {
   transform: translate(-50%, 16px);
   opacity: 0;
   pointer-events: none;
+  text-align: center;
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
+.info .kicker:empty { display: none; }
 .info.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 .info .kicker {
   margin: 0 0 2px;

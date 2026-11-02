@@ -173,7 +173,7 @@ window.SPACE_TEXTS = {
 
   bodies: {
     sun: {
-      kicker: 'Stern',
+      kicker: '',
       name: 'Sol',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     },
@@ -193,7 +193,7 @@ window.SPACE_TEXTS = {
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
     },
     gigas: {
-      kicker: 'Planet IV · 3 Monde',
+      kicker: 'Planet IV',
       name: 'Gigas',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
     },
