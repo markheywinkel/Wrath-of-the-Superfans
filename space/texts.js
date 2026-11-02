@@ -10,9 +10,9 @@ window.SPACE_TEXTS = {
   dialogClose: 'Tschüss!',
 
   /* Spielfigur und Figuren aus Capybara Media. Bild = Datei im Ordner img/ */
-  player: 'ember',
+  player: 'gwen',
   characters: {
-    ember: { name: 'Ember', tier: 'Eichhörnchen', img: 'img/ember.png' },
+    gwen: { name: 'Gwen', tier: 'Pilotin', img: 'img/gwen.png' },
     quentin: { name: 'Quentin', tier: 'Capybara', img: 'img/quentin.png' },
     mia: { name: 'Mia', tier: 'Reh', img: 'img/mia.png' },
     norman: { name: 'Norman', tier: 'Waschbär', img: 'img/norman.png' },
@@ -32,23 +32,23 @@ window.SPACE_TEXTS = {
   items: {
     brief: {
       name: 'Liebesbrief', icon: '💌', target: 'aqua',
-      deliver: [['ember', 'Lorem ipsum: Der Liebesbrief ist angekommen!']],
+      deliver: [['gwen', 'Lorem ipsum: Der Liebesbrief ist angekommen!']],
     },
     aquarium: {
       name: 'Aquarium mit einem seltenen Fisch', icon: '🐠', target: 'thalassa',
-      deliver: [['ember', 'Lorem ipsum: Der seltene Fisch hat ein neues Zuhause.']],
+      deliver: [['gwen', 'Lorem ipsum: Der seltene Fisch hat ein neues Zuhause.']],
     },
     fotobuch: {
       name: 'Altes Fotobuch mit Erinnerungen an die Schulzeit', icon: '📔', target: 'glacies',
-      deliver: [['ember', 'Lorem ipsum: Das Fotobuch ist übergeben.']],
+      deliver: [['gwen', 'Lorem ipsum: Das Fotobuch ist übergeben.']],
     },
     kaesekuchen: {
       name: 'Leckerer Käsekuchen', icon: '🍰', target: 'gigas',
-      deliver: [['ember', 'Lorem ipsum: Der Käsekuchen ist noch ganz frisch!']],
+      deliver: [['gwen', 'Lorem ipsum: Der Käsekuchen ist noch ganz frisch!']],
     },
     ocarina: {
       name: 'Ocarina der Zeit', icon: '🎶', target: 'ignis',
-      deliver: [['ember', 'Lorem ipsum: Die Ocarina der Zeit ist sicher angekommen.']],
+      deliver: [['gwen', 'Lorem ipsum: Die Ocarina der Zeit ist sicher angekommen.']],
     },
   },
 
@@ -62,12 +62,12 @@ window.SPACE_TEXTS = {
       crew: ['quentin', 'mia'],
       quest: 'brief',
       offer: [
-        ['quentin', 'Lorem ipsum dolor sit amet, Ember! Hast du kurz Zeit?'],
+        ['quentin', 'Lorem ipsum dolor sit amet, Gwen! Hast du kurz Zeit?'],
         ['mia', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Aqua?'],
-        ['ember', 'Lorem ipsum, mache ich!'],
+        ['gwen', 'Lorem ipsum, mache ich!'],
       ],
       waiting: [['mia', 'Lorem ipsum – ist der Brief schon auf Aqua?']],
-      thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank, Ember!']],
+      thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank, Gwen!']],
     },
     {
       name: 'Ipsum-Fähre',
@@ -76,7 +76,7 @@ window.SPACE_TEXTS = {
       offer: [
         ['norman', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'],
         ['lizzy', 'Sed do eiusmod: Dieses Aquarium muss nach Thalassa.'],
-        ['ember', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
+        ['gwen', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
       ],
       waiting: [['lizzy', 'Lorem ipsum – geht es dem Fisch gut?']],
       thanks: [['norman', 'Lorem ipsum, danke dir!']],
@@ -88,7 +88,7 @@ window.SPACE_TEXTS = {
       offer: [
         ['sid', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
         ['bruno', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
-        ['ember', 'Lorem ipsum, klar!'],
+        ['gwen', 'Lorem ipsum, klar!'],
       ],
       waiting: [['bruno', 'Lorem ipsum – Glacies liegt ganz außen.']],
       thanks: [['sid', 'Lorem ipsum, großartig!']],
@@ -103,12 +103,12 @@ window.SPACE_TEXTS = {
       crew: ['ivy', 'totoro'],
       quest: 'kaesekuchen',
       offer: [
-        ['ivy', 'Lorem ipsum dolor sit amet, willkommen an Bord, Ember!'],
+        ['ivy', 'Lorem ipsum dolor sit amet, willkommen an Bord, Gwen!'],
         ['totoro', 'Consectetur adipiscing: Der Käsekuchen muss nach Gigas.'],
-        ['ember', 'Lorem ipsum, ich fliege los.'],
+        ['gwen', 'Lorem ipsum, ich fliege los.'],
       ],
       waiting: [['totoro', 'Lorem ipsum – nicht unterwegs naschen!']],
-      thanks: [['ivy', 'Lorem ipsum, danke, Ember!']],
+      thanks: [['ivy', 'Lorem ipsum, danke, Gwen!']],
     },
     outer: {
       kicker: 'Raumstation',
@@ -118,7 +118,7 @@ window.SPACE_TEXTS = {
       offer: [
         ['west', 'Lorem ipsum dolor sit amet, so weit draußen sieht man uns selten.'],
         ['ursula', 'Quis nostrud: Die Ocarina der Zeit stammt aus einer fernen Galaxis. Bring sie nach Ignis.'],
-        ['ember', 'Lorem ipsum, wird erledigt.'],
+        ['gwen', 'Lorem ipsum, wird erledigt.'],
       ],
       waiting: [['ursula', 'Lorem ipsum – Ignis ist der heiße Planet nah an der Sonne.']],
       thanks: [['west', 'Lorem ipsum, vielen Dank!']],

@@ -396,7 +396,7 @@ canvas {
 }
 .dialog .cast-me img { transform-origin: bottom center; }
 .dialog .cast-me img { transform: translateY(6px) scale(-0.92, 0.92); }
-.dialog .cast-me img.active { transform: scaleX(-1); animation: talk-me 1.6s ease-in-out infinite; }
+.dialog .cast-me img.active { opacity: 1; filter: none; transform: scaleX(-1); animation: talk-me 1.6s ease-in-out infinite; }
 @keyframes talk-me {
   0%, 100% { transform: scaleX(-1) translateY(0); }
   50% { transform: scaleX(-1) translateY(-3px); }

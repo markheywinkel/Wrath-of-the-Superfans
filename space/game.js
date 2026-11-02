@@ -1631,7 +1631,7 @@
     const [who, text] = dialog.lines[dialog.idx];
     const c = TEXTS.characters[who] || { name: who, tier: '' };
     dialogEl.querySelector('.name').textContent = c.name;
-    dialogEl.querySelector('.role').textContent = [c.tier, dialog.role].filter(Boolean).join(' · ');
+    dialogEl.querySelector('.role').textContent = who === TEXTS.player ? c.tier : [c.tier, dialog.role].filter(Boolean).join(' · ');
     dialogEl.querySelector('.line').textContent = text;
     for (const [id, im] of Object.entries(dialog.imgs)) im.classList.toggle('active', id === who);
     const last = dialog.idx === dialog.lines.length - 1;

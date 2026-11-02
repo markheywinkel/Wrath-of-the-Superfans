@@ -24,7 +24,7 @@ python3 -m http.server 8000
 
 ## Spielablauf
 
-- Du bist **Ember**, das Eichhörnchen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
+- Du bist **Gwen**, die Eichhörnchen-Pilotin. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit, Infokasten.
 - Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog mit den Tier-Figuren öffnet sich.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
