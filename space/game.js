@@ -817,49 +817,53 @@
       const wet = ac.createGain(); wet.gain.value = 0.35;
       echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(soft);
     }
-    function tone(freq, start, dur, vol = 0.5, type = 'sine', glideTo = 0) {
+    function tone(freq, start, dur, vol = 0.5, type = 'sine', glideTo = 0, attack = 0.02) {
       const t0 = ac.currentTime + start;
       const o = ac.createOscillator(), g = ac.createGain();
       o.type = type;
       o.frequency.setValueAtTime(freq, t0);
       if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       o.connect(g); g.connect(out); g.connect(echo);
       o.start(t0); o.stop(t0 + dur + 0.05);
     }
-    function noise(start, dur, vol, f0, f1, q = 1.2) {
+    /** Weiches Rauschen: tiefpassgefiltert, schwillt langsam an und wieder ab. */
+    function hush(start, dur, vol, cut0, cutPeak, peakAt) {
       const t0 = ac.currentTime + start;
       const len = Math.ceil(ac.sampleRate * dur);
       const buf = ac.createBuffer(1, len, ac.sampleRate);
       const d = buf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      let last = 0;
+      for (let i = 0; i < len; i++) { last = last * 0.96 + (Math.random() * 2 - 1) * 0.04; d[i] = last * 6; } // »braunes«, dunkles Rauschen
       const src = ac.createBufferSource(); src.buffer = buf;
-      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
-      bp.frequency.setValueAtTime(f0, t0); bp.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.4;
+      lp.frequency.setValueAtTime(cut0, t0);
+      lp.frequency.exponentialRampToValueAtTime(cutPeak, t0 + dur * peakAt);
+      lp.frequency.exponentialRampToValueAtTime(cut0, t0 + dur);
       const g = ac.createGain();
       g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(vol, t0 + dur * 0.35);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + dur * peakAt);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      src.connect(bp); bp.connect(g); g.connect(out);
+      src.connect(lp); lp.connect(g); g.connect(out);
       src.start(t0); src.stop(t0 + dur);
     }
-    let lastBoost = 0;
+    let lastBoost = -10;
     // Ton an/aus (nur diese Einstellung merkt sich der Browser, kein Spielstand)
     let muted = false;
     try { muted = localStorage.getItem('space.muted') === '1'; } catch (_) { /* egal */ }
     const play = {
-      // Kristall: zartes, glockiges Glitzern
-      crystal() { tone(1318.5, 0, 0.5, 0.32); tone(1975.5, 0.07, 0.6, 0.22); tone(2637, 0.14, 0.5, 0.08); },
+      // Kristall: weicher, warmer Glockenton (tief, sanft einschwingend, lang ausklingend)
+      crystal() { tone(659.25, 0, 1.1, 0.2, 'sine', 0, 0.035); tone(987.77, 0.1, 1.3, 0.12, 'sine', 0, 0.05); },
       // Frachtcontainer: weiches, tiefes »Plopp« mit Schimmer
       crate() { tone(196, 0, 0.35, 0.45, 'sine', 140); tone(392, 0.04, 0.4, 0.2, 'triangle'); tone(784, 0.1, 0.45, 0.08); },
-      // Beschleunigen: sanftes Rauschen, das ansteigt
+      // Beschleunigen: langes, weiches Rauschen, das sanft an- und abschwillt
       boost() {
         const now = ac.currentTime;
-        if (now - lastBoost < 0.5) return;
+        if (now - lastBoost < 1.2) return;
         lastBoost = now;
-        noise(0, 0.7, 0.18, 220, 1400, 0.9); tone(110, 0, 0.6, 0.12, 'sine', 180);
+        hush(0, 2.2, 0.32, 180, 900, 0.3);
       },
       // Badge: kleine, warme Dur-Arpeggio
       badge() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.09, 0.7, 0.24, 'triangle')); },
@@ -868,7 +872,12 @@
     };
     return {
       init,
-      play(name) { try { if (!muted && ac && ac.state === 'running' && play[name]) play[name](); } catch (_) { /* ohne Ton weiter */ } },
+      play(name) {
+        if (muted || !ac || !play[name]) return;
+        const go = () => { try { play[name](); } catch (_) { /* ohne Ton weiter */ } };
+        if (ac.state === 'running') go();
+        else ac.resume().then(go, () => {}); // erster Ton direkt nach dem Start
+      },
       get muted() { return muted; },
       setMuted(m) {
         muted = m;
