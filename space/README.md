@@ -10,7 +10,8 @@ Reine statische Seite – kein Build, keine Abhängigkeiten.
 |--------------|---------------------------------------------------------------|
 | `index.html` | Seitengerüst, HUD, Infokasten, Belohnungsdialog               |
 | `style.css`  | Pixel-UI                                                      |
-| `texts.js`   | **Alle Texte** (Planeten-Infos, Belohnung) – hier betexten     |
+| `texts.js`   | **Alle Texte** (Intro, Planeten-Infos, Dialoge, Belohnung) – hier betexten |
+| `img/`       | Tier-Figuren aus Capybara Media (Sprecher in den Dialogen)    |
 | `game.js`    | Spiel, Steuerung, Ausweichlogik, Rendering                    |
 
 ## Lokal starten
@@ -25,7 +26,9 @@ python3 -m http.server 8000
 
 - Tippen/Klicken auf eine Stelle: Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: Schiff fliegt hin, geht in einen Orbit, Infokasten öffnet sich.
-- Gesammelte Münzen werden im Browser (`localStorage`) gespeichert.
+- Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
+- Drei weitere Raumschiffe fliegen zufällig von Planet zu Planet. Begegnet man einem, treiben beide Schiffe nebeneinander und ein Dialog mit den Tier-Figuren öffnet sich.
+- Zwei Raumstationen (hinter den bewohnbaren Planeten und ganz außen) – hinfliegen öffnet einen Dialog mit ihrer Besatzung.
 - Sind alle 30 gesammelt, kann der Dialog über den Münzzähler erneut geöffnet werden.
 
 ## Deployment auf space.markheywinkel.de

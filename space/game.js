@@ -15,12 +15,11 @@
   const SIN_E = 0.5;        // Bildschirm-Stauchung der Bahnebene
   const COS_E = 0.8660254;  // Höhenanteil
 
-  const SHIP_LIMIT = 600;   // so weit darf das Schiff vom Zentrum weg
-  const BELT_INNER = 628;
-  const BELT_OUTER = 712;
+  const SHIP_LIMIT = 680;   // so weit darf das Schiff vom Zentrum weg
+  const BELT_INNER = 708;
+  const BELT_OUTER = 792;
   const COIN_TOTAL = 30;
   const SHIP_MAX_SPEED = 78;
-  const STORAGE_KEY = 'space.coins.v1';
   const MAP_W = 128, MAP_H = 64;
   const LEVELS = 5;
   const AMBIENT = 0.16;
@@ -336,39 +335,90 @@
     return out;
   }
 
-  // ------------------------------------------------------------------ ship
-  const SHIP_V = [
-    [9, 0, 0.6], [-6, -7, 0], [-6, 7, 0], [-1, 0, 3], [-6, 0, 1.6], [-2, 0, -1.5],
-    [4, 0, 2.05], [0.5, -1.3, 2.8], [0.5, 1.3, 2.8], [-1, 0, 3.35],
-  ];
-  const SHIP_COL = { hull: hex('#e9edf5'), accent: hex('#f08a4b'), under: hex('#5d6a86'), glass: hex('#5fd3ff') };
-  const SHIP_F = [
-    [0, 3, 1, 'hull'], [0, 2, 3, 'hull'], [3, 4, 1, 'accent'], [3, 2, 4, 'accent'],
-    [0, 1, 5, 'under'], [0, 5, 2, 'under'], [1, 4, 5, 'under'], [4, 2, 5, 'under'],
-    [6, 9, 7, 'glass'], [6, 8, 9, 'glass'],
-  ];
-  const SHIP_SCALE = 0.95;
-  const SB = 34;
-  const shipSpr = (() => {
+  // ---------------------------------------------------------------- ships
+  /*
+   * Schiffsmodelle: Dreiecke im Modellraum (x = vorne, y = rechts, z = oben).
+   * Jedes Schiff wird pro Frame mit Z-Buffer in ein kleines Sprite gerastert.
+   */
+  // Bumerang (Spieler): geschwungene V-Form, Strahl aus der Kerbe hinten
+  const BOOMERANG = (() => {
+    const V = [
+      [6, 0, 1.0],      // 0 Nase
+      [1.5, -5.5, 0.6], // 1 Vorderkante links
+      [-6.5, -10, 0.1], // 2 Spitze links
+      [-3.6, -6, 0.5],  // 3 Hinterkante links
+      [-1.2, 0, 0.9],   // 4 Kerbe hinten (Triebwerk)
+      [-3.6, 6, 0.5],   // 5 Hinterkante rechts
+      [-6.5, 10, 0.1],  // 6 Spitze rechts
+      [1.5, 5.5, 0.6],  // 7 Vorderkante rechts
+      [1.2, 0, 2.3],    // 8 Grat oben
+      [0, 0, -0.8],     // 9 Unterseite
+      [3.4, 0, 1.95], [0.6, -1.2, 2.45], [0.6, 1.2, 2.45], [-0.2, 0, 2.75], // 10-13 Cockpit
+    ];
+    const F = [
+      [8, 0, 1, 'hull'], [8, 1, 2, 'hull'], [8, 2, 3, 'accent'], [8, 3, 4, 'accent'],
+      [8, 4, 5, 'accent'], [8, 5, 6, 'accent'], [8, 6, 7, 'hull'], [8, 7, 0, 'hull'],
+      [9, 1, 0, 'under'], [9, 2, 1, 'under'], [9, 3, 2, 'under'], [9, 4, 3, 'under'],
+      [9, 5, 4, 'under'], [9, 6, 5, 'under'], [9, 7, 6, 'under'], [9, 0, 7, 'under'],
+      [10, 13, 11, 'glass'], [10, 12, 13, 'glass'],
+    ];
+    return { V, F, engine: 4, scale: 1.25 };
+  })();
+
+  // Pfeil (früheres Spielerschiff)
+  const ARROW = {
+    V: [
+      [9, 0, 0.6], [-6, -7, 0], [-6, 7, 0], [-1, 0, 3], [-6, 0, 1.6], [-2, 0, -1.5],
+      [4, 0, 2.05], [0.5, -1.3, 2.8], [0.5, 1.3, 2.8], [-1, 0, 3.35],
+    ],
+    F: [
+      [0, 3, 1, 'hull'], [0, 2, 3, 'hull'], [3, 4, 1, 'accent'], [3, 2, 4, 'accent'],
+      [0, 1, 5, 'under'], [0, 5, 2, 'under'], [1, 4, 5, 'under'], [4, 2, 5, 'under'],
+      [6, 9, 7, 'glass'], [6, 8, 9, 'glass'],
+    ],
+    engine: 4, scale: 1.1,
+  };
+
+  // Untertasse
+  const SAUCER = (() => {
+    const V = [[0, 0, 1.8], [0, 0, -0.7], [0, 0, 3.3]]; // 0 oben, 1 unten, 2 Kuppelspitze
+    const N = 10, rim = 3, dome = 3 + N;
+    for (let i = 0; i < N; i++) { const a = (i / N) * TAU; V.push([Math.cos(a) * 6.5, Math.sin(a) * 6.5, 0.5]); }
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU; V.push([Math.cos(a) * 2.3, Math.sin(a) * 2.3, 1.9]); }
+    const F = [];
+    for (let i = 0; i < N; i++) {
+      const a = rim + i, b = rim + ((i + 1) % N);
+      F.push([0, a, b, i % 2 ? 'accent' : 'hull']);
+      F.push([1, b, a, 'under']);
+    }
+    for (let i = 0; i < 6; i++) F.push([2, dome + i, dome + ((i + 1) % 6), 'glass']);
+    return { V, F, engine: rim + N / 2, scale: 1.1 };
+  })();
+
+  const pal = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, hex(v)]));
+  const OUTLINE = hex('#070914');
+
+  function makeShipSprite() {
+    const SB = 48;
     const cv = document.createElement('canvas');
     cv.width = cv.height = SB;
     const cx = cv.getContext('2d');
-    return { cv, cx, img: cx.createImageData(SB, SB), z: new Float32Array(SB * SB), mask: new Uint8Array(SB * SB) };
-  })();
-  const OUTLINE = hex('#070914');
+    return { SB, cv, cx, img: cx.createImageData(SB, SB), z: new Float32Array(SB * SB), mask: new Uint8Array(SB * SB) };
+  }
 
-  function renderShip(heading, bank, L) {
-    const { img, z, mask } = shipSpr;
+  function renderModel(spr, model, colors, heading, bank, L) {
+    const { SB, img, z, mask } = spr;
     const d = img.data;
     d.fill(0); z.fill(-1e9);
     const ch = Math.cos(heading), sh = Math.sin(heading), cb = Math.cos(bank), sb = Math.sin(bank);
-    const P = SHIP_V.map(([x, y, zz]) => {
+    const S = model.scale;
+    const P = model.V.map(([x, y, zz]) => {
       const y1 = y * cb - zz * sb, z1 = y * sb + zz * cb;
-      const xw = (x * ch - y1 * sh) * SHIP_SCALE, yw = (x * sh + y1 * ch) * SHIP_SCALE, zw = z1 * SHIP_SCALE;
+      const xw = (x * ch - y1 * sh) * S, yw = (x * sh + y1 * ch) * S, zw = z1 * S;
       return [SB / 2 + xw, SB / 2 + SIN_E * yw - COS_E * zw, COS_E * yw + SIN_E * zw, xw, yw, zw];
     });
     const edge = (a, b, px, py) => (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]);
-    for (const [ia, ib, ic, cname] of SHIP_F) {
+    for (const [ia, ib, ic, cname] of model.F) {
       const a = P[ia], b = P[ib], c = P[ic];
       const ux = b[3] - a[3], uy = b[4] - a[4], uz = b[5] - a[5];
       const vx = c[3] - a[3], vy = c[4] - a[4], vz = c[5] - a[5];
@@ -379,7 +429,7 @@
       if (cz < 0) { cx = -cx; cy = -cy; cz = -cz; }
       const dif = Math.max(0, cx * L[0] + cy * L[1] + cz * L[2]);
       const s = Math.ceil((0.4 + 0.6 * dif) * 4) / 4;
-      const col = SHIP_COL[cname];
+      const col = colors[cname];
       const R = col[0] * s, Gc = col[1] * s, B = col[2] * s;
       const area = edge(a, b, c[0], c[1]);
       if (Math.abs(area) < 1e-6) continue;
@@ -411,9 +461,9 @@
         }
       }
     }
-    shipSpr.cx.putImageData(img, 0, 0);
-    // Heck-Position (für Triebwerk) relativ zur Sprite-Mitte
-    return { ex: P[4][0] - SB / 2, ey: P[4][1] - SB / 2 };
+    spr.cx.putImageData(img, 0, 0);
+    const e = P[model.engine];
+    return { ex: e[0] - SB / 2, ey: e[1] - SB / 2, back: model.V[model.engine][0] * S };
   }
 
   // ----------------------------------------------------------------- world
@@ -422,7 +472,7 @@
     { id: 'sun', r: 24, orbit: 0, period: 1, rotPeriod: 160, emissive: true, tex: texSun(3) },
     { id: 'ember', r: 9, orbit: 115, rotPeriod: -120, tex: texEmber(11), atmo: hex('#ffb070') },
     {
-      id: 'aqua', r: 11, orbit: 195, rotPeriod: 70, atmo: hex('#8ec6ff'),
+      id: 'aqua', r: 11, orbit: 190, rotPeriod: 70, atmo: hex('#8ec6ff'),
       tex: texTerra(21, {
         seaQ: 0.6, cloudQ: 0.62, polar: 1.2,
         ocean: [[0, '#0f2c66'], [0.6, '#1b4ea3'], [0.92, '#2f7fd6'], [1, '#58a6e8']],
@@ -430,7 +480,7 @@
       }),
     },
     {
-      id: 'thalassa', r: 10, orbit: 275, rotPeriod: 85, atmo: hex('#9fe6ff'),
+      id: 'thalassa', r: 10, orbit: 265, rotPeriod: 85, atmo: hex('#9fe6ff'),
       tex: texTerra(37, {
         seaQ: 0.78, cloudQ: 0.52, polar: 1.28,
         ocean: [[0, '#0e3f63'], [0.6, '#16679a'], [0.9, '#2aa0c4'], [1, '#6fd3e0']],
@@ -438,36 +488,53 @@
       }),
     },
     {
-      id: 'gigas', r: 22, orbit: 405, rotPeriod: 45, tex: texGigas(53),
+      id: 'gigas', r: 22, orbit: 430, rotPeriod: 45, tex: texGigas(53),
       moons: [
         { r: 3, orbit: 34, period: 26, tex: texMoon(61, [[0, '#5e5e68'], [0.5, '#9a9aa4'], [1, '#d4d4dc']]) },
         { r: 4, orbit: 45, period: 41, tex: texMoon(67, [[0, '#6a3a2c'], [0.5, '#a8705a'], [1, '#e0b090']]) },
         { r: 3, orbit: 56, period: 60, tex: texMoon(71, [[0, '#7890a4'], [0.5, '#bccfdc'], [1, '#f0f6fa']]) },
       ],
     },
-    { id: 'glacies', r: 8, orbit: 545, rotPeriod: -95, tex: texGlacies(83), atmo: hex('#d8f4ff') },
+    { id: 'glacies', r: 8, orbit: 555, rotPeriod: -95, tex: texGlacies(83), atmo: hex('#d8f4ff') },
   ];
-  for (const b of BODIES) {
-    if (b.orbit > 0) b.period = 95 * Math.pow(b.orbit / 115, 1.5); // Kepler-artig, sehr gemächlich
-    b.a0 = rng() * TAU;
+  const keplerPeriod = orbit => 95 * Math.pow(orbit / 115, 1.5); // sehr gemächlich
+  // Startwinkel: die fünf Planeten gleichmäßig verteilt (72° Abstand)
+  const PLANET_START = Math.PI / 2 + TAU / 10;
+  BODIES.forEach((b, i) => {
+    if (b.orbit > 0) b.period = keplerPeriod(b.orbit);
+    b.a0 = i === 0 ? 0 : PLANET_START + (i - 1) * (TAU / 5);
     b.x = 0; b.y = 0; b.rot = 0;
     b.spr = makeSprite(b.r, b.atmo ? 3 : 2);
     if (b.moons) {
       b.avoidR = Math.max(...b.moons.map(m => m.orbit + m.r)) + 12;
       b.coreR = b.avoidR - 8;
-      for (const m of b.moons) { m.a0 = rng() * TAU; m.x = 0; m.y = 0; m.rot = 0; m.spr = makeSprite(m.r, 1); m.parent = b; }
+      b.moons.forEach((m, k) => { m.a0 = (k / b.moons.length) * TAU; m.x = 0; m.y = 0; m.rot = 0; m.spr = makeSprite(m.r, 1); m.parent = b; });
     } else {
       b.avoidR = Math.round(b.r * 1.5 + 12);
       b.coreR = b.r + 3;
     }
-  }
+  });
   const SUN = BODIES[0];
   const sunGlow = makeSunGlow(SUN.r);
   const rocks = makeRocks();
 
+  // Raumstationen: eine hinter den bewohnbaren Planeten, eine ganz außen
+  const STATIONS = [
+    { id: 'inner', station: true, type: 'spindle', orbit: 335, size: 13, hub: 6, coreR: 18, avoidR: 30, a0: 0.3 },
+    { id: 'outer', station: true, type: 'ring', orbit: 628, size: 18, hub: 5, coreR: 27, avoidR: 38, a0: PLANET_START + 2.5 * (TAU / 5) },
+  ];
+  for (const st of STATIONS) {
+    st.period = keplerPeriod(st.orbit);
+    st.x = 0; st.y = 0; st.rot = 0;
+    st.tex = texMoon(st.orbit, [[0, '#56607a'], [0.5, '#9aa4bc'], [1, '#e2e8f4']]);
+    st.spr = makeSprite(st.hub, 1);
+  }
+  const OBSTACLES = [...BODIES, ...STATIONS];
+  const DESTINATIONS = [...BODIES.slice(1), ...STATIONS];
+
   // Asteroidengürtel
   const asteroids = [];
-  for (let i = 0; i < 460; i++) {
+  for (let i = 0; i < 520; i++) {
     const g = (rng() + rng() + rng()) / 3; // dichter in der Mitte
     const roll = rng();
     asteroids.push({
@@ -479,25 +546,25 @@
     });
   }
   const dust = [];
-  for (let i = 0; i < 700; i++) {
+  for (let i = 0; i < 800; i++) {
     const g = (rng() + rng()) / 2;
     dust.push({ a: rng() * TAU, rad: BELT_INNER - 20 + g * (BELT_OUTER - BELT_INNER + 40), z: (rng() - 0.5) * 16, b: rng() });
   }
   const BELT_PERIOD = 2600;
 
-  // Münzen – verteilt zwischen den Planetenbahnen, nie auf einer Bahn
+  // Münzen – verteilt zwischen den Bahnen, nie auf einer Bahn
   const coins = (() => {
     const r = mulberry32(777);
     const list = [];
-    let minGap = 46, tries = 0;
-    while (list.length < COIN_TOTAL && tries < 20000) {
+    let minGap = 48, tries = 0;
+    while (list.length < COIN_TOTAL && tries < 30000) {
       tries++;
-      if (tries % 4000 === 0) minGap -= 6;
+      if (tries % 5000 === 0) minGap -= 6;
       const rad = Math.sqrt(r()) * (SHIP_LIMIT - 12);
       const a = r() * TAU;
       if (rad < SUN.avoidR + 14) continue;
       let ok = true;
-      for (const b of BODIES) {
+      for (const b of OBSTACLES) {
         if (b.orbit && Math.abs(rad - b.orbit) < b.avoidR * 0.85 + 6) { ok = false; break; }
       }
       if (!ok) continue;
@@ -510,26 +577,48 @@
   })();
 
   // ----------------------------------------------------------------- state
-  const ship = {
-    x: -30, y: 152, heading: -0.6, speed: 0, bank: 0, turnVel: 0,
-    mode: 'idle', goal: null, sides: new Map(),
+  const makeAgent = (o) => Object.assign({
+    x: 0, y: 0, heading: 0, speed: 0, bank: 0, turnVel: 0, sides: new Map(),
     orbitBody: null, orbitAng: 0, orbitR: 0, orbitDir: 1,
-  };
+  }, o);
+
+  const ship = makeAgent({
+    x: 0, y: 150, heading: -Math.PI / 2,
+    mode: 'idle', goal: null, drift: null,
+    model: BOOMERANG,
+    colors: pal({ hull: '#eef1f8', accent: '#f08a4b', under: '#566381', glass: '#5fd3ff' }),
+    spr: makeShipSprite(),
+    beam: ['#ffffff', '#d8f4ff', '#9fe0ff', '#62b8ff', '#3a8cff', '#2a62e0', '#1f44b0', '#18307e'],
+    trail: ['#d8f4ff', '#62b8ff', '#2f4fb0'],
+    beamLen: 18,
+  });
+
+  const NPC_LOOK = [
+    { model: ARROW, colors: pal({ hull: '#ffe08a', accent: '#8a6cff', under: '#6b5a3a', glass: '#9fffe0' }) },
+    { model: SAUCER, colors: pal({ hull: '#ffb3d1', accent: '#ffffff', under: '#7a4a66', glass: '#a8f0ff' }) },
+    { model: ARROW, colors: pal({ hull: '#9fe8a8', accent: '#2f8a6a', under: '#3a5a4a', glass: '#ffe9a8' }) },
+  ];
+  const NPC_START = ['aqua', 'gigas', 'outer'];
+  const npcs = TEXTS.ships.map((t, i) => {
+    const look = NPC_LOOK[i % NPC_LOOK.length];
+    const start = DESTINATIONS.find(d => d.id === NPC_START[i]) || DESTINATIONS[i];
+    return makeAgent({
+      idx: i, texts: t, model: look.model, colors: look.colors, spr: makeShipSprite(),
+      state: 'linger', target: start, linger: 3 + i * 2, cooldown: 12,
+      orbitBody: start, orbitAng: rng() * TAU, orbitR: start.avoidR + 8, orbitDir: i % 2 ? -1 : 1,
+      beam: ['#fff6d8', '#ffd27a', '#ff9a4a', '#e0643a', '#9a3a2a'],
+      trail: ['#ffe6a0', '#ff9a4a', '#6a5aa8'],
+      beamLen: 5,
+    });
+  });
+
   const cam = { x: ship.x, y: ship.y };
   const particles = [];
   let time = 0;
   let marker = null; // {x, y, t}
   let rewardShown = false;
-
+  // Fortschritt wird bewusst nicht gespeichert: Neuladen = Neustart
   const collected = new Set();
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (Array.isArray(saved)) for (const id of saved) if (coins[id]) { coins[id].taken = true; collected.add(id); }
-  } catch (_) { /* privater Modus o.ä. – dann eben ohne Speichern */ }
-  if (collected.size >= COIN_TOTAL) rewardShown = true;
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...collected])); } catch (_) { /* ignore */ }
-  }
 
   // ---------------------------------------------------------------- canvas
   const canvas = document.getElementById('game');
@@ -600,21 +689,30 @@
   const hint = document.getElementById('hint');
   hint.textContent = TEXTS.hint;
   let hintGone = false;
+  const hideHint = () => { hintGone = true; hint.classList.add('gone'); };
+  const intro = document.getElementById('intro');
+  intro.textContent = TEXTS.intro || '';
+  setTimeout(() => { if (!hintGone) hint.classList.add('ready'); }, 3600);
 
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
+    if (!hintGone) hideHint();
+    if (dialog.open) { dialogNext(); return; }
     const ix = e.clientX * pxPerCss, iy = e.clientY * pxPerCss;
-    if (!hintGone) { hintGone = true; hint.classList.add('gone'); }
 
-    // Treffer auf Himmelskörper (inkl. Monde -> Mutterplanet)
+    // Treffer auf Himmelskörper (Monde -> Mutterplanet) oder Raumstation
     let hit = null, best = Infinity;
     for (const b of BODIES) {
-      const cands = [[b.x, b.y, b.r]];
-      if (b.moons) for (const m of b.moons) cands.push([m.x, m.y, m.r + 2]);
-      for (const [x, y, r] of cands) {
-        const d = Math.hypot(ix - toSX(x), iy - toSY(y));
+      const cands = [[b.x, b.y, 0, b.r]];
+      if (b.moons) for (const m of b.moons) cands.push([m.x, m.y, 0, m.r + 2]);
+      for (const [x, y, z, r] of cands) {
+        const d = Math.hypot(ix - toSX(x), iy - toSY(y, z));
         if (d <= r + 5 && d < best) { best = d; hit = b; }
       }
+    }
+    for (const st of STATIONS) {
+      const d = Math.hypot(ix - toSX(st.x), iy - toSY(st.y, 3));
+      if (d <= st.size + 5 && d < best) { best = d; hit = st; }
     }
     if (hit) {
       flyToBody(hit);
@@ -635,39 +733,31 @@
     marker = { x, y, t: 0 };
   }
   function flyToBody(b) {
-    if (ship.mode === 'orbit' && ship.orbitBody === b) { showInfo(b); return; }
+    if (ship.mode === 'orbit' && ship.orbitBody === b) { arriveAt(b); return; }
     hideInfo();
     ship.mode = 'fly';
     ship.goal = { body: b };
     ship.sides.clear();
     marker = null;
   }
-  function enterOrbit(b) {
-    ship.mode = 'orbit';
-    ship.goal = null;
-    ship.orbitBody = b;
-    ship.orbitR = b.avoidR;
-    ship.orbitAng = Math.atan2(ship.y - b.y, ship.x - b.x);
-    const rx = ship.x - b.x, ry = ship.y - b.y;
-    const cr = rx * Math.sin(ship.heading) - ry * Math.cos(ship.heading);
-    ship.orbitDir = cr >= 0 ? 1 : -1;
-    showInfo(b);
+  function arriveAt(b) {
+    if (b.station) {
+      const t = TEXTS.stations[b.id];
+      if (t) openDialog(t.crew, t.lines, `${t.kicker} · ${t.name}`);
+    } else {
+      showInfo(b);
+    }
   }
 
-  // ------------------------------------------------------------ ship logic
-  function obstacles() {
-    const list = [];
-    for (const b of BODIES) list.push(b);
-    return list;
-  }
-
+  // ----------------------------------------------------------- flight logic
   /** Richtung zum Ziel; liegt ein Körper im Weg, wird tangential um ihn herum gesteuert. */
-  function steer(px, py, tx, ty, exclude) {
+  function steer(agent, tx, ty, exclude) {
+    const px = agent.x, py = agent.y;
     const dx = tx - px, dy = ty - py;
     const len = Math.hypot(dx, dy) || 1e-6;
     const ux = dx / len, uy = dy / len;
     let best = null, bestAlong = Infinity;
-    for (const o of obstacles()) {
+    for (const o of OBSTACLES) {
       if (o === exclude) continue;
       let R = o.avoidR;
       const tdist = Math.hypot(tx - o.x, ty - o.y);
@@ -685,91 +775,189 @@
       }
       if (along < bestAlong) { bestAlong = along; best = { o, R, cx, cy, dist }; }
     }
-    for (const k of ship.sides.keys()) if (!best || k !== best.o) ship.sides.delete(k);
+    for (const k of agent.sides.keys()) if (!best || k !== best.o) agent.sides.delete(k);
     if (!best) return Math.atan2(dy, dx);
 
     const { o, R, cx, cy, dist } = best;
-    let side = ship.sides.get(o);
+    let side = agent.sides.get(o);
     if (side === undefined) {
       side = cx * dy - cy * dx >= 0 ? 1 : -1;
-      ship.sides.set(o, side);
+      agent.sides.set(o, side);
     }
     const a = Math.atan2(cy, cx);
     if (dist > R) return a + side * (Math.asin(Math.min(1, R / dist)) + 0.06);
     return a + side * (Math.PI / 2 + 0.8 * (R - dist) / R);
   }
 
-  function turnTowards(target, rate, dt) {
-    const diff = angDiff(ship.heading, target);
+  function turnTowards(agent, target, rate, dt) {
+    const diff = angDiff(agent.heading, target);
     const turn = clamp(diff, -rate * dt, rate * dt);
-    ship.heading += turn;
-    ship.turnVel = turn / Math.max(dt, 1e-4);
+    agent.heading += turn;
+    agent.turnVel = turn / Math.max(dt, 1e-4);
     return diff;
+  }
+
+  /** Fliegt auf (tx, ty) zu; true, sobald arriveR erreicht ist. */
+  function flyAgent(agent, dt, tx, ty, arriveR, exclude, maxSpeed) {
+    const dist = Math.hypot(tx - agent.x, ty - agent.y);
+    if (dist <= arriveR) return true;
+    const want = steer(agent, tx, ty, exclude);
+    const diff = turnTowards(agent, want, dist < 24 ? 6 : 3.2, dt);
+    const remaining = dist - arriveR;
+    const tgt = Math.min(maxSpeed, 9 + remaining * 1.3) * Math.max(0.2, Math.cos(Math.min(Math.PI / 2, Math.abs(diff))));
+    agent.speed += (tgt - agent.speed) * Math.min(1, dt * 2.2);
+    agent.x += Math.cos(agent.heading) * agent.speed * dt;
+    agent.y += Math.sin(agent.heading) * agent.speed * dt;
+    return false;
+  }
+
+  function startOrbit(agent, b, R) {
+    agent.orbitBody = b;
+    agent.orbitR = R;
+    agent.orbitAng = Math.atan2(agent.y - b.y, agent.x - b.x);
+    const rx = agent.x - b.x, ry = agent.y - b.y;
+    agent.orbitDir = rx * Math.sin(agent.heading) - ry * Math.cos(agent.heading) >= 0 ? 1 : -1;
+  }
+
+  function orbitAgent(agent, dt) {
+    const b = agent.orbitBody;
+    agent.orbitAng += agent.orbitDir * (15 / agent.orbitR) * dt;
+    const tx = b.x + Math.cos(agent.orbitAng) * agent.orbitR;
+    const ty = b.y + Math.sin(agent.orbitAng) * agent.orbitR;
+    const k = Math.min(1, dt * 2.5);
+    agent.x += (tx - agent.x) * k;
+    agent.y += (ty - agent.y) * k;
+    turnTowards(agent, agent.orbitAng + agent.orbitDir * Math.PI / 2, 2, dt);
+    agent.speed += (15 - agent.speed) * Math.min(1, dt * 2);
+  }
+
+  function coast(agent, dt) {
+    agent.speed *= Math.exp(-dt * 3);
+    agent.turnVel *= Math.exp(-dt * 4);
+    agent.x += Math.cos(agent.heading) * agent.speed * dt;
+    agent.y += Math.sin(agent.heading) * agent.speed * dt;
+  }
+
+  function constrain(agent, dt) {
+    for (const o of OBSTACLES) {
+      const dx = agent.x - o.x, dy = agent.y - o.y, d = Math.hypot(dx, dy) || 1e-6;
+      const min = o.coreR + 2;
+      if (d < min) { agent.x = o.x + (dx / d) * min; agent.y = o.y + (dy / d) * min; }
+    }
+    const rad = Math.hypot(agent.x, agent.y);
+    if (rad > SHIP_LIMIT) { agent.x *= SHIP_LIMIT / rad; agent.y *= SHIP_LIMIT / rad; }
+    agent.bank += (clamp(agent.turnVel * 0.22, -0.55, 0.55) - agent.bank) * Math.min(1, dt * 5);
+  }
+
+  function emitTrail(agent, rate) {
+    if (agent.speed <= 6 || particles.length > 600) return;
+    const n = agent.speed > 40 ? rate : 1;
+    const back = agent.model.V[agent.model.engine][0] * agent.model.scale - 1;
+    for (let i = 0; i < n; i++) {
+      particles.push({
+        x: agent.x + Math.cos(agent.heading) * back + (Math.random() - 0.5) * 1.5,
+        y: agent.y + Math.sin(agent.heading) * back + (Math.random() - 0.5) * 1.5,
+        z: 5,
+        vx: -Math.cos(agent.heading) * 14 + (Math.random() - 0.5) * 5,
+        vy: -Math.sin(agent.heading) * 14 + (Math.random() - 0.5) * 5,
+        vz: (Math.random() - 0.5) * 2,
+        life: 0, max: 0.7 + Math.random() * 0.8, kind: 'trail', cols: agent.trail,
+      });
+    }
   }
 
   function updateShip(dt) {
     if (ship.mode === 'orbit') {
-      const b = ship.orbitBody;
-      ship.orbitAng += ship.orbitDir * (15 / ship.orbitR) * dt;
-      const tx = b.x + Math.cos(ship.orbitAng) * ship.orbitR;
-      const ty = b.y + Math.sin(ship.orbitAng) * ship.orbitR;
-      const k = Math.min(1, dt * 2.5);
-      ship.x += (tx - ship.x) * k;
-      ship.y += (ty - ship.y) * k;
-      turnTowards(ship.orbitAng + ship.orbitDir * Math.PI / 2, 2, dt);
-      ship.speed += (15 - ship.speed) * Math.min(1, dt * 2);
-    } else if (ship.mode === 'fly' && ship.goal) {
-      const g = ship.goal;
-      let tx, ty, arriveR, exclude = null;
-      if (g.body) { tx = g.body.x; ty = g.body.y; arriveR = g.body.avoidR + 1; exclude = g.body; }
-      else { tx = g.x; ty = g.y; arriveR = 2.5; }
-      const dist = Math.hypot(tx - ship.x, ty - ship.y);
-      if (dist <= arriveR) {
-        if (g.body) enterOrbit(g.body);
-        else { ship.mode = 'idle'; ship.goal = null; }
-      } else {
-        const want = steer(ship.x, ship.y, tx, ty, exclude);
-        const diff = turnTowards(want, dist < 24 ? 6 : 3.2, dt);
-        const remaining = dist - arriveR;
-        const tgt = Math.min(SHIP_MAX_SPEED, 9 + remaining * 1.3) * Math.max(0.2, Math.cos(Math.min(Math.PI / 2, Math.abs(diff))));
-        ship.speed += (tgt - ship.speed) * Math.min(1, dt * 2.2);
-        ship.x += Math.cos(ship.heading) * ship.speed * dt;
-        ship.y += Math.sin(ship.heading) * ship.speed * dt;
-      }
-    } else {
-      ship.speed *= Math.exp(-dt * 3);
-      ship.turnVel *= Math.exp(-dt * 4);
+      orbitAgent(ship, dt);
+    } else if (ship.mode === 'drift') {
+      // Seite an Seite mit einem anderen Schiff treiben
+      turnTowards(ship, ship.drift.dir, 1.5, dt);
+      ship.speed += (6 - ship.speed) * Math.min(1, dt * 1.5);
       ship.x += Math.cos(ship.heading) * ship.speed * dt;
       ship.y += Math.sin(ship.heading) * ship.speed * dt;
-    }
-
-    // nie in einen Körper hinein, nie über den Gürtel hinaus
-    for (const o of obstacles()) {
-      const dx = ship.x - o.x, dy = ship.y - o.y, d = Math.hypot(dx, dy) || 1e-6;
-      const min = o.coreR + 2;
-      if (d < min) { ship.x = o.x + (dx / d) * min; ship.y = o.y + (dy / d) * min; }
-    }
-    const rad = Math.hypot(ship.x, ship.y);
-    if (rad > SHIP_LIMIT) { ship.x *= SHIP_LIMIT / rad; ship.y *= SHIP_LIMIT / rad; }
-
-    ship.bank += (clamp(ship.turnVel * 0.22, -0.55, 0.55) - ship.bank) * Math.min(1, dt * 5);
-
-    // Triebwerks-Partikel
-    if (ship.speed > 6 && particles.length < 400) {
-      const n = ship.speed > 40 ? 2 : 1;
-      for (let i = 0; i < n; i++) {
-        const back = -6.5 * SHIP_SCALE;
-        particles.push({
-          x: ship.x + Math.cos(ship.heading) * back + (Math.random() - 0.5) * 1.5,
-          y: ship.y + Math.sin(ship.heading) * back + (Math.random() - 0.5) * 1.5,
-          z: 4 + 1.5 * SHIP_SCALE,
-          vx: -Math.cos(ship.heading) * 12 + (Math.random() - 0.5) * 6,
-          vy: -Math.sin(ship.heading) * 12 + (Math.random() - 0.5) * 6,
-          vz: (Math.random() - 0.5) * 2,
-          life: 0, max: 0.7 + Math.random() * 0.7, kind: 'trail',
-        });
+    } else if (ship.mode === 'fly' && ship.goal) {
+      const g = ship.goal;
+      let arrived;
+      if (g.body) arrived = flyAgent(ship, dt, g.body.x, g.body.y, g.body.avoidR + 1, g.body, SHIP_MAX_SPEED);
+      else arrived = flyAgent(ship, dt, g.x, g.y, 2.5, null, SHIP_MAX_SPEED);
+      if (arrived) {
+        if (g.body) {
+          ship.mode = 'orbit';
+          ship.goal = null;
+          startOrbit(ship, g.body, g.body.avoidR);
+          arriveAt(g.body);
+        } else {
+          ship.mode = 'idle';
+          ship.goal = null;
+        }
       }
+    } else {
+      coast(ship, dt);
     }
+    constrain(ship, dt);
+    emitTrail(ship, 3);
+  }
+
+  function pickDestination(npc) {
+    const options = DESTINATIONS.filter(d => d !== npc.target && d !== npc.prevTarget);
+    npc.prevTarget = npc.target;
+    npc.target = options[(Math.random() * options.length) | 0];
+    npc.sides.clear();
+  }
+
+  function updateNpc(npc, dt) {
+    npc.cooldown = Math.max(0, npc.cooldown - dt);
+    if (npc.state === 'travel') {
+      const t = npc.target;
+      if (flyAgent(npc, dt, t.x, t.y, t.avoidR + 8, t, 42)) {
+        npc.state = 'linger';
+        npc.linger = 4 + Math.random() * 6;
+        startOrbit(npc, t, t.avoidR + 8);
+      }
+    } else if (npc.state === 'linger') {
+      orbitAgent(npc, dt);
+      npc.linger -= dt;
+      if (npc.linger <= 0) { npc.state = 'travel'; pickDestination(npc); }
+    } else if (npc.state === 'drift') {
+      // neben dem Spieler herschweben
+      const dir = ship.drift.dir;
+      const side = ship.drift.side;
+      const tx = ship.x + Math.cos(dir + side * Math.PI / 2) * 22;
+      const ty = ship.y + Math.sin(dir + side * Math.PI / 2) * 22;
+      const k = Math.min(1, dt * 1.6);
+      const nx = npc.x + (tx - npc.x) * k, ny = npc.y + (ty - npc.y) * k;
+      npc.speed = Math.hypot(nx - npc.x, ny - npc.y) / Math.max(dt, 1e-4);
+      npc.x = nx; npc.y = ny;
+      turnTowards(npc, dir, 1.5, dt);
+    }
+    constrain(npc, dt);
+    emitTrail(npc, 1);
+  }
+
+  /** Begegnung: Spieler und Schiff treiben nebeneinander, Dialog öffnet sich. */
+  function checkEncounters() {
+    if (dialog.open || ship.mode === 'drift' || reward.classList.contains('show')) return;
+    for (const npc of npcs) {
+      if (npc.cooldown > 0 || npc.state === 'drift') continue;
+      if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
+      hideInfo();
+      const dir = ship.speed > 5 ? ship.heading : npc.heading;
+      const cr = Math.cos(dir) * (npc.y - ship.y) - Math.sin(dir) * (npc.x - ship.x);
+      ship.mode = 'drift';
+      ship.goal = null;
+      marker = null;
+      ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
+      npc.state = 'drift';
+      openDialog(npc.texts.crew, npc.texts.lines, npc.texts.name, () => endEncounter(npc));
+      return;
+    }
+  }
+  function endEncounter(npc) {
+    npc.state = 'travel';
+    npc.cooldown = 40;
+    pickDestination(npc);
+    if (ship.mode === 'drift') ship.mode = 'idle';
+    ship.drift = null;
   }
 
   function updateCoins() {
@@ -778,7 +966,6 @@
       if (Math.hypot(c.x - ship.x, c.y - ship.y) < 10) {
         c.taken = true;
         collected.add(c.id);
-        save();
         for (let i = 0; i < 16; i++) {
           const a = (i / 16) * TAU;
           particles.push({
@@ -815,7 +1002,15 @@
         }
       }
     }
+    for (const st of STATIONS) {
+      const a = st.a0 + (time * TAU) / st.period;
+      st.x = Math.cos(a) * st.orbit;
+      st.y = Math.sin(a) * st.orbit;
+      st.rot = time * 0.3;
+    }
     updateShip(dt);
+    for (const npc of npcs) updateNpc(npc, dt);
+    checkEncounters();
     updateCoins();
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
@@ -838,8 +1033,8 @@
   }
 
   // ---------------------------------------------------------------- render
-  const ORBIT_DOTS = BODIES.filter(b => b.orbit).map(b => {
-    const n = Math.round((b.orbit * TAU) / 6);
+  const ORBIT_DOTS = OBSTACLES.filter(b => b.orbit).map(b => {
+    const n = Math.round((b.orbit * TAU) / (b.station ? 9 : 6));
     return { b, pts: Array.from({ length: n }, (_, i) => [Math.cos((i / n) * TAU) * b.orbit, Math.sin((i / n) * TAU) * b.orbit]) };
   });
 
@@ -865,15 +1060,16 @@
   }
 
   function drawOrbits() {
-    ctx.fillStyle = '#8fa6ff';
-    ctx.globalAlpha = 0.16;
     for (const o of ORBIT_DOTS) {
+      ctx.fillStyle = o.b.station ? '#ffd27a' : '#8fa6ff';
+      ctx.globalAlpha = o.b.station ? 0.12 : 0.16;
       for (const [x, y] of o.pts) {
         const sx = toSX(x), sy = toSY(y);
         if (sx >= 0 && sx < W && sy >= 0 && sy < H) ctx.fillRect(sx | 0, sy | 0, 1, 1);
       }
     }
     // Mondbahnen
+    ctx.fillStyle = '#8fa6ff';
     ctx.globalAlpha = 0.1;
     for (const b of BODIES) {
       if (!b.moons) continue;
@@ -932,6 +1128,94 @@
     ctx.drawImage(b.spr.cv, Math.round(sx - b.spr.D / 2), Math.round(sy - b.spr.D / 2));
   }
 
+  // --- Raumstationen (pixelweise gezeichnet)
+  const HULL = G([[0, '#2e3448'], [0.45, '#7c87a3'], [1, '#eef2fa']]);
+  const rgb = c => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+  function px(x, y, col, w = 1, h = 1) { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+
+  function drawPanel(x0, y0, w) {
+    px(x0, y0, '#1d3a78', w, 3);
+    for (let i = 0; i < w; i++) if (i % 3 !== 2) px(x0 + i, y0, '#5f9cf0');
+    for (let i = 0; i < w; i++) if (i % 3 !== 2) px(x0 + i, y0 + 1, '#2d5fb8');
+  }
+
+  function drawStation(st) {
+    const sx = toSX(st.x), sy = toSY(st.y, 3);
+    if (!onScreen(sx, sy, 50)) return;
+    const L = bodyLight(st.x, st.y);
+    const spin = time * (st.type === 'ring' ? 0.22 : 0.32);
+    const R = st.size;
+    const back = [], front = [];
+    const shade = (wx, wy) => { const c = camVec(wx, wy); return clamp(0.25 + 0.75 * Math.max(0, c[0] * L[0] + c[1] * L[1] + c[2] * L[2]) + 0.15, 0, 1); };
+
+    if (st.type === 'ring') {
+      const n = Math.round((R * TAU) / 1.4);
+      for (let i = 0; i < n; i++) {
+        const a = spin + (i / n) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+        const seg = { x: sx + ca * R, y: sy + sa * R * SIN_E, s: shade(ca, sa), win: i % 5 === 0, kind: 'seg' };
+        (sa < 0 ? back : front).push(seg);
+      }
+      for (let k = 0; k < 4; k++) {
+        const a = spin + k * (Math.PI / 2), ca = Math.cos(a), sa = Math.sin(a);
+        const pts = [];
+        for (let t = st.hub / R; t < 0.95; t += 1 / R) pts.push([sx + ca * R * t, sy + sa * R * SIN_E * t]);
+        (sa < 0 ? back : front).push({ kind: 'spoke', pts });
+      }
+    } else {
+      for (let k = 0; k < 3; k++) {
+        const a = spin + (k / 3) * TAU, ca = Math.cos(a), sa = Math.sin(a);
+        const pts = [];
+        for (let t = 0.45; t < 0.8; t += 1 / R) pts.push([sx + ca * R * t, sy + sa * R * SIN_E * t]);
+        const item = { kind: 'module', x: sx + ca * R, y: sy + sa * R * SIN_E, s: shade(ca, sa), pts, k };
+        (sa < 0 ? back : front).push(item);
+      }
+    }
+    const drawItem = it => {
+      if (it.kind === 'seg') {
+        const c = grad(HULL, it.s);
+        px(it.x - 1, it.y - 1, rgb(c), 2, 2);
+        if (it.win && it.s > 0.3) px(it.x, it.y - 1, '#ffe08a');
+      } else if (it.kind === 'spoke') {
+        for (const [x, y] of it.pts) px(x, y, '#8a93ad');
+      } else if (it.kind === 'module') {
+        for (const [x, y] of it.pts) px(x, y, '#8a93ad');
+        const c = grad(HULL, it.s), d = grad(HULL, it.s * 0.6);
+        px(it.x - 3, it.y - 2, rgb(d), 7, 5);
+        px(it.x - 3, it.y - 2, rgb(c), 6, 4);
+        px(it.x - 2, it.y - 3, rgb(c), 4, 1);
+        px(it.x - 1, it.y - 1, it.k === 0 ? '#ffb36b' : '#ffe08a', 2, 1);
+      }
+    };
+    back.sort((p, q) => (p.y || 0) - (q.y || 0)).forEach(drawItem);
+
+    // Mast mit Antenne, Solarpaneele
+    const top = sy - st.hub - (st.type === 'ring' ? 8 : 9);
+    px(sx, top, '#9aa4bc', 1, sy - top);
+    if (st.type === 'ring') {
+      const py = sy - st.hub - 3;
+      px(sx - R - 3, py + 1, '#6b7590', R + 3 - st.hub, 1);
+      px(sx + st.hub, py + 1, '#6b7590', R + 3 - st.hub, 1);
+      drawPanel(sx - R - 13, py, 10);
+      drawPanel(sx + R + 3, py, 10);
+    } else {
+      drawPanel(sx - 10, top + 2, 8);
+      drawPanel(sx + 2, top + 2, 8);
+    }
+    // Kern
+    renderSphere(st.spr, st.hub, st, L);
+    ctx.drawImage(st.spr.cv, Math.round(sx - st.spr.D / 2), Math.round(sy - st.spr.D / 2));
+    // Blinklichter
+    const blink = (time + st.orbit * 0.01) % 1.6;
+    if (blink < 0.35) {
+      ctx.globalAlpha = 0.35; px(sx - 1, top - 1, '#ff5a5a', 3, 3); ctx.globalAlpha = 1;
+      px(sx, top, '#ff7a7a');
+    } else {
+      px(sx, top, '#7a2a2a');
+    }
+    if ((time * 0.8 + 0.5) % 2 < 0.25) px(sx + (st.type === 'ring' ? R + 13 : 10), top + 2, '#7dffb0');
+    front.sort((p, q) => (p.y || 0) - (q.y || 0)).forEach(drawItem);
+  }
+
   function drawCoin(c) {
     const bob = Math.sin(time * 1.6 + c.phase) * 1.2;
     const sx = toSX(c.x), sy = toSY(c.y, 5 + bob);
@@ -957,30 +1241,45 @@
     }
   }
 
-  function drawFlame(sx, sy, eng) {
-    const f = clamp(ship.speed / SHIP_MAX_SPEED, 0, 1);
+  /** Energiestrahl aus dem Heck: Länge wächst mit der Geschwindigkeit. */
+  function drawBeam(agent, sx, sy, eng) {
+    const f = clamp(agent.speed / SHIP_MAX_SPEED, 0, 1);
     if (f < 0.04) return;
-    const bx = -Math.cos(ship.heading), by = -Math.sin(ship.heading) * SIN_E;
+    let bx = -Math.cos(agent.heading), by = -Math.sin(agent.heading) * SIN_E;
     const bl = Math.hypot(bx, by) || 1;
-    const len = 1 + f * 4 + Math.random() * 1.5;
-    const cols = ['#fffbe0', '#ffd25a', '#ff9a3a', '#ff6a2a', '#c23a20', '#7a2418'];
+    bx /= bl; by /= bl;
+    const cols = agent.beam;
+    const len = Math.max(2, (agent.beamLen * (0.35 + 0.65 * f)) * (0.9 + Math.random() * 0.2));
+    const nx = -by, ny = bx; // Querachse für die Strahlbreite
     for (let i = 0; i < len; i++) {
-      ctx.fillStyle = cols[Math.min(cols.length - 1, i)];
-      ctx.fillRect(Math.round(sx + eng.ex + (bx / bl) * i), Math.round(sy + eng.ey + (by / bl) * i), 1, 1);
+      const t = i / len;
+      const c = cols[Math.min(cols.length - 1, Math.floor(t * cols.length))];
+      const x = sx + eng.ex + bx * i, y = sy + eng.ey + by * i;
+      ctx.globalAlpha = 1 - t * 0.55;
+      px(x, y, c);
+      if (agent === ship && t < 0.45) {
+        // breiter, leuchtender Kern
+        ctx.globalAlpha = 0.55 * (1 - t / 0.45);
+        px(x + nx, y + ny, cols[Math.min(cols.length - 1, 2 + Math.floor(t * 4))]);
+        px(x - nx, y - ny, cols[Math.min(cols.length - 1, 2 + Math.floor(t * 4))]);
+      }
     }
+    ctx.globalAlpha = 1;
   }
 
-  function drawShip() {
-    const bob = Math.sin(time * 1.8) * 0.8;
-    const sx = toSX(ship.x), sy = toSY(ship.y, 4 + bob);
-    const L = sunLight(ship.x, ship.y);
-    const Ls = [L[0] * 0.7, L[1] * 0.7 - COS_E * 0.6, L[2] * 0.7 + SIN_E * 0.6]; // Sonne + etwas Licht von oben
+  function drawAgent(agent) {
+    const bob = Math.sin(time * 1.8 + (agent.idx || 0) * 2) * 0.8;
+    const sx = toSX(agent.x), sy = toSY(agent.y, 4 + bob);
+    if (!onScreen(sx, sy, 40)) return;
+    const Lb = sunLight(agent.x, agent.y);
+    const Ls = [Lb[0] * 0.7, Lb[1] * 0.7 - COS_E * 0.6, Lb[2] * 0.7 + SIN_E * 0.6]; // Sonne + etwas Licht von oben
     const ll = Math.hypot(...Ls);
-    const eng = renderShip(ship.heading, ship.bank, Ls.map(v => v / ll));
-    const flameBehind = Math.sin(ship.heading) > 0; // Schiff fliegt auf uns zu -> Flamme hinter dem Rumpf
-    if (flameBehind) drawFlame(sx, sy, eng);
-    ctx.drawImage(shipSpr.cv, Math.round(sx - SB / 2), Math.round(sy - SB / 2));
-    if (!flameBehind) drawFlame(sx, sy, eng);
+    const eng = renderModel(agent.spr, agent.model, agent.colors, agent.heading, agent.bank, Ls.map(v => v / ll));
+    const beamBehind = Math.sin(agent.heading) > 0; // Schiff fliegt auf uns zu -> Strahl hinter dem Rumpf
+    if (beamBehind) drawBeam(agent, sx, sy, eng);
+    const SB = agent.spr.SB;
+    ctx.drawImage(agent.spr.cv, Math.round(sx - SB / 2), Math.round(sy - SB / 2));
+    if (!beamBehind) drawBeam(agent, sx, sy, eng);
   }
 
   function drawParticles() {
@@ -992,7 +1291,7 @@
         ctx.fillStyle = t < 0.4 ? '#fff1a8' : '#f7c948';
         ctx.globalAlpha = 1 - t;
       } else {
-        ctx.fillStyle = t < 0.2 ? '#ffe6a0' : t < 0.5 ? '#ff9a4a' : '#6a5aa8';
+        ctx.fillStyle = p.cols[t < 0.2 ? 0 : t < 0.5 ? 1 : 2];
         ctx.globalAlpha = (1 - t) * 0.8;
       }
       ctx.fillRect(sx | 0, sy | 0, 1, 1);
@@ -1021,8 +1320,10 @@
       drawList.push({ y: b.y, k: 0, o: b });
       if (b.moons) for (const m of b.moons) drawList.push({ y: m.y, k: 1, o: m });
     }
+    for (const st of STATIONS) drawList.push({ y: st.y, k: 5, o: st });
     for (const c of coins) if (!c.taken) drawList.push({ y: c.y, k: 2, o: c });
     drawList.push({ y: ship.y, k: 3, o: ship });
+    for (const n of npcs) drawList.push({ y: n.y, k: 3, o: n });
     const rotA = (time * TAU) / BELT_PERIOD;
     for (const a of asteroids) {
       const ang = a.a + rotA;
@@ -1045,7 +1346,7 @@
           break;
         }
         case 2: drawCoin(it.o); break;
-        case 3: drawShip(); break;
+        case 3: drawAgent(it.o); break;
         case 4: {
           const a = it.o;
           let k = Math.round((((it.ang + Math.PI) % TAU) / TAU) * 8) % 8;
@@ -1054,6 +1355,7 @@
           ctx.drawImage(spr.cv, Math.round(it.sx - spr.D / 2), Math.round(it.sy - spr.D / 2));
           break;
         }
+        case 5: drawStation(it.o); break;
       }
     }
   }
@@ -1084,10 +1386,62 @@
       dl.append(dt, dd);
     }
     info.classList.add('show');
-    hintGone = true; hint.classList.add('gone');
+    hideHint();
   }
   function hideInfo() { info.classList.remove('show'); }
   info.querySelector('.close').addEventListener('click', hideInfo);
+
+  // --- Dialoge mit den Tier-Figuren
+  const dialogEl = document.getElementById('dialog');
+  const dialog = { open: false, lines: [], idx: 0, onEnd: null, imgs: {} };
+  // Bilder vorladen, damit sie beim ersten Dialog sofort da sind
+  for (const c of Object.values(TEXTS.characters)) { const im = new Image(); im.src = c.img; }
+
+  function openDialog(crew, lines, role, onEnd) {
+    if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
+    hideInfo();
+    hideHint();
+    dialog.open = true;
+    dialog.lines = lines;
+    dialog.idx = 0;
+    dialog.onEnd = onEnd || null;
+    dialog.role = role || '';
+    const cast = dialogEl.querySelector('.cast');
+    cast.innerHTML = '';
+    dialog.imgs = {};
+    for (const id of crew) {
+      const c = TEXTS.characters[id];
+      if (!c) continue;
+      const im = document.createElement('img');
+      im.src = c.img;
+      im.alt = c.name;
+      cast.append(im);
+      dialog.imgs[id] = im;
+    }
+    showLine();
+    dialogEl.classList.add('show');
+  }
+  function showLine() {
+    const [who, text] = dialog.lines[dialog.idx];
+    const c = TEXTS.characters[who] || { name: who, tier: '' };
+    dialogEl.querySelector('.name').textContent = c.name;
+    dialogEl.querySelector('.role').textContent = [c.tier, dialog.role].filter(Boolean).join(' · ');
+    dialogEl.querySelector('.line').textContent = text;
+    for (const [id, im] of Object.entries(dialog.imgs)) im.classList.toggle('active', id === who);
+    const last = dialog.idx === dialog.lines.length - 1;
+    dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;
+    dialogEl.querySelector('.progress').textContent = `${dialog.idx + 1} / ${dialog.lines.length}`;
+  }
+  function dialogNext() {
+    if (!dialog.open) return;
+    if (dialog.idx < dialog.lines.length - 1) { dialog.idx++; showLine(); return; }
+    dialog.open = false;
+    dialogEl.classList.remove('show');
+    const cb = dialog.onEnd;
+    dialog.onEnd = null;
+    if (cb) cb();
+  }
+  dialogEl.querySelector('.next').addEventListener('click', dialogNext);
 
   const reward = document.getElementById('reward');
   const coinSvg = document.querySelector('.coin-icon').outerHTML;
@@ -1105,7 +1459,6 @@
       collected.clear();
       for (const c of coins) c.taken = false;
       rewardShown = false;
-      save();
       updateHUD(true);
       hideReward();
     }
@@ -1124,9 +1477,19 @@
   window.addEventListener('resize', resize);
   resize();
   updateHUD(false);
+  // NPCs auf ihre Startbahnen setzen
   updateWorld(0);
+  for (const n of npcs) {
+    const b = n.orbitBody;
+    n.x = b.x + Math.cos(n.orbitAng) * n.orbitR;
+    n.y = b.y + Math.sin(n.orbitAng) * n.orbitR;
+    n.heading = n.orbitAng + n.orbitDir * Math.PI / 2;
+  }
   requestAnimationFrame(frame);
 
   // kleine Debug-Schnittstelle (für Tests / Konsole)
-  window.__space = { ship, coins, BODIES, collected, step: dt => updateWorld(dt), flyToPoint, flyToBody };
+  window.__space = {
+    ship, npcs, coins, BODIES, STATIONS, collected, dialog,
+    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext,
+  };
 })();
