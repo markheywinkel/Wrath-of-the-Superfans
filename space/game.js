@@ -1604,79 +1604,74 @@
   function hideInfo() { info.classList.remove('show'); }
   info.querySelector('.close').addEventListener('click', hideInfo);
 
-  // --- grobe Pixel-Figuren (16 × 18 Pixel), aus »look« in texts.js gezeichnet
+  // --- grobe Pixel-Astronauten (16 × 18 Pixel), aus »look« in texts.js gezeichnet
   const portraitCache = {};
   function portrait(id) {
     if (portraitCache[id]) return portraitCache[id];
     const c = TEXTS.characters[id] || {};
-    const L = Object.assign({ fur: '#999999', light: '#dddddd', outfit: '#445577', ears: 'none', extra: [] }, c.look || {});
-    const ex = new Set(L.extra);
+    const L = Object.assign({ suit: '#ff2fa0', helmet: true, visor: '#ffd84a', skin: '#f1c7a0', hair: '#2a1a12', hairStyle: 'short' }, c.look || {});
     const GW = 16, GH = 18;
     const grid = Array.from({ length: GH }, () => Array(GW).fill(null));
     const set = (x, y, col) => { if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y][x] = col; };
     const rect = (x0, y0, w, h, col) => { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) set(x, y, col); };
-    const dark = '#140c18';
+    const dark = '#0c0a14';
     const shade = (hexc, k) => { const v = hex(hexc).map(n => Math.max(0, Math.min(255, Math.round(n * k)))); return `rgb(${v[0]},${v[1]},${v[2]})`; };
-    const furD = shade(L.fur, 0.78);
+    const suitD = shade(L.suit, 0.72), suitL = shade(L.suit, 1.25);
+    const white = '#eef0f6', grey = '#a8b0c4', greyD = '#6a7290';
 
-    if (ex.has('tail')) { // buschiger Schwanz hinter dem Körper
-      rect(12, 9, 1, 7, furD); rect(13, 7, 1, 9, furD); rect(14, 6, 1, 8, furD); rect(15, 7, 1, 5, furD);
-      set(14, 7, L.fur); set(13, 8, L.fur); set(14, 8, L.fur);
-    }
-    if (ex.has('shell')) { rect(3, 11, 10, 6, '#5a7a3a'); rect(4, 12, 8, 4, '#7a9a4a'); }
-    // Ohren
-    if (L.ears === 'pointed') { rect(4, 3, 1, 2, L.fur); set(5, 4, L.fur); rect(11, 3, 1, 2, L.fur); set(10, 4, L.fur); set(4, 4, L.light); set(11, 4, L.light); }
-    if (L.ears === 'small') { set(4, 4, L.fur); set(11, 4, L.fur); }
-    if (L.ears === 'round') { rect(4, 3, 2, 2, L.fur); rect(10, 3, 2, 2, L.fur); set(5, 4, L.light); set(10, 4, L.light); }
-    if (L.ears === 'fluffy') { rect(2, 3, 3, 4, L.fur); rect(11, 3, 3, 4, L.fur); rect(3, 4, 1, 2, L.light); rect(12, 4, 1, 2, L.light); }
-    if (L.ears === 'long') { rect(5, 0, 2, 5, L.fur); rect(9, 0, 2, 5, L.fur); rect(5, 1, 1, 3, L.light); rect(10, 1, 1, 3, L.light); }
-    if (L.ears === 'tufts') { set(4, 4, L.fur); set(3, 3, L.fur); set(11, 4, L.fur); set(12, 3, L.fur); }
-    if (ex.has('antlers')) { const a = '#e0c890'; set(4, 2, a); set(3, 1, a); set(5, 1, a); set(3, 0, a); set(11, 2, a); set(10, 1, a); set(12, 1, a); set(12, 0, a); }
-    // Kopf (abgerundet)
-    rect(4, 5, 8, 7, L.fur);
-    set(4, 5, null); set(11, 5, null); set(4, 11, null); set(11, 11, null);
-    if (ex.has('hood')) { rect(3, 4, 10, 1, L.outfit); rect(3, 5, 1, 7, L.outfit); rect(12, 5, 1, 7, L.outfit); }
-    // Gesicht
-    rect(6, 8, 4, 3, L.light);
-    if (ex.has('mask')) rect(5, 7, 6, 1, '#2a2a34');
-    if (ex.has('bigeyes')) {
-      rect(5, 6, 2, 2, '#f4e8c8'); rect(9, 6, 2, 2, '#f4e8c8'); set(6, 7, dark); set(9, 7, dark);
+    // Rucksack hinter dem Körper
+    rect(2, 12, 1, 5, greyD); rect(13, 12, 1, 5, greyD);
+    // Anzug
+    rect(3, 12, 10, 6, L.suit);
+    rect(3, 12, 2, 2, white); rect(11, 12, 2, 2, white);      // Schulterpolster
+    rect(3, 14, 1, 3, suitD); rect(12, 14, 1, 3, suitD);       // Arme (Schatten)
+    rect(3, 17, 1, 1, grey); rect(12, 17, 1, 1, grey);         // Handschuhe
+    rect(6, 13, 4, 3, white);                                   // Brustmodul
+    set(6, 14, '#ff4a4a'); set(7, 14, '#4aff8a'); set(8, 14, '#ffd84a'); set(9, 14, greyD);
+    rect(6, 15, 4, 1, grey);
+    rect(4, 17, 8, 1, suitD);                                   // Gürtel
+    set(5, 12, suitL); set(10, 12, suitL);
+    // Halsring
+    rect(5, 11, 6, 1, grey);
+
+    if (L.helmet) {
+      // runder Helm mit farbigem, spiegelndem Visier
+      rect(4, 1, 8, 10, white);
+      rect(3, 2, 1, 8, white); rect(12, 2, 1, 8, white);
+      set(4, 1, null); set(11, 1, null);
+      rect(5, 3, 6, 6, L.visor);
+      rect(4, 4, 1, 4, L.visor); rect(11, 4, 1, 4, L.visor);
+      rect(5, 8, 6, 1, shade(L.visor, 0.7)); rect(10, 4, 1, 4, shade(L.visor, 0.8));
+      set(5, 4, '#ffffff'); set(6, 3, '#ffffff'); set(5, 5, '#ffffff'); // Spiegelung
+      set(12, 5, grey); set(12, 6, '#ff4a4a');                         // Helmlampe
+      rect(4, 10, 8, 1, grey);
     } else {
-      set(6, 7, ex.has('mask') ? '#ffffff' : dark); set(9, 7, ex.has('mask') ? '#ffffff' : dark);
+      // Kopf ohne Helm
+      rect(5, 4, 6, 7, L.skin);
+      set(5, 4, null); set(10, 4, null);
+      set(6, 7, dark); set(9, 7, dark);                 // Augen
+      set(7, 9, shade(L.skin, 0.75)); set(8, 9, shade(L.skin, 0.75)); // Mund
+      set(4, 7, L.skin); set(11, 7, L.skin);            // Ohren
+      const H = L.hair;
+      if (L.hairStyle === 'short') { rect(5, 3, 6, 2, H); set(5, 5, H); set(10, 5, H); }
+      if (L.hairStyle === 'long') { rect(5, 3, 6, 2, H); rect(4, 4, 1, 7, H); rect(11, 4, 1, 7, H); set(5, 5, H); set(10, 5, H); }
+      if (L.hairStyle === 'bun') { rect(5, 3, 6, 2, H); rect(6, 1, 4, 2, H); set(5, 5, H); set(10, 5, H); }
+      if (L.hairStyle === 'mohawk') { rect(7, 1, 2, 4, H); }
+      if (L.hairStyle === 'bald') { set(6, 4, shade(L.skin, 1.1)); }
+      // Headset
+      set(4, 6, greyD); set(4, 8, greyD); set(5, 9, greyD);
     }
-    if (ex.has('glasses')) { const g = '#2a2a3a'; set(5, 7, g); set(7, 7, g); set(8, 7, g); set(10, 7, g); }
-    if (ex.has('beak')) { set(7, 8, '#e8a030'); set(8, 8, '#e8a030'); set(7, 9, '#c07820'); }
-    else { set(7, 8, '#3a2026'); set(8, 8, '#3a2026'); }
-    if (ex.has('goggles')) {
-      const st = '#5a3a20', gl = '#7fd0ff';
-      rect(4, 5, 8, 1, st); set(5, 5, gl); set(6, 5, gl); set(9, 5, gl); set(10, 5, gl);
-    }
-    // Körper oder Tentakel
-    if (ex.has('tentacles')) {
-      rect(5, 12, 6, 2, L.fur);
-      for (const x of [4, 6, 9, 11]) { rect(x, 14, 1, 3, L.fur); }
-      set(3, 16, L.fur); set(12, 16, L.fur); set(7, 14, L.fur); set(8, 14, L.fur);
-      set(6, 15, L.light); set(9, 15, L.light);
-    } else {
-      rect(6, 12, 4, 1, L.outfit);
-      rect(4, 13, 8, 5, L.outfit);
-      rect(4, 13, 1, 3, shade(L.outfit, 0.8)); rect(11, 13, 1, 3, shade(L.outfit, 0.8));
-      set(4, 16, ex.has('gloves') ? '#d03030' : L.fur); set(11, 16, ex.has('gloves') ? '#d03030' : L.fur);
-      if (ex.has('gloves')) { set(4, 15, '#d03030'); set(11, 15, '#d03030'); }
-      rect(7, 13, 2, 3, shade(L.outfit, 1.15));
-      if (ex.has('tie')) { set(7, 12, '#ffffff'); set(8, 12, '#ffffff'); rect(7, 13, 2, 1, '#c0303a'); set(7, 14, '#c0303a'); set(8, 15, '#c0303a'); }
-      if (ex.has('scarf')) { rect(5, 12, 6, 1, '#f4f0e8'); set(5, 13, '#f4f0e8'); set(5, 14, '#d8d0c4'); }
-    }
+
     // Kontur
     const cv = document.createElement('canvas');
     cv.width = GW + 2; cv.height = GH + 2;
     const cx = cv.getContext('2d');
-    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
-      if (grid[y][x]) continue;
-      const n = (xx, yy) => yy >= 0 && yy < GH && xx >= 0 && xx < GW && grid[yy][xx];
-      if (n(x - 1, y) || n(x + 1, y) || n(x, y - 1) || n(x, y + 1)) { cx.fillStyle = dark; cx.fillRect(x + 1, y + 1, 1, 1); }
+    const filled = (x, y) => y >= 0 && y < GH && x >= 0 && x < GW && grid[y][x];
+    cx.fillStyle = dark;
+    for (let y = -1; y <= GH; y++) for (let x = -1; x <= GW; x++) {
+      if (filled(x, y)) continue;
+      if (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1)) cx.fillRect(x + 1, y + 1, 1, 1);
     }
-    for (let x = 0; x < GW; x++) { if (grid[0][x]) { cx.fillStyle = dark; cx.fillRect(x + 1, 0, 1, 1); } if (grid[GH - 1][x]) { cx.fillStyle = dark; cx.fillRect(x + 1, GH + 1, 1, 1); } }
     for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (grid[y][x]) { cx.fillStyle = grid[y][x]; cx.fillRect(x + 1, y + 1, 1, 1); }
     return (portraitCache[id] = cv.toDataURL());
   }
@@ -1801,6 +1796,6 @@
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
-    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext,
+    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait,
   };
 })();

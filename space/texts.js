@@ -10,25 +10,23 @@ window.SPACE_TEXTS = {
   dialogClose: 'Tschüss!',
 
   /*
-   * Spielfigur und Figuren. Sie werden im Dialog als grobe Pixel-Figuren gezeichnet.
-   * look: fur = Fell, light = Schnauze/Bauch, outfit = Kleidung,
-   *       ears = pointed | small | round | fluffy | long | tufts | none,
-   *       extra = Liste aus goggles, scarf, tail, tie, antlers, mask, glasses,
-   *               gloves, bigeyes, beak, tentacles, shell, hood
+   * Spielfigur und Figuren: Astronautinnen und Astronauten, im Dialog als grobe Pixel-Figuren.
+   * look: suit = Anzugfarbe, helmet = mit Helm (true/false), visor = Farbe des Visiers,
+   *       skin = Hautfarbe, hair = Haarfarbe, hairStyle = short | long | bun | mohawk | bald
    */
   player: 'gwen',
   characters: {
-    gwen: { name: 'Gwen', tier: 'Pilotin', look: { fur: '#d9682b', light: '#f5c99a', outfit: '#7a4a2a', ears: 'pointed', extra: ['tail', 'goggles', 'scarf'] } },
-    quentin: { name: 'Quentin', tier: 'Capybara', look: { fur: '#a8683a', light: '#c98a5a', outfit: '#2c3e72', ears: 'small', extra: ['tie'] } },
-    mia: { name: 'Mia', tier: 'Reh', look: { fur: '#b5773f', light: '#f0d2a8', outfit: '#3a5a8a', ears: 'pointed', extra: ['antlers'] } },
-    norman: { name: 'Norman', tier: 'Waschbär', look: { fur: '#8a8a96', light: '#e6e6ea', outfit: '#5a4a3a', ears: 'round', extra: ['mask'] } },
-    lizzy: { name: 'Lizzy', tier: 'Echse', look: { fur: '#6bbf4a', light: '#b8e08a', outfit: '#4a3a2a', ears: 'none', extra: ['glasses'] } },
-    sid: { name: 'Sid', tier: 'Känguru', look: { fur: '#c98a4a', light: '#f0c890', outfit: '#e4e4ea', ears: 'long', extra: ['gloves'] } },
-    bruno: { name: 'Bruno', tier: 'Koala', look: { fur: '#9a9aa6', light: '#d8d8e0', outfit: '#e4e4ea', ears: 'fluffy', extra: ['tie'] } },
-    ivy: { name: 'Ivy', tier: 'Schildkröte', look: { fur: '#7ac25a', light: '#c8e8a0', outfit: '#2c3e72', ears: 'none', extra: ['shell', 'glasses'] } },
-    totoro: { name: 'Totoro', tier: 'Bär', look: { fur: '#8a5a32', light: '#c89a6a', outfit: '#e8b830', ears: 'round', extra: ['hood'] } },
-    west: { name: 'West', tier: 'Eule', look: { fur: '#8a5a3a', light: '#e8d0a8', outfit: '#e4e4ea', ears: 'tufts', extra: ['bigeyes', 'beak'] } },
-    ursula: { name: 'Ursula', tier: 'Krake', look: { fur: '#8a5ac8', light: '#b890e8', outfit: '#8a5ac8', ears: 'none', extra: ['tentacles', 'goggles'] } },
+    gwen: { name: 'Gwen', tier: 'Astronautin', look: { suit: '#ff6a1a', helmet: false, skin: '#f1c7a0', hair: '#c8461a', hairStyle: 'bun' } },
+    quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
+    mia: { name: 'Mia', tier: 'Navigatorin', look: { suit: '#b6ff2a', helmet: false, skin: '#8a5a3a', hair: '#1a1014', hairStyle: 'long' } },
+    norman: { name: 'Norman', tier: 'Mechaniker', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
+    lizzy: { name: 'Lizzy', tier: 'Funkerin', look: { suit: '#1ae8ff', helmet: true, visor: '#ff5ad0' } },
+    sid: { name: 'Sid', tier: 'Pilot', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
+    bruno: { name: 'Bruno', tier: 'Ingenieur', look: { suit: '#7a3aff', helmet: true, visor: '#3affb0' } },
+    ivy: { name: 'Ivy', tier: 'Kommandantin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
+    totoro: { name: 'Totoro', tier: 'Koch', look: { suit: '#ff9a1a', helmet: true, visor: '#5ab8ff' } },
+    west: { name: 'West', tier: 'Forscher', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
+    ursula: { name: 'Ursula', tier: 'Wissenschaftlerin', look: { suit: '#3a8aff', helmet: true, visor: '#ff9a2a' } },
   },
 
   /*
