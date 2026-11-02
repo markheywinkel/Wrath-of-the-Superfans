@@ -2,7 +2,7 @@
 
 Ein ruhiges Pixel-Browserspiel: Ein kleines Raumschiff fliegt per Tippen durch ein
 Sonnensystem (Sonne, 5 Planeten, 3 Monde um den Gasriesen, Asteroidengürtel als Kartenrand)
-und sammelt 30 Münzen.
+und sammelt 30 Kristalle.
 
 Reine statische Seite – kein Build, keine Abhängigkeiten.
 
@@ -11,7 +11,6 @@ Reine statische Seite – kein Build, keine Abhängigkeiten.
 | `index.html` | Seitengerüst, HUD, Infokasten, Belohnungsdialog               |
 | `style.css`  | Pixel-UI                                                      |
 | `texts.js`   | **Alle Texte** (Intro, Planeten-Infos, Dialoge, Belohnung) – hier betexten |
-| `img/`       | Tier-Figuren aus Capybara Media (Sprecher in den Dialogen)    |
 | `game.js`    | Spiel, Steuerung, Ausweichlogik, Rendering                    |
 
 ## Lokal starten
@@ -26,16 +25,16 @@ python3 -m http.server 8000
 
 - Du bist **Gwen**, die Eichhörnchen-Pilotin. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit, Infokasten.
-- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog mit den Tier-Figuren öffnet sich.
+- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich: links die grobe Pixel-Figur des Gegenübers, rechts Gwen; wer spricht, ist etwas größer.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
-- **Sammeln:** 30 Münzen und 10 verlorene Frachtcontainer.
+- **Sammeln:** 30 Kristalle und 10 verlorene Frachtcontainer.
 - **Badges** (oben rechts):
-  - Meistererkunder: alle Münzen → Antrieb +20 %
+  - Meistererkunder: alle Kristalle → Antrieb +20 %
   - Aufräumer: alle Container → Antrieb +10 %
   - Meisterbote: alle Quests → Antrieb +20 %
   - Tourist: alle fünf Planeten besucht
   - Amor: Liebesbrief überbracht
-  - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Neu beginnen«
+  - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 
 ## Deployment auf space.markheywinkel.de

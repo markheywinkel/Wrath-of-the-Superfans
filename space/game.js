@@ -807,14 +807,14 @@
     if (quests[id] !== 'open') return;
     quests[id] = 'active';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${it.icon} ${esc(it.name)} → ${esc(bodyName(it.target))}`);
+    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${esc(it.name)} → ${esc(bodyName(it.target))}`);
     renderQuests();
   }
   function deliver(id) {
     if (quests[id] !== 'active') return;
     quests[id] = 'done';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${it.icon} ${esc(it.name)}`);
+    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${esc(it.name)}`);
     renderQuests();
     if (id === 'brief') award('amor');
     if (Object.values(quests).every(q => q === 'done')) milestone('meisterbote', 0.2, TEXTS.rewards.quests);
@@ -827,12 +827,12 @@
     if (badges.has(id)) return;
     badges.add(id);
     const b = TEXTS.badges[id];
-    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${b.icon} ${esc(b.name)}`);
+    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${esc(b.name)}`);
     renderBadges();
     if (id !== FINAL_BADGE && BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) {
       award(FINAL_BADGE);
       const f = TEXTS.rewards.final;
-      showModal({ icon: TEXTS.badges[FINAL_BADGE].icon, title: f.title, body: f.body, button: f.button, final: true });
+      showModal({ title: f.title, body: f.body, button: f.button, restart: f.restart, final: true });
     }
   }
   /** Meilenstein: schnellerer Antrieb + Badge + Belohnungsdialog */
@@ -840,7 +840,7 @@
     if (badges.has(badgeId)) return;
     speedBonus += bonus;
     toast(`<b>${esc(TEXTS.toast.boost)}</b> +${Math.round(bonus * 100)} %`);
-    showModal({ icon: TEXTS.badges[badgeId].icon, title: reward.title, body: reward.body, button: TEXTS.rewards.continue });
+    showModal({ title: reward.title, body: reward.body, button: TEXTS.rewards.continue });
     award(badgeId);
   }
 
@@ -1035,7 +1035,7 @@
 
   /** Begegnung: Spieler und Schiff treiben nebeneinander, Dialog öffnet sich. */
   function checkEncounters() {
-    if (dialog.open || ship.mode === 'drift' || modal.open) return;
+    if (dialog.open || ship.mode === 'drift' || modal.open || notify.queue.some(n => n.type === 'modal')) return;
     for (const npc of npcs) {
       if (npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
@@ -1073,20 +1073,21 @@
 
   function updateCoins() {
     for (const c of coins) {
-      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 10) continue;
+      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 17) continue;
       c.taken = true;
       collected.add(c.id);
       burst(c.x, c.y, 'gold');
       updateHUD('coin');
+      pickupText(`${TEXTS.pickup.crystal} ${collected.size} / ${COIN_TOTAL}`);
       if (collected.size >= COIN_TOTAL) setTimeout(() => milestone('meistererkunder', 0.2, TEXTS.rewards.coins), 900);
     }
     for (const c of crates) {
-      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 12) continue;
+      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 19) continue;
       c.taken = true;
       cratesTaken.add(c.id);
       burst(c.x, c.y, 'crate');
       updateHUD('crate');
-      toast(`<b>${esc(TEXTS.toast.container)}</b> ${cratesTaken.size} / ${CRATE_TOTAL}`);
+      pickupText(`${TEXTS.pickup.container} ${cratesTaken.size} / ${CRATE_TOTAL}`);
       if (cratesTaken.size >= CRATE_TOTAL) setTimeout(() => milestone('aufraeumer', 0.1, TEXTS.rewards.containers), 900);
     }
   }
@@ -1324,27 +1325,42 @@
     front.sort((p, q) => (p.y || 0) - (q.y || 0)).forEach(drawItem);
   }
 
+  /** Kristall: schwebender, sich drehender Edelstein mit Facetten */
+  const CRYSTAL_PROFILE = [0.25, 0.6, 0.9, 1, 1, 0.8, 0.6, 0.4, 0.2]; // halbe Breite je Zeile, oben -> unten
   function drawCoin(c) {
     const bob = Math.sin(time * 1.6 + c.phase) * 1.2;
-    const sx = toSX(c.x), sy = toSY(c.y, 5 + bob);
-    if (!onScreen(sx, sy, 8)) return;
+    const sx = toSX(c.x), sy = toSY(c.y, 6 + bob);
+    if (!onScreen(sx, sy, 10)) return;
     const x = Math.round(sx), y = Math.round(sy);
-    const spin = Math.cos(time * 2.2 + c.phase);
-    const hw = Math.round(Math.abs(spin) * 3);
-    for (let dy = -3; dy <= 3; dy++) {
-      const row = Math.round(hw * Math.sqrt(Math.max(0, 1 - (dy / 3.6) ** 2)));
-      ctx.fillStyle = dy === -3 || dy === 3 ? '#c98a1e' : '#f7c948';
-      ctx.fillRect(x - row, y + dy, row * 2 + 1, 1);
+    const spin = Math.cos(time * 1.7 + c.phase);
+    const hw = 1.5 + Math.abs(spin) * 2.2;
+    const front = spin > 0;
+    // weicher Schein
+    ctx.globalAlpha = 0.18 + 0.08 * Math.sin(time * 2 + c.phase);
+    px(x - 4, y - 4, '#7fe0ff', 9, 9);
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < CRYSTAL_PROFILE.length; i++) {
+      const dy = i - 4;
+      const w = Math.max(0, Math.round(hw * CRYSTAL_PROFILE[i]));
+      px(x - w - 1, y + dy, '#123a6a', w * 2 + 3, 1); // Kontur
     }
-    if (hw >= 1) { ctx.fillStyle = '#b8741a'; ctx.fillRect(x + hw, y - 2, 1, 5); }
-    if (hw >= 2) { ctx.fillStyle = '#fff1a8'; ctx.fillRect(x - hw + 1, y - 2, 1, 3); }
-    if (hw >= 3) { ctx.fillStyle = '#d99a2b'; ctx.fillRect(x + 1, y - 1, 1, 3); }
+    for (let i = 0; i < CRYSTAL_PROFILE.length; i++) {
+      const dy = i - 4;
+      const w = Math.max(0, Math.round(hw * CRYSTAL_PROFILE[i]));
+      const upper = dy < 0;
+      // linke und rechte Facette tauschen beim Drehen die Helligkeit
+      const lite = upper ? '#e6fdff' : '#9fe8ff';
+      const dark = upper ? '#4ab8f0' : '#2a7fd0';
+      px(x - w, y + dy, front ? lite : dark, w, 1);
+      px(x, y + dy, front ? dark : lite, w + 1, 1);
+      px(x, y + dy, upper ? '#c8f6ff' : '#5fc8ff', 1, 1); // Mittelgrat
+    }
+    px(x - 1, y - 2, '#ffffff');
     const sp = (time * 0.5 + c.phase) % 3;
     if (sp < 0.3) {
-      ctx.fillStyle = '#ffffff';
       ctx.globalAlpha = 1 - sp / 0.3;
-      ctx.fillRect(x + 3, y - 5, 1, 3);
-      ctx.fillRect(x + 2, y - 4, 3, 1);
+      px(x + 3, y - 7, '#ffffff', 1, 3);
+      px(x + 2, y - 6, '#ffffff', 3, 1);
       ctx.globalAlpha = 1;
     }
   }
@@ -1449,7 +1465,7 @@
       if (!onScreen(sx, sy, 2)) continue;
       const t = p.life / p.max;
       if (p.kind === 'gold' || p.kind === 'crate') {
-        ctx.fillStyle = p.kind === 'gold' ? (t < 0.4 ? '#fff1a8' : '#f7c948') : (t < 0.4 ? '#ffd0a0' : '#e07b2c');
+        ctx.fillStyle = p.kind === 'gold' ? (t < 0.4 ? '#e6fdff' : '#5fd3ff') : (t < 0.4 ? '#ffd0a0' : '#e07b2c');
         ctx.globalAlpha = 1 - t;
       } else {
         ctx.fillStyle = p.cols[t < 0.2 ? 0 : t < 0.5 ? 1 : 2];
@@ -1545,10 +1561,10 @@
       const b = TEXTS.badges[id];
       const el = document.createElement('button');
       el.type = 'button';
-      el.className = 'badge' + (id === FINAL_BADGE ? ' top' : '');
+      el.className = 'badge box' + (id === FINAL_BADGE ? ' top' : '');
       el.title = `${b.name}: ${b.text}`;
-      el.innerHTML = `<span class="ic">${b.icon}</span><span class="label">${esc(b.name)}</span>`;
-      el.addEventListener('click', () => toast(`${b.icon} <b>${esc(b.name)}</b> – ${esc(b.text)}`));
+      el.textContent = b.name;
+      el.addEventListener('click', () => toast(`<b>${esc(b.name)}</b> – ${esc(b.text)}`));
       badgeEl.append(el);
     }
   }
@@ -1560,18 +1576,19 @@
       if (state !== 'active') continue;
       const it = TEXTS.items[id];
       const li = document.createElement('li');
-      li.innerHTML = `<span class="ic">${it.icon}</span><span>${esc(it.name)}</span><span class="to">→ ${esc(bodyName(it.target))}</span>`;
+      li.className = 'box';
+      li.innerHTML = `${esc(it.name)} <span class="to">→ ${esc(bodyName(it.target))}</span>`;
       questEl.append(li);
     }
   }
 
-  const toastEl = document.getElementById('toasts');
-  function toast(html) {
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.innerHTML = html;
-    toastEl.append(el);
-    setTimeout(() => el.remove(), 3700);
+  // großer Text im Bild beim Einsammeln
+  const pickupEl = document.getElementById('pickup');
+  function pickupText(text) {
+    pickupEl.textContent = text;
+    pickupEl.classList.remove('show');
+    void pickupEl.offsetWidth;
+    pickupEl.classList.add('show');
   }
 
   const info = document.getElementById('info');
@@ -1581,24 +1598,93 @@
     info.querySelector('.kicker').textContent = t.kicker || '';
     info.querySelector('.name').textContent = t.name || '';
     info.querySelector('.body').textContent = t.body || '';
-    const dl = info.querySelector('.facts');
-    dl.innerHTML = '';
-    for (const [k, v] of t.facts || []) {
-      const dt = document.createElement('dt'); dt.textContent = k;
-      const dd = document.createElement('dd'); dd.textContent = v;
-      dl.append(dt, dd);
-    }
     info.classList.add('show');
     hideHint();
   }
   function hideInfo() { info.classList.remove('show'); }
   info.querySelector('.close').addEventListener('click', hideInfo);
 
-  // --- Dialoge mit den Tier-Figuren
+  // --- grobe Pixel-Figuren (16 × 18 Pixel), aus »look« in texts.js gezeichnet
+  const portraitCache = {};
+  function portrait(id) {
+    if (portraitCache[id]) return portraitCache[id];
+    const c = TEXTS.characters[id] || {};
+    const L = Object.assign({ fur: '#999999', light: '#dddddd', outfit: '#445577', ears: 'none', extra: [] }, c.look || {});
+    const ex = new Set(L.extra);
+    const GW = 16, GH = 18;
+    const grid = Array.from({ length: GH }, () => Array(GW).fill(null));
+    const set = (x, y, col) => { if (x >= 0 && x < GW && y >= 0 && y < GH) grid[y][x] = col; };
+    const rect = (x0, y0, w, h, col) => { for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) set(x, y, col); };
+    const dark = '#140c18';
+    const shade = (hexc, k) => { const v = hex(hexc).map(n => Math.max(0, Math.min(255, Math.round(n * k)))); return `rgb(${v[0]},${v[1]},${v[2]})`; };
+    const furD = shade(L.fur, 0.78);
+
+    if (ex.has('tail')) { // buschiger Schwanz hinter dem Körper
+      rect(12, 9, 1, 7, furD); rect(13, 7, 1, 9, furD); rect(14, 6, 1, 8, furD); rect(15, 7, 1, 5, furD);
+      set(14, 7, L.fur); set(13, 8, L.fur); set(14, 8, L.fur);
+    }
+    if (ex.has('shell')) { rect(3, 11, 10, 6, '#5a7a3a'); rect(4, 12, 8, 4, '#7a9a4a'); }
+    // Ohren
+    if (L.ears === 'pointed') { rect(4, 3, 1, 2, L.fur); set(5, 4, L.fur); rect(11, 3, 1, 2, L.fur); set(10, 4, L.fur); set(4, 4, L.light); set(11, 4, L.light); }
+    if (L.ears === 'small') { set(4, 4, L.fur); set(11, 4, L.fur); }
+    if (L.ears === 'round') { rect(4, 3, 2, 2, L.fur); rect(10, 3, 2, 2, L.fur); set(5, 4, L.light); set(10, 4, L.light); }
+    if (L.ears === 'fluffy') { rect(2, 3, 3, 4, L.fur); rect(11, 3, 3, 4, L.fur); rect(3, 4, 1, 2, L.light); rect(12, 4, 1, 2, L.light); }
+    if (L.ears === 'long') { rect(5, 0, 2, 5, L.fur); rect(9, 0, 2, 5, L.fur); rect(5, 1, 1, 3, L.light); rect(10, 1, 1, 3, L.light); }
+    if (L.ears === 'tufts') { set(4, 4, L.fur); set(3, 3, L.fur); set(11, 4, L.fur); set(12, 3, L.fur); }
+    if (ex.has('antlers')) { const a = '#e0c890'; set(4, 2, a); set(3, 1, a); set(5, 1, a); set(3, 0, a); set(11, 2, a); set(10, 1, a); set(12, 1, a); set(12, 0, a); }
+    // Kopf (abgerundet)
+    rect(4, 5, 8, 7, L.fur);
+    set(4, 5, null); set(11, 5, null); set(4, 11, null); set(11, 11, null);
+    if (ex.has('hood')) { rect(3, 4, 10, 1, L.outfit); rect(3, 5, 1, 7, L.outfit); rect(12, 5, 1, 7, L.outfit); }
+    // Gesicht
+    rect(6, 8, 4, 3, L.light);
+    if (ex.has('mask')) rect(5, 7, 6, 1, '#2a2a34');
+    if (ex.has('bigeyes')) {
+      rect(5, 6, 2, 2, '#f4e8c8'); rect(9, 6, 2, 2, '#f4e8c8'); set(6, 7, dark); set(9, 7, dark);
+    } else {
+      set(6, 7, ex.has('mask') ? '#ffffff' : dark); set(9, 7, ex.has('mask') ? '#ffffff' : dark);
+    }
+    if (ex.has('glasses')) { const g = '#2a2a3a'; set(5, 7, g); set(7, 7, g); set(8, 7, g); set(10, 7, g); }
+    if (ex.has('beak')) { set(7, 8, '#e8a030'); set(8, 8, '#e8a030'); set(7, 9, '#c07820'); }
+    else { set(7, 8, '#3a2026'); set(8, 8, '#3a2026'); }
+    if (ex.has('goggles')) {
+      const st = '#5a3a20', gl = '#7fd0ff';
+      rect(4, 5, 8, 1, st); set(5, 5, gl); set(6, 5, gl); set(9, 5, gl); set(10, 5, gl);
+    }
+    // Körper oder Tentakel
+    if (ex.has('tentacles')) {
+      rect(5, 12, 6, 2, L.fur);
+      for (const x of [4, 6, 9, 11]) { rect(x, 14, 1, 3, L.fur); }
+      set(3, 16, L.fur); set(12, 16, L.fur); set(7, 14, L.fur); set(8, 14, L.fur);
+      set(6, 15, L.light); set(9, 15, L.light);
+    } else {
+      rect(6, 12, 4, 1, L.outfit);
+      rect(4, 13, 8, 5, L.outfit);
+      rect(4, 13, 1, 3, shade(L.outfit, 0.8)); rect(11, 13, 1, 3, shade(L.outfit, 0.8));
+      set(4, 16, ex.has('gloves') ? '#d03030' : L.fur); set(11, 16, ex.has('gloves') ? '#d03030' : L.fur);
+      if (ex.has('gloves')) { set(4, 15, '#d03030'); set(11, 15, '#d03030'); }
+      rect(7, 13, 2, 3, shade(L.outfit, 1.15));
+      if (ex.has('tie')) { set(7, 12, '#ffffff'); set(8, 12, '#ffffff'); rect(7, 13, 2, 1, '#c0303a'); set(7, 14, '#c0303a'); set(8, 15, '#c0303a'); }
+      if (ex.has('scarf')) { rect(5, 12, 6, 1, '#f4f0e8'); set(5, 13, '#f4f0e8'); set(5, 14, '#d8d0c4'); }
+    }
+    // Kontur
+    const cv = document.createElement('canvas');
+    cv.width = GW + 2; cv.height = GH + 2;
+    const cx = cv.getContext('2d');
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+      if (grid[y][x]) continue;
+      const n = (xx, yy) => yy >= 0 && yy < GH && xx >= 0 && xx < GW && grid[yy][xx];
+      if (n(x - 1, y) || n(x + 1, y) || n(x, y - 1) || n(x, y + 1)) { cx.fillStyle = dark; cx.fillRect(x + 1, y + 1, 1, 1); }
+    }
+    for (let x = 0; x < GW; x++) { if (grid[0][x]) { cx.fillStyle = dark; cx.fillRect(x + 1, 0, 1, 1); } if (grid[GH - 1][x]) { cx.fillStyle = dark; cx.fillRect(x + 1, GH + 1, 1, 1); } }
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (grid[y][x]) { cx.fillStyle = grid[y][x]; cx.fillRect(x + 1, y + 1, 1, 1); }
+    return (portraitCache[id] = cv.toDataURL());
+  }
+
+  // --- Dialoge
   const dialogEl = document.getElementById('dialog');
-  const dialog = { open: false, lines: [], idx: 0, onEnd: null, imgs: {} };
-  // Bilder vorladen, damit sie beim ersten Dialog sofort da sind
-  for (const c of Object.values(TEXTS.characters)) { const im = new Image(); im.src = c.img; }
+  const figThem = dialogEl.querySelector('.figure.them'), figMe = dialogEl.querySelector('.figure.me');
+  const dialog = { open: false, lines: [], idx: 0, onEnd: null, crew: [], them: null };
 
   function openDialog(crew, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
@@ -1609,31 +1695,26 @@
     dialog.idx = 0;
     dialog.onEnd = onEnd || null;
     dialog.role = role || '';
-    const cast = dialogEl.querySelector('.cast'), me = dialogEl.querySelector('.cast-me');
-    cast.innerHTML = '';
-    me.innerHTML = '';
-    dialog.imgs = {};
-    const addImg = (id, parent) => {
-      const c = TEXTS.characters[id];
-      if (!c) return;
-      const im = document.createElement('img');
-      im.src = c.img;
-      im.alt = c.name;
-      parent.append(im);
-      dialog.imgs[id] = im;
-    };
-    for (const id of crew) if (id !== TEXTS.player) addImg(id, cast);
-    addImg(TEXTS.player, me);
+    dialog.crew = crew.filter(id => id !== TEXTS.player);
+    dialog.them = null;
+    figMe.src = portrait(TEXTS.player);
     showLine();
     dialogEl.classList.add('show');
   }
   function showLine() {
     const [who, text] = dialog.lines[dialog.idx];
     const c = TEXTS.characters[who] || { name: who, tier: '' };
+    const isMe = who === TEXTS.player;
+    // links steht immer die zuletzt sprechende Figur des Gegenübers
+    if (!isMe) dialog.them = who;
+    else if (!dialog.them) dialog.them = dialog.crew[0] || null;
+    figThem.hidden = !dialog.them;
+    if (dialog.them) figThem.src = portrait(dialog.them);
+    figThem.classList.toggle('active', !isMe);
+    figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
-    dialogEl.querySelector('.role').textContent = who === TEXTS.player ? c.tier : [c.tier, dialog.role].filter(Boolean).join(' · ');
+    dialogEl.querySelector('.role').textContent = isMe ? c.tier : [c.tier, dialog.role].filter(Boolean).join(' · ');
     dialogEl.querySelector('.line').textContent = text;
-    for (const [id, im] of Object.entries(dialog.imgs)) im.classList.toggle('active', id === who);
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;
     dialogEl.querySelector('.progress').textContent = `${dialog.idx + 1} / ${dialog.lines.length}`;
@@ -1646,37 +1727,51 @@
     const cb = dialog.onEnd;
     dialog.onEnd = null;
     if (cb) cb();
-    setTimeout(nextModal, 450);
+    setTimeout(pump, 500);
   }
   dialogEl.querySelector('.next').addEventListener('click', dialogNext);
 
+  // --- Meldungen und Belohnungen: eine Warteschlange, alles nacheinander
+  const toastEl = document.getElementById('toasts');
   const reward = document.getElementById('reward');
-  const modal = { open: false, queue: [], current: null };
-  function showModal(m) {
-    if (modal.open || dialog.open) { modal.queue.push(m); return; }
-    modal.open = true;
-    modal.current = m;
-    hideInfo();
-    reward.querySelector('.reward-icon').textContent = m.icon || '';
-    reward.querySelector('h2').textContent = m.title;
-    reward.querySelector('.body').textContent = m.body;
-    reward.querySelector('[data-action=continue]').textContent = m.button;
-    reward.classList.toggle('final', !!m.final);
-    reward.classList.add('show');
+  const modal = { open: false, current: null };
+  const notify = { queue: [], busy: false };
+  const TOAST_TIME = 2800;
+  function toast(html) { notify.queue.push({ type: 'toast', html }); pump(); }
+  function showModal(m) { notify.queue.push(Object.assign({ type: 'modal' }, m)); pump(); }
+  function pump() {
+    if (notify.busy || dialog.open || !notify.queue.length) return;
+    const it = notify.queue.shift();
+    notify.busy = true;
+    if (it.type === 'toast') {
+      const el = document.createElement('div');
+      el.className = 'toast box';
+      el.innerHTML = it.html;
+      toastEl.append(el);
+      setTimeout(() => { el.remove(); notify.busy = false; pump(); }, TOAST_TIME);
+    } else {
+      modal.open = true;
+      modal.current = it;
+      hideInfo();
+      reward.querySelector('h2').textContent = it.title;
+      reward.querySelector('.body').textContent = it.body;
+      reward.querySelector('[data-action=continue]').textContent = it.button;
+      reward.querySelector('[data-action=restart]').textContent = it.restart || '';
+      reward.classList.toggle('final', !!it.final);
+      reward.classList.add('show');
+    }
   }
   function closeModal() {
     if (!modal.open) return;
-    if (modal.current && modal.current.final) { location.reload(); return; }
     modal.open = false;
     modal.current = null;
     reward.classList.remove('show');
-    setTimeout(nextModal, 450);
+    setTimeout(() => { notify.busy = false; pump(); }, 500);
   }
-  function nextModal() { if (!modal.open && !dialog.open && modal.queue.length) showModal(modal.queue.shift()); }
   reward.addEventListener('click', e => {
     const act = e.target.closest('[data-action]')?.dataset.action;
-    if (act === 'continue') closeModal();
-    else if (e.target === reward && !(modal.current && modal.current.final)) closeModal();
+    if (act === 'restart') location.reload();
+    else if (act === 'continue' || e.target === reward) closeModal();
   });
 
   // ------------------------------------------------------------------ loop
@@ -1705,7 +1800,7 @@
   // kleine Debug-Schnittstelle (für Tests / Konsole)
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
-    get speedBonus() { return speedBonus; }, closeModal,
+    get speedBonus() { return speedBonus; }, closeModal, notify,
     step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext,
   };
 })();

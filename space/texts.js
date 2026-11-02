@@ -9,20 +9,26 @@ window.SPACE_TEXTS = {
   dialogNext: 'Weiter',
   dialogClose: 'Tschüss!',
 
-  /* Spielfigur und Figuren aus Capybara Media. Bild = Datei im Ordner img/ */
+  /*
+   * Spielfigur und Figuren. Sie werden im Dialog als grobe Pixel-Figuren gezeichnet.
+   * look: fur = Fell, light = Schnauze/Bauch, outfit = Kleidung,
+   *       ears = pointed | small | round | fluffy | long | tufts | none,
+   *       extra = Liste aus goggles, scarf, tail, tie, antlers, mask, glasses,
+   *               gloves, bigeyes, beak, tentacles, shell, hood
+   */
   player: 'gwen',
   characters: {
-    gwen: { name: 'Gwen', tier: 'Pilotin', img: 'img/gwen.png' },
-    quentin: { name: 'Quentin', tier: 'Capybara', img: 'img/quentin.png' },
-    mia: { name: 'Mia', tier: 'Reh', img: 'img/mia.png' },
-    norman: { name: 'Norman', tier: 'Waschbär', img: 'img/norman.png' },
-    lizzy: { name: 'Lizzy', tier: 'Echse', img: 'img/lizzy.png' },
-    sid: { name: 'Sid', tier: 'Känguru', img: 'img/sid.png' },
-    bruno: { name: 'Bruno', tier: 'Koala', img: 'img/bruno.png' },
-    ivy: { name: 'Ivy', tier: 'Schildkröte', img: 'img/ivy.png' },
-    totoro: { name: 'Totoro', tier: 'Bär', img: 'img/totoro.png' },
-    west: { name: 'West', tier: 'Eule', img: 'img/west.png' },
-    ursula: { name: 'Ursula', tier: 'Krake', img: 'img/ursula.png' },
+    gwen: { name: 'Gwen', tier: 'Pilotin', look: { fur: '#d9682b', light: '#f5c99a', outfit: '#7a4a2a', ears: 'pointed', extra: ['tail', 'goggles', 'scarf'] } },
+    quentin: { name: 'Quentin', tier: 'Capybara', look: { fur: '#a8683a', light: '#c98a5a', outfit: '#2c3e72', ears: 'small', extra: ['tie'] } },
+    mia: { name: 'Mia', tier: 'Reh', look: { fur: '#b5773f', light: '#f0d2a8', outfit: '#3a5a8a', ears: 'pointed', extra: ['antlers'] } },
+    norman: { name: 'Norman', tier: 'Waschbär', look: { fur: '#8a8a96', light: '#e6e6ea', outfit: '#5a4a3a', ears: 'round', extra: ['mask'] } },
+    lizzy: { name: 'Lizzy', tier: 'Echse', look: { fur: '#6bbf4a', light: '#b8e08a', outfit: '#4a3a2a', ears: 'none', extra: ['glasses'] } },
+    sid: { name: 'Sid', tier: 'Känguru', look: { fur: '#c98a4a', light: '#f0c890', outfit: '#e4e4ea', ears: 'long', extra: ['gloves'] } },
+    bruno: { name: 'Bruno', tier: 'Koala', look: { fur: '#9a9aa6', light: '#d8d8e0', outfit: '#e4e4ea', ears: 'fluffy', extra: ['tie'] } },
+    ivy: { name: 'Ivy', tier: 'Schildkröte', look: { fur: '#7ac25a', light: '#c8e8a0', outfit: '#2c3e72', ears: 'none', extra: ['shell', 'glasses'] } },
+    totoro: { name: 'Totoro', tier: 'Bär', look: { fur: '#8a5a32', light: '#c89a6a', outfit: '#e8b830', ears: 'round', extra: ['hood'] } },
+    west: { name: 'West', tier: 'Eule', look: { fur: '#8a5a3a', light: '#e8d0a8', outfit: '#e4e4ea', ears: 'tufts', extra: ['bigeyes', 'beak'] } },
+    ursula: { name: 'Ursula', tier: 'Krake', look: { fur: '#8a5ac8', light: '#b890e8', outfit: '#8a5ac8', ears: 'none', extra: ['tentacles', 'goggles'] } },
   },
 
   /*
@@ -31,23 +37,23 @@ window.SPACE_TEXTS = {
    */
   items: {
     brief: {
-      name: 'Liebesbrief', icon: '💌', target: 'aqua',
+      name: 'Liebesbrief', target: 'aqua',
       deliver: [['gwen', 'Lorem ipsum: Der Liebesbrief ist angekommen!']],
     },
     aquarium: {
-      name: 'Aquarium mit einem seltenen Fisch', icon: '🐠', target: 'thalassa',
+      name: 'Aquarium mit einem seltenen Fisch', target: 'thalassa',
       deliver: [['gwen', 'Lorem ipsum: Der seltene Fisch hat ein neues Zuhause.']],
     },
     fotobuch: {
-      name: 'Altes Fotobuch mit Erinnerungen an die Schulzeit', icon: '📔', target: 'glacies',
+      name: 'Altes Fotobuch mit Erinnerungen an die Schulzeit', target: 'glacies',
       deliver: [['gwen', 'Lorem ipsum: Das Fotobuch ist übergeben.']],
     },
     kaesekuchen: {
-      name: 'Leckerer Käsekuchen', icon: '🍰', target: 'gigas',
+      name: 'Leckerer Käsekuchen', target: 'gigas',
       deliver: [['gwen', 'Lorem ipsum: Der Käsekuchen ist noch ganz frisch!']],
     },
     ocarina: {
-      name: 'Ocarina der Zeit', icon: '🎶', target: 'ignis',
+      name: 'Ocarina der Zeit', target: 'ignis',
       deliver: [['gwen', 'Lorem ipsum: Die Ocarina der Zeit ist sicher angekommen.']],
     },
   },
@@ -127,12 +133,12 @@ window.SPACE_TEXTS = {
 
   /* Badges (oben rechts). Reihenfolge = Anzeige-Reihenfolge */
   badges: {
-    meistererkunder: { name: 'Meistererkunder', icon: '🧭', text: 'Alle 30 Münzen gesammelt' },
-    aufraeumer: { name: 'Aufräumer', icon: '📦', text: 'Alle 10 Frachtcontainer geborgen' },
-    meisterbote: { name: 'Meisterbote', icon: '🎒', text: 'Alle Aufträge erledigt' },
-    tourist: { name: 'Tourist', icon: '📸', text: 'Alle Planeten besucht' },
-    amor: { name: 'Amor', icon: '💘', text: 'Den Liebesbrief überbracht' },
-    weltenbummler: { name: 'Weltenbummler', icon: '🌌', text: 'Alle Badges gesammelt' },
+    meistererkunder: { name: 'Meistererkunder', text: 'Alle 30 Kristalle gesammelt' },
+    aufraeumer: { name: 'Aufräumer', text: 'Alle 10 Frachtcontainer geborgen' },
+    meisterbote: { name: 'Meisterbote', text: 'Alle Aufträge erledigt' },
+    tourist: { name: 'Tourist', text: 'Alle Planeten besucht' },
+    amor: { name: 'Amor', text: 'Den Liebesbrief überbracht' },
+    weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
   },
 
   /* Meldungen (kleine Einblendungen) */
@@ -141,6 +147,11 @@ window.SPACE_TEXTS = {
     boost: 'Antrieb verbessert',
     quest: 'Neuer Auftrag',
     delivered: 'Abgeliefert',
+  },
+
+  /* großer Text im Bild beim Einsammeln */
+  pickup: {
+    crystal: 'Kristall',
     container: 'Frachtcontainer',
   },
 
@@ -148,7 +159,7 @@ window.SPACE_TEXTS = {
   rewards: {
     coins: {
       title: 'Meistererkunder!',
-      body: 'Lorem ipsum: Du hast alle 30 Münzen gefunden. Dein Antrieb ist jetzt 20 Prozent schneller.',
+      body: 'Lorem ipsum: Du hast alle 30 Kristalle gefunden. Dein Antrieb ist jetzt 20 Prozent schneller.',
     },
     containers: {
       title: 'Aufräumer!',
@@ -161,7 +172,8 @@ window.SPACE_TEXTS = {
     final: {
       title: 'Glückwunsch!',
       body: 'Du hast die gesamte Galaxis bereist.',
-      button: 'Neu beginnen',
+      button: 'Weiterfliegen',
+      restart: 'Neu beginnen',
     },
     continue: 'Weiterfliegen',
   },
@@ -171,55 +183,31 @@ window.SPACE_TEXTS = {
       kicker: 'Stern',
       name: 'Sol',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
     ignis: {
       kicker: 'Planet I',
       name: 'Ignis',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
     aqua: {
       kicker: 'Planet II',
       name: 'Aqua',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
     thalassa: {
       kicker: 'Planet III',
       name: 'Thalassa',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
     gigas: {
       kicker: 'Planet IV · 3 Monde',
       name: 'Gigas',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
     glacies: {
       kicker: 'Planet V',
       name: 'Glacies',
       body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.',
-      facts: [
-        ['Lorem', 'Ipsum dolor'],
-        ['Sit amet', 'Consectetur'],
-      ],
     },
   },
 };
