@@ -14,9 +14,9 @@ window.SPACE_TEXTS = {
    * look: suit = Anzugfarbe, helmet = mit Helm (true/false), visor = Farbe des Visiers,
    *       skin = Hautfarbe, hair = Haarfarbe, hairStyle = short | long | bun | mohawk | bald
    */
-  player: 'gwen',
+  player: 'du',
   characters: {
-    gwen: { name: 'Gwen', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
+    du: { name: 'Du', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
     quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
     norman: { name: 'Norman', tier: 'Navigator', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
     sie: { name: 'Sie', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
@@ -31,28 +31,28 @@ window.SPACE_TEXTS = {
   items: {
     brief: {
       name: 'Liebesbrief', target: 'aqua',
-      deliver: [['gwen', 'Lorem ipsum: Der Liebesbrief ist angekommen!']],
+      deliver: [['du', 'Lorem ipsum: Der Liebesbrief ist angekommen!']],
     },
     aquarium: {
-      name: 'Aquarium mit einem seltenen Fisch', target: 'thalassa',
-      deliver: [['gwen', 'Lorem ipsum: Der seltene Fisch hat ein neues Zuhause.']],
+      name: 'Seltener Fisch', target: 'thalassa',
+      deliver: [['du', 'Lorem ipsum: Der seltene Fisch hat ein neues Zuhause.']],
     },
     fotobuch: {
-      name: 'Altes Fotobuch mit Erinnerungen an die Schulzeit', target: 'glacies',
-      deliver: [['gwen', 'Lorem ipsum: Das Fotobuch ist übergeben.']],
+      name: 'Fotoalbum', target: 'glacies',
+      deliver: [['du', 'Lorem ipsum: Das Fotoalbum ist übergeben.']],
     },
     kaesekuchen: {
-      name: 'Leckerer Käsekuchen', target: 'gigas',
-      deliver: [['gwen', 'Lorem ipsum: Der Käsekuchen ist noch ganz frisch!']],
+      name: 'Leckerer Kuchen', target: 'gigas',
+      deliver: [['du', 'Lorem ipsum: Der Kuchen ist noch ganz frisch!']],
     },
     ocarina: {
       name: 'Ocarina der Zeit', target: 'ignis',
-      deliver: [['gwen', 'Lorem ipsum: Die Ocarina der Zeit ist sicher angekommen.']],
+      deliver: [['du', 'Lorem ipsum: Die Ocarina der Zeit ist sicher angekommen.']],
     },
   },
 
   /*
-   * Die drei Raumschiffe. An Bord spricht jeweils eine Figur (»with«) mit Gwen. Jedes vergibt eine Quest:
+   * Die drei Raumschiffe. An Bord spricht jeweils eine Figur (»with«) mit dir. Jedes vergibt eine Quest:
    * offer = beim ersten Treffen (Auftrag), waiting = Auftrag läuft noch, thanks = erledigt.
    */
   ships: [
@@ -61,12 +61,12 @@ window.SPACE_TEXTS = {
       with: 'quentin',
       quest: 'brief',
       offer: [
-        ['quentin', 'Lorem ipsum dolor sit amet, Gwen! Hast du kurz Zeit?'],
+        ['quentin', 'Lorem ipsum dolor sit amet! Hast du kurz Zeit?'],
         ['quentin', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Aqua?'],
-        ['gwen', 'Lorem ipsum, mache ich!'],
+        ['du', 'Lorem ipsum, mache ich!'],
       ],
       waiting: [['quentin', 'Lorem ipsum – ist der Brief schon auf Aqua?']],
-      thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank, Gwen!']],
+      thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank!']],
     },
     {
       name: 'Fährschiff Nostromo',
@@ -74,8 +74,8 @@ window.SPACE_TEXTS = {
       quest: 'aquarium',
       offer: [
         ['norman', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'],
-        ['norman', 'Sed do eiusmod: Dieses Aquarium muss nach Thalassa.'],
-        ['gwen', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
+        ['norman', 'Sed do eiusmod: Dieser seltene Fisch muss nach Thalassa.'],
+        ['du', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
       ],
       waiting: [['norman', 'Lorem ipsum – geht es dem Fisch gut?']],
       thanks: [['norman', 'Lorem ipsum, danke dir!']],
@@ -86,8 +86,8 @@ window.SPACE_TEXTS = {
       quest: 'fotobuch',
       offer: [
         ['sie', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
-        ['sie', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
-        ['gwen', 'Lorem ipsum, klar!'],
+        ['sie', 'Nemo enim ipsam: Bringst du das Fotoalbum nach Glacies?'],
+        ['du', 'Lorem ipsum, klar!'],
       ],
       waiting: [['sie', 'Lorem ipsum – Glacies liegt ganz außen.']],
       thanks: [['sie', 'Lorem ipsum, großartig!']],
@@ -101,12 +101,12 @@ window.SPACE_TEXTS = {
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
-        ['ivy', 'Lorem ipsum dolor sit amet, willkommen an Bord, Gwen!'],
-        ['ivy', 'Consectetur adipiscing: Der Käsekuchen muss nach Gigas.'],
-        ['gwen', 'Lorem ipsum, ich fliege los.'],
+        ['ivy', 'Lorem ipsum dolor sit amet, willkommen an Bord!'],
+        ['ivy', 'Consectetur adipiscing: Der Kuchen muss nach Gigas.'],
+        ['du', 'Lorem ipsum, ich fliege los.'],
       ],
       waiting: [['ivy', 'Lorem ipsum – nicht unterwegs naschen!']],
-      thanks: [['ivy', 'Lorem ipsum, danke, Gwen!']],
+      thanks: [['ivy', 'Lorem ipsum, danke!']],
     },
     outer: {
       name: 'Handelsposten Orion',
@@ -115,7 +115,7 @@ window.SPACE_TEXTS = {
       offer: [
         ['west', 'Lorem ipsum dolor sit amet, so weit draußen sieht man uns selten.'],
         ['west', 'Quis nostrud: Die Ocarina der Zeit stammt aus einer fernen Galaxis. Bring sie nach Ignis.'],
-        ['gwen', 'Lorem ipsum, wird erledigt.'],
+        ['du', 'Lorem ipsum, wird erledigt.'],
       ],
       waiting: [['west', 'Lorem ipsum – Ignis ist der heiße Planet nah an der Sonne.']],
       thanks: [['west', 'Lorem ipsum, vielen Dank!']],

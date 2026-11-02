@@ -353,9 +353,16 @@ canvas {
   transition: opacity 0.45s ease, transform 0.45s ease;
 }
 .dialog.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.dialog { text-align: center; }
+.dialog .figures {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 28px;
+  height: 92px;
+  margin-bottom: 10px;
+}
 .dialog .figure {
-  position: absolute;
-  bottom: calc(100% + 10px);
   width: 64px;
   height: auto;
   image-rendering: pixelated;
@@ -365,21 +372,18 @@ canvas {
   opacity: 0.6;
   transform: scale(0.82);
 }
-.dialog .figure.them { left: 4px; }
-.dialog .figure.me { right: 4px; }
 .dialog .figure.me { transform: scale(-0.82, 0.82); }
 .dialog .figure.active { opacity: 1; transform: scale(1.12); }
 .dialog .figure.me.active { transform: scale(-1.12, 1.12); }
 .dialog .figure[hidden] { display: none; }
-.dialog .who { margin: 0 0 4px; font-size: 15px; }
-.dialog .who .name { font-weight: 800; }
 /* Namen (Figuren, Planeten, Schiffe) immer in ExtraBold */
 .nm { font-weight: 800; }
-.dialog .who .role { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--muted); }
-.dialog .line { margin: 0 0 12px; font-size: 14px; line-height: 1.6; color: #dfe6f8; min-height: 3.2em; }
-.dialog .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.dialog .progress { font-size: 12px; color: var(--muted); }
-.dialog .next { min-height: 36px; padding: 5px 16px; }
+.dialog .who { margin: 0 0 8px; }
+.dialog .who .name { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; }
+.dialog .who .role { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.dialog .line { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: #dfe6f8; min-height: 3.2em; }
+.dialog .foot { display: flex; justify-content: center; }
+.dialog .next { min-height: 36px; }
 
 @media (max-width: 480px) {
   .hud { font-size: 16px; gap: 12px; }
@@ -388,4 +392,6 @@ canvas {
   .badge { font-size: 11px; }
   .toast .t-title { font-size: 22px; }
   .dialog .figure { width: 56px; }
+  .dialog .figures { height: 80px; }
+  .dialog .who .name { font-size: 22px; }
 }

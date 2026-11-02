@@ -1777,7 +1777,7 @@
   const figThem = dialogEl.querySelector('.figure.them'), figMe = dialogEl.querySelector('.figure.me');
   const dialog = { open: false, lines: [], idx: 0, onEnd: null, partner: null };
 
-  /** Gwen spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
+  /** Die Spielfigur (»Du«) spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
   function openDialog(partner, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
     hideInfo();
@@ -1810,7 +1810,6 @@
     dialogEl.querySelector('.line').textContent = text;
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;
-    dialogEl.querySelector('.progress').textContent = `${dialog.idx + 1} / ${dialog.lines.length}`;
   }
   function dialogNext() {
     if (!dialog.open) return;
