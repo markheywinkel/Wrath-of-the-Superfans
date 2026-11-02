@@ -15,24 +15,43 @@
 <body>
   <canvas id="game" aria-label="Sonnensystem – tippe, um das Raumschiff zu steuern"></canvas>
 
-  <button id="hud" class="hud" type="button" aria-label="Gesammelte Münzen">
-    <svg class="coin-icon" viewBox="0 0 7 9" shape-rendering="crispEdges" aria-hidden="true">
-      <rect x="2" y="0" width="3" height="9" fill="#c98a1e"/>
-      <rect x="1" y="1" width="5" height="7" fill="#c98a1e"/>
-      <rect x="0" y="2" width="7" height="5" fill="#c98a1e"/>
-      <rect x="2" y="1" width="3" height="7" fill="#f7c948"/>
-      <rect x="1" y="2" width="5" height="5" fill="#f7c948"/>
-      <rect x="2" y="2" width="1" height="3" fill="#fff1a8"/>
-      <rect x="4" y="3" width="1" height="3" fill="#d99a2b"/>
-    </svg>
-    <span id="coinCount">0</span><span class="of">/&nbsp;<span id="coinTotal">30</span></span>
-  </button>
+  <div class="hud-left">
+    <div id="hud" class="hud" aria-label="Fortschritt">
+      <span class="counter" id="coinBox" title="Münzen">
+        <svg class="coin-icon" viewBox="0 0 7 9" shape-rendering="crispEdges" aria-hidden="true">
+          <rect x="2" y="0" width="3" height="9" fill="#c98a1e"/>
+          <rect x="1" y="1" width="5" height="7" fill="#c98a1e"/>
+          <rect x="0" y="2" width="7" height="5" fill="#c98a1e"/>
+          <rect x="2" y="1" width="3" height="7" fill="#f7c948"/>
+          <rect x="1" y="2" width="5" height="5" fill="#f7c948"/>
+          <rect x="2" y="2" width="1" height="3" fill="#fff1a8"/>
+          <rect x="4" y="3" width="1" height="3" fill="#d99a2b"/>
+        </svg>
+        <span id="coinCount">0</span><span class="of">/&nbsp;<span id="coinTotal">30</span></span>
+      </span>
+      <span class="counter" id="crateBox" title="Frachtcontainer">
+        <svg class="crate-icon" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true">
+          <rect x="0" y="1" width="9" height="8" fill="#7a3a12"/>
+          <rect x="1" y="2" width="7" height="6" fill="#e07b2c"/>
+          <rect x="1" y="4" width="7" height="2" fill="#3a8aa8"/>
+          <rect x="1" y="2" width="7" height="1" fill="#f5a35a"/>
+          <rect x="3" y="0" width="3" height="1" fill="#ff5a5a"/>
+        </svg>
+        <span id="crateCount">0</span><span class="of">/&nbsp;<span id="crateTotal">10</span></span>
+      </span>
+    </div>
+    <ul id="quests" class="quests" aria-label="Aufträge"></ul>
+  </div>
+
+  <div id="badges" class="badges" aria-label="Badges"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
 
   <div id="intro" class="intro" aria-live="polite"></div>
   <div id="hint" class="hint"></div>
 
   <section id="dialog" class="panel dialog" aria-live="polite">
     <div class="cast" aria-hidden="true"></div>
+    <div class="cast-me" aria-hidden="true"></div>
     <p class="who"><span class="name"></span><span class="role"></span></p>
     <p class="line"></p>
     <div class="foot">
@@ -51,12 +70,11 @@
 
   <div id="reward" class="modal" role="dialog" aria-modal="true" aria-labelledby="rewardTitle">
     <div class="panel reward-panel">
-      <div class="reward-coins" aria-hidden="true"></div>
+      <div class="reward-icon" aria-hidden="true"></div>
       <h2 id="rewardTitle"></h2>
       <p class="body"></p>
       <div class="actions">
         <button type="button" class="btn primary" data-action="continue"></button>
-        <button type="button" class="btn" data-action="restart"></button>
       </div>
     </div>
   </div>

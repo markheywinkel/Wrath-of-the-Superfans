@@ -22,14 +22,21 @@ python3 -m http.server 8000
 # http://localhost:8000
 ```
 
-## Steuerung
+## Spielablauf
 
-- Tippen/Klicken auf eine Stelle: Schiff fliegt geradlinig hin, Planeten werden umflogen.
-- Tippen auf Sonne, Planet oder Mond: Schiff fliegt hin, geht in einen Orbit, Infokasten öffnet sich.
+- Du bist **Ember**, das Eichhörnchen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
+- Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit, Infokasten.
+- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog mit den Tier-Figuren öffnet sich.
+- **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
+- **Sammeln:** 30 Münzen und 10 verlorene Frachtcontainer.
+- **Badges** (oben rechts):
+  - Meistererkunder: alle Münzen → Antrieb +20 %
+  - Aufräumer: alle Container → Antrieb +10 %
+  - Meisterbote: alle Quests → Antrieb +20 %
+  - Tourist: alle fünf Planeten besucht
+  - Amor: Liebesbrief überbracht
+  - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Neu beginnen«
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
-- Drei weitere Raumschiffe fliegen zufällig von Planet zu Planet. Begegnet man einem, treiben beide Schiffe nebeneinander und ein Dialog mit den Tier-Figuren öffnet sich.
-- Zwei Raumstationen (hinter den bewohnbaren Planeten und ganz außen) – hinfliegen öffnet einen Dialog mit ihrer Besatzung.
-- Sind alle 30 gesammelt, kann der Dialog über den Münzzähler erneut geöffnet werden.
 
 ## Deployment auf space.markheywinkel.de
 

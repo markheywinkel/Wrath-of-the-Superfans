@@ -19,6 +19,7 @@
   const BELT_INNER = 708;
   const BELT_OUTER = 792;
   const COIN_TOTAL = 30;
+  const CRATE_TOTAL = 10;
   const SHIP_MAX_SPEED = 78;
   const MAP_W = 128, MAP_H = 64;
   const LEVELS = 5;
@@ -470,7 +471,7 @@
   const rng = mulberry32(20261102);
   const BODIES = [
     { id: 'sun', r: 24, orbit: 0, period: 1, rotPeriod: 160, emissive: true, tex: texSun(3) },
-    { id: 'ember', r: 9, orbit: 115, rotPeriod: -120, tex: texEmber(11), atmo: hex('#ffb070') },
+    { id: 'ignis', r: 9, orbit: 115, rotPeriod: -120, tex: texEmber(11), atmo: hex('#ffb070') },
     {
       id: 'aqua', r: 11, orbit: 190, rotPeriod: 70, atmo: hex('#8ec6ff'),
       tex: texTerra(21, {
@@ -552,17 +553,17 @@
   }
   const BELT_PERIOD = 2600;
 
-  // Münzen – verteilt zwischen den Bahnen, nie auf einer Bahn
-  const coins = (() => {
-    const r = mulberry32(777);
+  // Münzen und Container – verteilt zwischen den Bahnen, nie auf einer Bahn
+  function scatter(count, seed, gap, avoid, minRad) {
+    const r = mulberry32(seed);
     const list = [];
-    let minGap = 48, tries = 0;
-    while (list.length < COIN_TOTAL && tries < 30000) {
+    let minGap = gap, tries = 0;
+    while (list.length < count && tries < 30000) {
       tries++;
       if (tries % 5000 === 0) minGap -= 6;
       const rad = Math.sqrt(r()) * (SHIP_LIMIT - 12);
       const a = r() * TAU;
-      if (rad < SUN.avoidR + 14) continue;
+      if (rad < Math.max(SUN.avoidR + 14, minRad)) continue;
       let ok = true;
       for (const b of OBSTACLES) {
         if (b.orbit && Math.abs(rad - b.orbit) < b.avoidR * 0.85 + 6) { ok = false; break; }
@@ -570,11 +571,15 @@
       if (!ok) continue;
       const x = Math.cos(a) * rad, y = Math.sin(a) * rad;
       for (const c of list) if (Math.hypot(c.x - x, c.y - y) < minGap) { ok = false; break; }
+      for (const c of avoid) if (Math.hypot(c.x - x, c.y - y) < 26) { ok = false; break; }
       if (!ok) continue;
       list.push({ id: list.length, x, y, phase: r() * TAU, taken: false });
     }
     return list;
-  })();
+  }
+  const coins = scatter(COIN_TOTAL, 777, 48, [], 0);
+  // verlorene Frachtcontainer: eher weiter draußen, weit auseinander
+  const crates = scatter(CRATE_TOTAL, 4711, 150, coins, 150);
 
   // ----------------------------------------------------------------- state
   const makeAgent = (o) => Object.assign({
@@ -598,7 +603,7 @@
     { model: SAUCER, colors: pal({ hull: '#ffb3d1', accent: '#ffffff', under: '#7a4a66', glass: '#a8f0ff' }) },
     { model: ARROW, colors: pal({ hull: '#9fe8a8', accent: '#2f8a6a', under: '#3a5a4a', glass: '#ffe9a8' }) },
   ];
-  const NPC_START = ['aqua', 'gigas', 'outer'];
+  const NPC_START = ['aqua', 'gigas', 'thalassa'];
   const npcs = TEXTS.ships.map((t, i) => {
     const look = NPC_LOOK[i % NPC_LOOK.length];
     const start = DESTINATIONS.find(d => d.id === NPC_START[i]) || DESTINATIONS[i];
@@ -616,9 +621,17 @@
   const particles = [];
   let time = 0;
   let marker = null; // {x, y, t}
-  let rewardShown = false;
   // Fortschritt wird bewusst nicht gespeichert: Neuladen = Neustart
   const collected = new Set();
+  const cratesTaken = new Set();
+  const visited = new Set();
+  const badges = new Set();
+  let speedBonus = 0;
+  const maxSpeed = () => SHIP_MAX_SPEED * (1 + speedBonus);
+  // Quests: Gegenstand -> 'open' | 'active' | 'done'
+  const quests = {};
+  for (const id of Object.keys(TEXTS.items)) quests[id] = 'open';
+  const PLANETS = BODIES.filter(b => b.orbit > 0);
 
   // ---------------------------------------------------------------- canvas
   const canvas = document.getElementById('game');
@@ -714,7 +727,16 @@
       const d = Math.hypot(ix - toSX(st.x), iy - toSY(st.y, 3));
       if (d <= st.size + 5 && d < best) { best = d; hit = st; }
     }
-    if (hit) {
+    // Treffer auf ein anderes Raumschiff: hinfliegen und ansprechen
+    let npcHit = null;
+    for (const n of npcs) {
+      if (n.state === 'drift') continue;
+      const d = Math.hypot(ix - toSX(n.x), iy - toSY(n.y, 4));
+      if (d <= 11 && d < best) { best = d; npcHit = n; }
+    }
+    if (npcHit) {
+      flyToNpc(npcHit);
+    } else if (hit) {
       flyToBody(hit);
     } else {
       let x = ix - W / 2 + cam.x;
@@ -732,6 +754,14 @@
     ship.sides.clear();
     marker = { x, y, t: 0 };
   }
+  function flyToNpc(n) {
+    hideInfo();
+    n.cooldown = 0;
+    ship.mode = 'fly';
+    ship.goal = { npc: n };
+    ship.sides.clear();
+    marker = null;
+  }
   function flyToBody(b) {
     if (ship.mode === 'orbit' && ship.orbitBody === b) { arriveAt(b); return; }
     hideInfo();
@@ -743,10 +773,75 @@
   function arriveAt(b) {
     if (b.station) {
       const t = TEXTS.stations[b.id];
-      if (t) openDialog(t.crew, t.lines, `${t.kicker} · ${t.name}`);
+      if (t) {
+        const g = giverLines(t);
+        openDialog(t.crew, g.lines, `${t.kicker} · ${t.name}`, g.after);
+      }
+      return;
+    }
+    if (b.orbit > 0 && !visited.has(b.id)) {
+      visited.add(b.id);
+      if (visited.size === PLANETS.length) award('tourist');
+    }
+    const due = Object.keys(TEXTS.items).filter(id => quests[id] === 'active' && TEXTS.items[id].target === b.id);
+    if (due.length) {
+      const lines = due.flatMap(id => TEXTS.items[id].deliver);
+      openDialog([], lines, bodyName(b.id), () => { due.forEach(deliver); showInfo(b); });
     } else {
       showInfo(b);
     }
+  }
+
+  // ---------------------------------------------------------------- quests
+  const bodyName = id => (TEXTS.bodies[id] || {}).name || id;
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+  /** Welche Zeilen sagt ein Auftraggeber gerade? */
+  function giverLines(t) {
+    const st = quests[t.quest];
+    if (st === 'open') return { lines: t.offer, after: () => acceptQuest(t.quest) };
+    if (st === 'active') return { lines: t.waiting };
+    return { lines: t.thanks };
+  }
+  function acceptQuest(id) {
+    if (quests[id] !== 'open') return;
+    quests[id] = 'active';
+    const it = TEXTS.items[id];
+    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${it.icon} ${esc(it.name)} → ${esc(bodyName(it.target))}`);
+    renderQuests();
+  }
+  function deliver(id) {
+    if (quests[id] !== 'active') return;
+    quests[id] = 'done';
+    const it = TEXTS.items[id];
+    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${it.icon} ${esc(it.name)}`);
+    renderQuests();
+    if (id === 'brief') award('amor');
+    if (Object.values(quests).every(q => q === 'done')) milestone('meisterbote', 0.2, TEXTS.rewards.quests);
+  }
+
+  // ----------------------------------------------------- badges & rewards
+  const BADGE_IDS = Object.keys(TEXTS.badges);
+  const FINAL_BADGE = 'weltenbummler';
+  function award(id) {
+    if (badges.has(id)) return;
+    badges.add(id);
+    const b = TEXTS.badges[id];
+    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${b.icon} ${esc(b.name)}`);
+    renderBadges();
+    if (id !== FINAL_BADGE && BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) {
+      award(FINAL_BADGE);
+      const f = TEXTS.rewards.final;
+      showModal({ icon: TEXTS.badges[FINAL_BADGE].icon, title: f.title, body: f.body, button: f.button, final: true });
+    }
+  }
+  /** Meilenstein: schnellerer Antrieb + Badge + Belohnungsdialog */
+  function milestone(badgeId, bonus, reward) {
+    if (badges.has(badgeId)) return;
+    speedBonus += bonus;
+    toast(`<b>${esc(TEXTS.toast.boost)}</b> +${Math.round(bonus * 100)} %`);
+    showModal({ icon: TEXTS.badges[badgeId].icon, title: reward.title, body: reward.body, button: TEXTS.rewards.continue });
+    award(badgeId);
   }
 
   // ----------------------------------------------------------- flight logic
@@ -878,10 +973,14 @@
     } else if (ship.mode === 'fly' && ship.goal) {
       const g = ship.goal;
       let arrived;
-      if (g.body) arrived = flyAgent(ship, dt, g.body.x, g.body.y, g.body.avoidR + 1, g.body, SHIP_MAX_SPEED);
-      else arrived = flyAgent(ship, dt, g.x, g.y, 2.5, null, SHIP_MAX_SPEED);
+      if (g.npc) arrived = flyAgent(ship, dt, g.npc.x, g.npc.y, 12, null, maxSpeed());
+      else if (g.body) arrived = flyAgent(ship, dt, g.body.x, g.body.y, g.body.avoidR + 1, g.body, maxSpeed());
+      else arrived = flyAgent(ship, dt, g.x, g.y, 2.5, null, maxSpeed());
       if (arrived) {
-        if (g.body) {
+        if (g.npc) {
+          ship.mode = 'idle';
+          ship.goal = null;
+        } else if (g.body) {
           ship.mode = 'orbit';
           ship.goal = null;
           startOrbit(ship, g.body, g.body.avoidR);
@@ -936,7 +1035,7 @@
 
   /** Begegnung: Spieler und Schiff treiben nebeneinander, Dialog öffnet sich. */
   function checkEncounters() {
-    if (dialog.open || ship.mode === 'drift' || reward.classList.contains('show')) return;
+    if (dialog.open || ship.mode === 'drift' || modal.open) return;
     for (const npc of npcs) {
       if (npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
@@ -948,7 +1047,8 @@
       marker = null;
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
-      openDialog(npc.texts.crew, npc.texts.lines, npc.texts.name, () => endEncounter(npc));
+      const g = giverLines(npc.texts);
+      openDialog(npc.texts.crew, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
     }
   }
@@ -960,26 +1060,34 @@
     ship.drift = null;
   }
 
+  function burst(x, y, kind) {
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * TAU;
+      particles.push({
+        x, y, z: 5,
+        vx: Math.cos(a) * 26, vy: Math.sin(a) * 26, vz: 6 + Math.random() * 10,
+        life: 0, max: 0.6 + Math.random() * 0.4, kind,
+      });
+    }
+  }
+
   function updateCoins() {
     for (const c of coins) {
-      if (c.taken) continue;
-      if (Math.hypot(c.x - ship.x, c.y - ship.y) < 10) {
-        c.taken = true;
-        collected.add(c.id);
-        for (let i = 0; i < 16; i++) {
-          const a = (i / 16) * TAU;
-          particles.push({
-            x: c.x, y: c.y, z: 5,
-            vx: Math.cos(a) * 26, vy: Math.sin(a) * 26, vz: 6 + Math.random() * 10,
-            life: 0, max: 0.6 + Math.random() * 0.4, kind: 'gold',
-          });
-        }
-        updateHUD(true);
-        if (collected.size >= COIN_TOTAL && !rewardShown) {
-          rewardShown = true;
-          setTimeout(showReward, 1200);
-        }
-      }
+      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 10) continue;
+      c.taken = true;
+      collected.add(c.id);
+      burst(c.x, c.y, 'gold');
+      updateHUD('coin');
+      if (collected.size >= COIN_TOTAL) setTimeout(() => milestone('meistererkunder', 0.2, TEXTS.rewards.coins), 900);
+    }
+    for (const c of crates) {
+      if (c.taken || Math.hypot(c.x - ship.x, c.y - ship.y) >= 12) continue;
+      c.taken = true;
+      cratesTaken.add(c.id);
+      burst(c.x, c.y, 'crate');
+      updateHUD('crate');
+      toast(`<b>${esc(TEXTS.toast.container)}</b> ${cratesTaken.size} / ${CRATE_TOTAL}`);
+      if (cratesTaken.size >= CRATE_TOTAL) setTimeout(() => milestone('aufraeumer', 0.1, TEXTS.rewards.containers), 900);
     }
   }
 
@@ -1018,7 +1126,7 @@
       if (p.life >= p.max) { particles.splice(i, 1); continue; }
       const drag = Math.exp(-dt * 2);
       p.vx *= drag; p.vy *= drag;
-      if (p.kind === 'gold') p.vz -= 30 * dt;
+      if (p.kind !== 'trail') p.vz -= 30 * dt;
       p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
     }
     if (marker) marker.t += dt;
@@ -1241,15 +1349,68 @@
     }
   }
 
+  /** Verlorener Frachtcontainer: kleine Kiste mit Blinklicht, taumelt leicht */
+  function drawCrate(c) {
+    const bob = Math.sin(time * 1.1 + c.phase) * 1.5;
+    const sx = toSX(c.x), sy = toSY(c.y, 6 + bob);
+    if (!onScreen(sx, sy, 10)) return;
+    const x = Math.round(sx), y = Math.round(sy);
+    const tilt = Math.sin(time * 0.6 + c.phase) > 0 ? 1 : 0; // langsames Kippen
+    px(x - 4, y - 3 + tilt, '#7a3a12', 9, 7);              // Kontur
+    px(x - 3, y - 2 + tilt, '#e07b2c', 4, 5);              // linke Seite
+    px(x + 1, y - 2 + tilt, '#b85a1e', 3, 5);              // rechte Seite (Schatten)
+    px(x - 3, y - 2 + tilt, '#f5a35a', 7, 1);              // Deckelkante
+    px(x - 3, y + tilt, '#3a8aa8', 4, 1);                  // Streifen
+    px(x + 1, y + tilt, '#2a6a86', 3, 1);
+    px(x - 4, y - 4 + tilt, '#7a3a12', 9, 1);
+    px(x - 3, y - 4 + tilt, '#ffc285', 7, 1);              // Deckel
+    const on = (time + c.phase) % 1.4 < 0.3;
+    px(x, y - 5 + tilt, on ? '#ff6a6a' : '#7a2a2a');
+    if (on) { ctx.globalAlpha = 0.3; px(x - 1, y - 6 + tilt, '#ff6a6a', 3, 3); ctx.globalAlpha = 1; }
+  }
+
+  /** Quest-Hinweise: »!« über Auftraggebern, Raute über Zielplaneten */
+  function drawQuestMarkers() {
+    const bounce = Math.round(Math.sin(time * 3) * 1.5);
+    const bang = (x, y) => {
+      x = Math.round(x); y = Math.round(y) + bounce;
+      px(x - 1, y - 7, '#1a1204', 4, 10);
+      px(x, y - 6, '#ffd84a', 2, 5);
+      px(x, y + 1, '#ffd84a', 2, 1);
+    };
+    for (const n of npcs) {
+      if (quests[n.texts.quest] !== 'open' || n.state === 'drift') continue;
+      const sx = toSX(n.x), sy = toSY(n.y, 4);
+      if (onScreen(sx, sy, 20)) bang(sx, sy - 13);
+    }
+    for (const st of STATIONS) {
+      const t = TEXTS.stations[st.id];
+      if (!t || quests[t.quest] !== 'open') continue;
+      const sx = toSX(st.x), sy = toSY(st.y, 3);
+      if (onScreen(sx, sy, 30)) bang(sx, sy - st.hub - 18);
+    }
+    for (const [id, state] of Object.entries(quests)) {
+      if (state !== 'active') continue;
+      const b = BODIES.find(o => o.id === TEXTS.items[id].target);
+      if (!b) continue;
+      const sx = Math.round(toSX(b.x)), sy = Math.round(toSY(b.y) - b.r - 7) + bounce;
+      if (!onScreen(sx, sy, 10)) continue;
+      px(sx - 1, sy - 3, '#1a1204', 3, 7); px(sx - 3, sy - 1, '#1a1204', 7, 3);
+      px(sx, sy - 2, '#7fe0ff', 1, 5); px(sx - 2, sy, '#7fe0ff', 5, 1); px(sx - 1, sy - 1, '#7fe0ff', 3, 3);
+      px(sx, sy - 1, '#ffffff');
+    }
+  }
+
   /** Energiestrahl aus dem Heck: Länge wächst mit der Geschwindigkeit. */
   function drawBeam(agent, sx, sy, eng) {
-    const f = clamp(agent.speed / SHIP_MAX_SPEED, 0, 1);
+    const f = clamp(agent.speed / (agent === ship ? maxSpeed() : SHIP_MAX_SPEED), 0, 1);
     if (f < 0.04) return;
     let bx = -Math.cos(agent.heading), by = -Math.sin(agent.heading) * SIN_E;
     const bl = Math.hypot(bx, by) || 1;
     bx /= bl; by /= bl;
     const cols = agent.beam;
-    const len = Math.max(2, (agent.beamLen * (0.35 + 0.65 * f)) * (0.9 + Math.random() * 0.2));
+    const boost = agent === ship ? 1 + speedBonus : 1;
+    const len = Math.max(2, (agent.beamLen * boost * (0.35 + 0.65 * f)) * (0.9 + Math.random() * 0.2));
     const nx = -by, ny = bx; // Querachse für die Strahlbreite
     for (let i = 0; i < len; i++) {
       const t = i / len;
@@ -1287,8 +1448,8 @@
       const sx = toSX(p.x), sy = toSY(p.y, p.z);
       if (!onScreen(sx, sy, 2)) continue;
       const t = p.life / p.max;
-      if (p.kind === 'gold') {
-        ctx.fillStyle = t < 0.4 ? '#fff1a8' : '#f7c948';
+      if (p.kind === 'gold' || p.kind === 'crate') {
+        ctx.fillStyle = p.kind === 'gold' ? (t < 0.4 ? '#fff1a8' : '#f7c948') : (t < 0.4 ? '#ffd0a0' : '#e07b2c');
         ctx.globalAlpha = 1 - t;
       } else {
         ctx.fillStyle = p.cols[t < 0.2 ? 0 : t < 0.5 ? 1 : 2];
@@ -1322,6 +1483,7 @@
     }
     for (const st of STATIONS) drawList.push({ y: st.y, k: 5, o: st });
     for (const c of coins) if (!c.taken) drawList.push({ y: c.y, k: 2, o: c });
+    for (const c of crates) if (!c.taken) drawList.push({ y: c.y, k: 6, o: c });
     drawList.push({ y: ship.y, k: 3, o: ship });
     for (const n of npcs) drawList.push({ y: n.y, k: 3, o: n });
     const rotA = (time * TAU) / BELT_PERIOD;
@@ -1356,20 +1518,61 @@
           break;
         }
         case 5: drawStation(it.o); break;
+        case 6: drawCrate(it.o); break;
       }
     }
+    drawQuestMarkers();
   }
 
   // -------------------------------------------------------------------- UI
-  const hud = document.getElementById('hud');
-  const elCount = document.getElementById('coinCount');
+  const coinBox = document.getElementById('coinBox'), crateBox = document.getElementById('crateBox');
   document.getElementById('coinTotal').textContent = COIN_TOTAL;
+  document.getElementById('crateTotal').textContent = CRATE_TOTAL;
   function updateHUD(bump) {
-    elCount.textContent = collected.size;
-    hud.classList.toggle('complete', collected.size >= COIN_TOTAL);
-    if (bump) { hud.classList.remove('bump'); void hud.offsetWidth; hud.classList.add('bump'); }
+    document.getElementById('coinCount').textContent = collected.size;
+    document.getElementById('crateCount').textContent = cratesTaken.size;
+    coinBox.classList.toggle('complete', collected.size >= COIN_TOTAL);
+    crateBox.classList.toggle('complete', cratesTaken.size >= CRATE_TOTAL);
+    const el = bump === 'coin' ? coinBox : bump === 'crate' ? crateBox : null;
+    if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   }
-  hud.addEventListener('click', () => { if (collected.size >= COIN_TOTAL) showReward(); });
+
+  const badgeEl = document.getElementById('badges');
+  function renderBadges() {
+    badgeEl.innerHTML = '';
+    for (const id of BADGE_IDS) {
+      if (!badges.has(id)) continue;
+      const b = TEXTS.badges[id];
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'badge' + (id === FINAL_BADGE ? ' top' : '');
+      el.title = `${b.name}: ${b.text}`;
+      el.innerHTML = `<span class="ic">${b.icon}</span><span class="label">${esc(b.name)}</span>`;
+      el.addEventListener('click', () => toast(`${b.icon} <b>${esc(b.name)}</b> – ${esc(b.text)}`));
+      badgeEl.append(el);
+    }
+  }
+
+  const questEl = document.getElementById('quests');
+  function renderQuests() {
+    questEl.innerHTML = '';
+    for (const [id, state] of Object.entries(quests)) {
+      if (state !== 'active') continue;
+      const it = TEXTS.items[id];
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="ic">${it.icon}</span><span>${esc(it.name)}</span><span class="to">→ ${esc(bodyName(it.target))}</span>`;
+      questEl.append(li);
+    }
+  }
+
+  const toastEl = document.getElementById('toasts');
+  function toast(html) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = html;
+    toastEl.append(el);
+    setTimeout(() => el.remove(), 3700);
+  }
 
   const info = document.getElementById('info');
   function showInfo(b) {
@@ -1406,18 +1609,21 @@
     dialog.idx = 0;
     dialog.onEnd = onEnd || null;
     dialog.role = role || '';
-    const cast = dialogEl.querySelector('.cast');
+    const cast = dialogEl.querySelector('.cast'), me = dialogEl.querySelector('.cast-me');
     cast.innerHTML = '';
+    me.innerHTML = '';
     dialog.imgs = {};
-    for (const id of crew) {
+    const addImg = (id, parent) => {
       const c = TEXTS.characters[id];
-      if (!c) continue;
+      if (!c) return;
       const im = document.createElement('img');
       im.src = c.img;
       im.alt = c.name;
-      cast.append(im);
+      parent.append(im);
       dialog.imgs[id] = im;
-    }
+    };
+    for (const id of crew) if (id !== TEXTS.player) addImg(id, cast);
+    addImg(TEXTS.player, me);
     showLine();
     dialogEl.classList.add('show');
   }
@@ -1440,28 +1646,37 @@
     const cb = dialog.onEnd;
     dialog.onEnd = null;
     if (cb) cb();
+    setTimeout(nextModal, 450);
   }
   dialogEl.querySelector('.next').addEventListener('click', dialogNext);
 
   const reward = document.getElementById('reward');
-  const coinSvg = document.querySelector('.coin-icon').outerHTML;
-  reward.querySelector('.reward-coins').innerHTML = coinSvg + coinSvg + coinSvg;
-  reward.querySelector('h2').textContent = TEXTS.reward.title;
-  reward.querySelector('.body').textContent = TEXTS.reward.body;
-  reward.querySelector('[data-action=continue]').textContent = TEXTS.reward.continue;
-  reward.querySelector('[data-action=restart]').textContent = TEXTS.reward.restart;
-  function showReward() { hideInfo(); reward.classList.add('show'); }
-  function hideReward() { reward.classList.remove('show'); }
+  const modal = { open: false, queue: [], current: null };
+  function showModal(m) {
+    if (modal.open || dialog.open) { modal.queue.push(m); return; }
+    modal.open = true;
+    modal.current = m;
+    hideInfo();
+    reward.querySelector('.reward-icon').textContent = m.icon || '';
+    reward.querySelector('h2').textContent = m.title;
+    reward.querySelector('.body').textContent = m.body;
+    reward.querySelector('[data-action=continue]').textContent = m.button;
+    reward.classList.toggle('final', !!m.final);
+    reward.classList.add('show');
+  }
+  function closeModal() {
+    if (!modal.open) return;
+    if (modal.current && modal.current.final) { location.reload(); return; }
+    modal.open = false;
+    modal.current = null;
+    reward.classList.remove('show');
+    setTimeout(nextModal, 450);
+  }
+  function nextModal() { if (!modal.open && !dialog.open && modal.queue.length) showModal(modal.queue.shift()); }
   reward.addEventListener('click', e => {
     const act = e.target.closest('[data-action]')?.dataset.action;
-    if (act === 'continue' || e.target === reward) hideReward();
-    if (act === 'restart') {
-      collected.clear();
-      for (const c of coins) c.taken = false;
-      rewardShown = false;
-      updateHUD(true);
-      hideReward();
-    }
+    if (act === 'continue') closeModal();
+    else if (e.target === reward && !(modal.current && modal.current.final)) closeModal();
   });
 
   // ------------------------------------------------------------------ loop
@@ -1489,7 +1704,8 @@
 
   // kleine Debug-Schnittstelle (für Tests / Konsole)
   window.__space = {
-    ship, npcs, coins, BODIES, STATIONS, collected, dialog,
+    ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
+    get speedBonus() { return speedBonus; }, closeModal,
     step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext,
   };
 })();
