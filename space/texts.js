@@ -16,17 +16,12 @@ window.SPACE_TEXTS = {
    */
   player: 'gwen',
   characters: {
-    gwen: { name: 'Gwen', tier: 'Astronautin', look: { suit: '#ff6a1a', helmet: false, skin: '#f1c7a0', hair: '#c8461a', hairStyle: 'bun' } },
+    gwen: { name: 'Gwen', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
     quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
-    mia: { name: 'Mia', tier: 'Navigatorin', look: { suit: '#b6ff2a', helmet: false, skin: '#8a5a3a', hair: '#1a1014', hairStyle: 'long' } },
     norman: { name: 'Norman', tier: 'Mechaniker', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
-    lizzy: { name: 'Lizzy', tier: 'Funkerin', look: { suit: '#1ae8ff', helmet: true, visor: '#ff5ad0' } },
     sid: { name: 'Sid', tier: 'Pilot', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
-    bruno: { name: 'Bruno', tier: 'Ingenieur', look: { suit: '#7a3aff', helmet: true, visor: '#3affb0' } },
     ivy: { name: 'Ivy', tier: 'Kommandantin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
-    totoro: { name: 'Totoro', tier: 'Koch', look: { suit: '#ff9a1a', helmet: true, visor: '#5ab8ff' } },
     west: { name: 'West', tier: 'Forscher', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
-    ursula: { name: 'Ursula', tier: 'Wissenschaftlerin', look: { suit: '#3a8aff', helmet: true, visor: '#ff9a2a' } },
   },
 
   /*
@@ -57,74 +52,74 @@ window.SPACE_TEXTS = {
   },
 
   /*
-   * Die drei Raumschiffe. Jedes vergibt eine Quest:
+   * Die drei Raumschiffe. An Bord spricht jeweils eine Figur (»with«) mit Gwen. Jedes vergibt eine Quest:
    * offer = beim ersten Treffen (Auftrag), waiting = Auftrag läuft noch, thanks = erledigt.
    */
   ships: [
     {
       name: 'Lorem-Kreuzer',
-      crew: ['quentin', 'mia'],
+      with: 'quentin',
       quest: 'brief',
       offer: [
         ['quentin', 'Lorem ipsum dolor sit amet, Gwen! Hast du kurz Zeit?'],
-        ['mia', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Aqua?'],
+        ['quentin', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Aqua?'],
         ['gwen', 'Lorem ipsum, mache ich!'],
       ],
-      waiting: [['mia', 'Lorem ipsum – ist der Brief schon auf Aqua?']],
+      waiting: [['quentin', 'Lorem ipsum – ist der Brief schon auf Aqua?']],
       thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank, Gwen!']],
     },
     {
       name: 'Ipsum-Fähre',
-      crew: ['norman', 'lizzy'],
+      with: 'norman',
       quest: 'aquarium',
       offer: [
         ['norman', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'],
-        ['lizzy', 'Sed do eiusmod: Dieses Aquarium muss nach Thalassa.'],
+        ['norman', 'Sed do eiusmod: Dieses Aquarium muss nach Thalassa.'],
         ['gwen', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
       ],
-      waiting: [['lizzy', 'Lorem ipsum – geht es dem Fisch gut?']],
+      waiting: [['norman', 'Lorem ipsum – geht es dem Fisch gut?']],
       thanks: [['norman', 'Lorem ipsum, danke dir!']],
     },
     {
       name: 'Dolor-Shuttle',
-      crew: ['sid', 'bruno'],
+      with: 'sid',
       quest: 'fotobuch',
       offer: [
         ['sid', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
-        ['bruno', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
+        ['sid', 'Nemo enim ipsam: Bringst du das Fotobuch nach Glacies?'],
         ['gwen', 'Lorem ipsum, klar!'],
       ],
-      waiting: [['bruno', 'Lorem ipsum – Glacies liegt ganz außen.']],
+      waiting: [['sid', 'Lorem ipsum – Glacies liegt ganz außen.']],
       thanks: [['sid', 'Lorem ipsum, großartig!']],
     },
   ],
 
-  /* Die beiden Raumstationen, ebenfalls mit je einer Quest */
+  /* Die beiden Raumstationen, ebenfalls mit je einer Figur (»with«) und einer Quest */
   stations: {
     inner: {
       kicker: 'Raumstation',
       name: 'Station Lorem',
-      crew: ['ivy', 'totoro'],
+      with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
         ['ivy', 'Lorem ipsum dolor sit amet, willkommen an Bord, Gwen!'],
-        ['totoro', 'Consectetur adipiscing: Der Käsekuchen muss nach Gigas.'],
+        ['ivy', 'Consectetur adipiscing: Der Käsekuchen muss nach Gigas.'],
         ['gwen', 'Lorem ipsum, ich fliege los.'],
       ],
-      waiting: [['totoro', 'Lorem ipsum – nicht unterwegs naschen!']],
+      waiting: [['ivy', 'Lorem ipsum – nicht unterwegs naschen!']],
       thanks: [['ivy', 'Lorem ipsum, danke, Gwen!']],
     },
     outer: {
       kicker: 'Raumstation',
       name: 'Station Ipsum',
-      crew: ['west', 'ursula'],
+      with: 'west',
       quest: 'ocarina',
       offer: [
         ['west', 'Lorem ipsum dolor sit amet, so weit draußen sieht man uns selten.'],
-        ['ursula', 'Quis nostrud: Die Ocarina der Zeit stammt aus einer fernen Galaxis. Bring sie nach Ignis.'],
+        ['west', 'Quis nostrud: Die Ocarina der Zeit stammt aus einer fernen Galaxis. Bring sie nach Ignis.'],
         ['gwen', 'Lorem ipsum, wird erledigt.'],
       ],
-      waiting: [['ursula', 'Lorem ipsum – Ignis ist der heiße Planet nah an der Sonne.']],
+      waiting: [['west', 'Lorem ipsum – Ignis ist der heiße Planet nah an der Sonne.']],
       thanks: [['west', 'Lorem ipsum, vielen Dank!']],
     },
   },

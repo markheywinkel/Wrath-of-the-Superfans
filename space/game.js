@@ -707,6 +707,7 @@
   intro.textContent = TEXTS.intro || '';
   setTimeout(() => { if (!hintGone) hint.classList.add('ready'); }, 3600);
 
+  window.addEventListener('pointerdown', () => sfx.init(), { capture: true });
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!hintGone) hideHint();
@@ -749,6 +750,7 @@
 
   function flyToPoint(x, y) {
     hideInfo();
+    sfx.play('boost');
     ship.mode = 'fly';
     ship.goal = { x, y };
     ship.sides.clear();
@@ -756,6 +758,7 @@
   }
   function flyToNpc(n) {
     hideInfo();
+    sfx.play('boost');
     n.cooldown = 0;
     ship.mode = 'fly';
     ship.goal = { npc: n };
@@ -765,6 +768,7 @@
   function flyToBody(b) {
     if (ship.mode === 'orbit' && ship.orbitBody === b) { arriveAt(b); return; }
     hideInfo();
+    sfx.play('boost');
     ship.mode = 'fly';
     ship.goal = { body: b };
     ship.sides.clear();
@@ -775,7 +779,7 @@
       const t = TEXTS.stations[b.id];
       if (t) {
         const g = giverLines(t);
-        openDialog(t.crew, g.lines, `${t.kicker} · ${t.name}`, g.after);
+        openDialog(t.with, g.lines, `${t.kicker} · ${t.name}`, g.after);
       }
       return;
     }
@@ -786,11 +790,84 @@
     const due = Object.keys(TEXTS.items).filter(id => quests[id] === 'active' && TEXTS.items[id].target === b.id);
     if (due.length) {
       const lines = due.flatMap(id => TEXTS.items[id].deliver);
-      openDialog([], lines, bodyName(b.id), () => { due.forEach(deliver); showInfo(b); });
+      openDialog(null, lines, bodyName(b.id), () => { due.forEach(deliver); showInfo(b); });
     } else {
       showInfo(b);
     }
   }
+
+  // ----------------------------------------------------------------- sound
+  /*
+   * Weiche, leise Klänge, direkt im Browser erzeugt (Web Audio, keine Dateien).
+   * Der Audio-Kontext startet beim ersten Tippen (Vorgabe der Browser).
+   */
+  const sfx = (() => {
+    let ac = null, out = null, echo = null;
+    function init() {
+      if (ac) { if (ac.state === 'suspended') ac.resume(); return; }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ac = new AC();
+      out = ac.createGain(); out.gain.value = 0.22;
+      const soft = ac.createBiquadFilter(); soft.type = 'lowpass'; soft.frequency.value = 5200;
+      out.connect(soft); soft.connect(ac.destination);
+      // leichtes Echo für einen weichen, räumlichen Klang
+      echo = ac.createDelay(1); echo.delayTime.value = 0.18;
+      const fb = ac.createGain(); fb.gain.value = 0.28;
+      const wet = ac.createGain(); wet.gain.value = 0.35;
+      echo.connect(fb); fb.connect(echo); echo.connect(wet); wet.connect(soft);
+    }
+    function tone(freq, start, dur, vol = 0.5, type = 'sine', glideTo = 0) {
+      const t0 = ac.currentTime + start;
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(out); g.connect(echo);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    }
+    function noise(start, dur, vol, f0, f1, q = 1.2) {
+      const t0 = ac.currentTime + start;
+      const len = Math.ceil(ac.sampleRate * dur);
+      const buf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = q;
+      bp.frequency.setValueAtTime(f0, t0); bp.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + dur * 0.35);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      src.connect(bp); bp.connect(g); g.connect(out);
+      src.start(t0); src.stop(t0 + dur);
+    }
+    let lastBoost = 0;
+    const play = {
+      // Kristall: zartes, glockiges Glitzern
+      crystal() { tone(1318.5, 0, 0.5, 0.32); tone(1975.5, 0.07, 0.6, 0.22); tone(2637, 0.14, 0.5, 0.08); },
+      // Frachtcontainer: weiches, tiefes »Plopp« mit Schimmer
+      crate() { tone(196, 0, 0.35, 0.45, 'sine', 140); tone(392, 0.04, 0.4, 0.2, 'triangle'); tone(784, 0.1, 0.45, 0.08); },
+      // Beschleunigen: sanftes Rauschen, das ansteigt
+      boost() {
+        const now = ac.currentTime;
+        if (now - lastBoost < 0.5) return;
+        lastBoost = now;
+        noise(0, 0.7, 0.18, 220, 1400, 0.9); tone(110, 0, 0.6, 0.12, 'sine', 180);
+      },
+      // Badge: kleine, warme Dur-Arpeggio
+      badge() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.09, 0.7, 0.24, 'triangle')); },
+      // Abgeliefert: freundliches Zwei-Ton-»Ding-Dong«
+      deliver() { tone(659.25, 0, 0.55, 0.3, 'triangle'); tone(987.77, 0.16, 0.8, 0.26, 'triangle'); },
+    };
+    return {
+      init,
+      play(name) { try { if (ac && ac.state === 'running' && play[name]) play[name](); } catch (_) { /* ohne Ton weiter */ } },
+    };
+  })();
 
   // ---------------------------------------------------------------- quests
   const bodyName = id => (TEXTS.bodies[id] || {}).name || id;
@@ -814,7 +891,7 @@
     if (quests[id] !== 'active') return;
     quests[id] = 'done';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${esc(it.name)}`);
+    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${esc(it.name)}`, 'deliver');
     renderQuests();
     if (id === 'brief') award('amor');
     if (Object.values(quests).every(q => q === 'done')) milestone('meisterbote', 0.2, TEXTS.rewards.quests);
@@ -827,7 +904,7 @@
     if (badges.has(id)) return;
     badges.add(id);
     const b = TEXTS.badges[id];
-    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${esc(b.name)}`);
+    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${esc(b.name)}`, 'badge');
     renderBadges();
     if (id !== FINAL_BADGE && BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) {
       award(FINAL_BADGE);
@@ -1048,7 +1125,7 @@
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
       const g = giverLines(npc.texts);
-      openDialog(npc.texts.crew, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
+      openDialog(npc.texts.with, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
     }
   }
@@ -1077,6 +1154,7 @@
       c.taken = true;
       collected.add(c.id);
       burst(c.x, c.y, 'gold');
+      sfx.play('crystal');
       updateHUD('coin');
       pickupText(`${TEXTS.pickup.crystal} ${collected.size} / ${COIN_TOTAL}`);
       if (collected.size >= COIN_TOTAL) setTimeout(() => milestone('meistererkunder', 0.2, TEXTS.rewards.coins), 900);
@@ -1086,6 +1164,7 @@
       c.taken = true;
       cratesTaken.add(c.id);
       burst(c.x, c.y, 'crate');
+      sfx.play('crate');
       updateHUD('crate');
       pickupText(`${TEXTS.pickup.container} ${cratesTaken.size} / ${CRATE_TOTAL}`);
       if (cratesTaken.size >= CRATE_TOTAL) setTimeout(() => milestone('aufraeumer', 0.1, TEXTS.rewards.containers), 900);
@@ -1679,9 +1758,10 @@
   // --- Dialoge
   const dialogEl = document.getElementById('dialog');
   const figThem = dialogEl.querySelector('.figure.them'), figMe = dialogEl.querySelector('.figure.me');
-  const dialog = { open: false, lines: [], idx: 0, onEnd: null, crew: [], them: null };
+  const dialog = { open: false, lines: [], idx: 0, onEnd: null, partner: null };
 
-  function openDialog(crew, lines, role, onEnd) {
+  /** Gwen spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
+  function openDialog(partner, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
     hideInfo();
     hideHint();
@@ -1690,9 +1770,10 @@
     dialog.idx = 0;
     dialog.onEnd = onEnd || null;
     dialog.role = role || '';
-    dialog.crew = crew.filter(id => id !== TEXTS.player);
-    dialog.them = null;
+    dialog.partner = partner && partner !== TEXTS.player ? partner : null;
     figMe.src = portrait(TEXTS.player);
+    figThem.hidden = !dialog.partner;
+    if (dialog.partner) figThem.src = portrait(dialog.partner);
     showLine();
     dialogEl.classList.add('show');
   }
@@ -1700,11 +1781,6 @@
     const [who, text] = dialog.lines[dialog.idx];
     const c = TEXTS.characters[who] || { name: who, tier: '' };
     const isMe = who === TEXTS.player;
-    // links steht immer die zuletzt sprechende Figur des Gegenübers
-    if (!isMe) dialog.them = who;
-    else if (!dialog.them) dialog.them = dialog.crew[0] || null;
-    figThem.hidden = !dialog.them;
-    if (dialog.them) figThem.src = portrait(dialog.them);
     figThem.classList.toggle('active', !isMe);
     figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
@@ -1732,13 +1808,14 @@
   const modal = { open: false, current: null };
   const notify = { queue: [], busy: false };
   const TOAST_TIME = 2800;
-  function toast(html) { notify.queue.push({ type: 'toast', html }); pump(); }
+  function toast(html, sound) { notify.queue.push({ type: 'toast', html, sound }); pump(); }
   function showModal(m) { notify.queue.push(Object.assign({ type: 'modal' }, m)); pump(); }
   function pump() {
     if (notify.busy || dialog.open || !notify.queue.length) return;
     const it = notify.queue.shift();
     notify.busy = true;
     if (it.type === 'toast') {
+      if (it.sound) sfx.play(it.sound);
       const el = document.createElement('div');
       el.className = 'toast box';
       el.innerHTML = it.html;
@@ -1796,6 +1873,6 @@
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
-    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait,
+    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
   };
 })();

@@ -23,9 +23,9 @@ python3 -m http.server 8000
 
 ## Spielablauf
 
-- Du bist **Gwen**, Astronautin. Alle Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
+- Du bist **Gwen**, Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit, Infokasten.
-- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich: links die grobe Pixel-Figur des Gegenübers, rechts Gwen; wer spricht, ist etwas größer.
+- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich: links genau eine Figur, rechts Gwen; wer spricht, ist etwas größer.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
 - **Sammeln:** 30 Kristalle und 10 verlorene Frachtcontainer.
 - **Badges** (oben rechts):
@@ -35,6 +35,7 @@ python3 -m http.server 8000
   - Tourist: alle fünf Planeten besucht
   - Amor: Liebesbrief überbracht
   - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
+- Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, beim Beschleunigen, bei neuen Badges und beim Abliefern.
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 
 ## Deployment auf space.markheywinkel.de
