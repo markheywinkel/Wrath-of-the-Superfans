@@ -1084,6 +1084,7 @@
       dl.append(dt, dd);
     }
     info.classList.add('show');
+    hintGone = true; hint.classList.add('gone');
   }
   function hideInfo() { info.classList.remove('show'); }
   info.querySelector('.close').addEventListener('click', hideInfo);

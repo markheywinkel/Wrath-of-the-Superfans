@@ -40,5 +40,5 @@ Nach Textänderungen in `texts.js` also einfach committen und pushen.
 Einmalig bei One.com nötig: die Subdomain `space.markheywinkel.de` anlegen, sodass sie auf
 den Ordner `space` zeigt (wie bei `storytelling` und `verticals`).
 
-Die Schrift »Pixelify Sans« (SIL Open Font License, `fonts/OFL.txt`) wird selbst ausgeliefert,
+Die Schrift Poppins (wie auf den Storytelling-Seiten, SIL Open Font License, `fonts/OFL.txt`) wird selbst ausgeliefert,
 die Seite lädt nichts von fremden Servern.

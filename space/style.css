@@ -1,8 +1,14 @@
-/* Pixelify Sans (SIL Open Font License, siehe fonts/OFL.txt) – selbst ausgeliefert, keine Google Fonts */
+/* Poppins (SIL Open Font License, siehe fonts/OFL.txt) – wie auf den Storytelling-Seiten selbst ausgeliefert */
 @font-face {
-  font-family: 'Pixelify Sans';
-  src: url('fonts/PixelifySans.woff2') format('woff2');
-  font-weight: 400 700;
+  font-family: 'Poppins';
+  src: url('fonts/Poppins-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('fonts/Poppins-SemiBold.woff2') format('woff2');
+  font-weight: 600;
   font-display: swap;
 }
 
@@ -26,7 +32,7 @@ html, body {
   color: var(--ink);
   overflow: hidden;
   overscroll-behavior: none;
-  font-family: 'Pixelify Sans', ui-monospace, 'Courier New', monospace;
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
@@ -63,7 +69,8 @@ canvas {
   gap: 10px;
   padding: 6px 14px 6px 10px;
   font: inherit;
-  font-size: 22px;
+  font-size: 19px;
+  font-weight: 600;
   line-height: 1;
   color: var(--ink);
   background: var(--panel);
@@ -72,7 +79,7 @@ canvas {
   cursor: default;
 }
 .hud.complete { border-color: var(--gold-dark); color: var(--gold); cursor: pointer; }
-.hud .of { color: var(--muted); font-size: 16px; }
+.hud .of { color: var(--muted); font-size: 14px; font-weight: 400; }
 .coin-icon { width: 14px; height: 18px; image-rendering: pixelated; }
 .hud.bump { animation: bump 0.45s steps(4); }
 @keyframes bump {
@@ -88,7 +95,7 @@ canvas {
   bottom: calc(28px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   padding: 8px 14px;
-  font-size: 18px;
+  font-size: 15px;
   color: var(--muted);
   white-space: nowrap;
   pointer-events: none;
@@ -122,21 +129,22 @@ canvas {
 }
 .info .kicker {
   margin: 0 0 2px;
-  font-size: 14px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--edge-hi);
 }
 .info .name {
   margin: 0 0 8px;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.1;
 }
 .info .body {
   margin: 0 0 10px;
-  font-size: 16px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.6;
   color: #cdd7f2;
 }
 .info .facts {
@@ -144,7 +152,7 @@ canvas {
   grid-template-columns: auto 1fr;
   gap: 2px 14px;
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 .info .facts dt { color: var(--muted); }
 .info .facts dd { margin: 0; }
@@ -190,14 +198,14 @@ canvas {
 .modal.show .reward-panel { transform: none; }
 .reward-panel h2 {
   margin: 10px 0 8px;
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--gold);
 }
 .reward-panel .body {
   margin: 0 0 18px;
-  font-size: 16px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.6;
   color: #cdd7f2;
 }
 .reward-coins { display: flex; justify-content: center; gap: 8px; }
@@ -213,7 +221,8 @@ canvas {
   min-height: 44px;
   padding: 8px 18px;
   font: inherit;
-  font-size: 17px;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--ink);
   background: #141a3a;
   border: 2px solid var(--edge);
@@ -226,7 +235,6 @@ canvas {
 .btn.primary:hover { border-color: #fff; }
 
 @media (max-width: 480px) {
-  .hud { font-size: 20px; }
-  .info .name { font-size: 24px; }
-  .info .body { font-size: 15px; }
+  .hud { font-size: 18px; }
+  .info .name { font-size: 22px; }
 }
