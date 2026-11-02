@@ -100,6 +100,7 @@ canvas {
 .quests li {
   padding: 0;
   font-size: 12px;
+  font-weight: 800;
   line-height: 1.35;
   animation: fade-in 0.5s ease;
 }
@@ -159,20 +160,32 @@ canvas {
 .toasts {
   position: fixed;
   left: 50%;
-  top: 22vh;
+  top: 19vh;
   transform: translateX(-50%);
-  width: min(420px, calc(100vw - 32px));
+  width: min(460px, calc(100vw - 32px));
   display: flex;
   justify-content: center;
   pointer-events: none;
 }
 .toast {
   padding: 0;
-  font-size: 14px;
   text-align: center;
   animation: toast 2.8s ease forwards;
 }
-.toast b { color: var(--accent); font-weight: 600; }
+/* Titel wie »Kristall 3 / 30« und Planetenname, darunter Text wie die Planetenbeschreibung */
+.toast .t-title {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.toast .t-body {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d6ddf2;
+}
 @keyframes toast {
   0% { opacity: 0; transform: translateY(-6px); }
   12%, 82% { opacity: 1; transform: none; }
@@ -373,6 +386,6 @@ canvas {
   .badge { padding-left: 8px; }
   .info .name, .pickup { font-size: 22px; }
   .badge { font-size: 11px; }
-  .toast { font-size: 13px; }
+  .toast .t-title { font-size: 22px; }
   .dialog .figure { width: 56px; }
 }

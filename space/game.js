@@ -892,14 +892,14 @@
     if (quests[id] !== 'open') return;
     quests[id] = 'active';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.quest)}</b> ${esc(it.name)} → <span class="nm">${esc(bodyName(it.target))}</span>`);
+    toast(TEXTS.toast.quest, `${esc(it.name)} → <span class="nm">${esc(bodyName(it.target))}</span>`);
     renderQuests();
   }
   function deliver(id) {
     if (quests[id] !== 'active') return;
     quests[id] = 'done';
     const it = TEXTS.items[id];
-    toast(`<b>${esc(TEXTS.toast.delivered)}</b> ${esc(it.name)}`, 'deliver');
+    toast(TEXTS.toast.delivered, esc(it.name), 'deliver');
     renderQuests();
     if (id === 'brief') award('amor');
     if (Object.values(quests).every(q => q === 'done')) milestone('meisterbote', 0.2, TEXTS.rewards.quests);
@@ -912,7 +912,7 @@
     if (badges.has(id)) return;
     badges.add(id);
     const b = TEXTS.badges[id];
-    toast(`<b>${esc(TEXTS.toast.badge)}</b> ${esc(b.name)}`, 'badge');
+    toast(TEXTS.toast.badge, esc(b.name), 'badge');
     renderBadges();
     if (id !== FINAL_BADGE && BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) {
       award(FINAL_BADGE);
@@ -924,7 +924,7 @@
   function milestone(badgeId, bonus, reward) {
     if (badges.has(badgeId)) return;
     speedBonus += bonus;
-    toast(`<b>${esc(TEXTS.toast.boost)}</b> +${Math.round(bonus * 100)} %`);
+    toast(TEXTS.toast.boost, `+${Math.round(bonus * 100)} %`);
     showModal({ title: reward.title, body: reward.body, button: TEXTS.rewards.continue });
     award(badgeId);
   }
@@ -1651,7 +1651,7 @@
       el.className = 'badge box' + (id === FINAL_BADGE ? ' top' : '');
       el.title = `${b.name}: ${b.text}`;
       el.textContent = b.name;
-      el.addEventListener('click', () => toast(`<b>${esc(b.name)}</b> – ${esc(b.text)}`));
+      el.addEventListener('click', () => toast(b.name, esc(b.text)));
       badgeEl.append(el);
     }
   }
@@ -1664,7 +1664,7 @@
       const it = TEXTS.items[id];
       const li = document.createElement('li');
       li.className = 'box';
-      li.innerHTML = `${esc(it.name)} <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`;
+      li.innerHTML = `<span class="nm">${esc(it.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`;
       questEl.append(li);
     }
   }
@@ -1833,7 +1833,12 @@
   const modal = { open: false, current: null };
   const notify = { queue: [], busy: false };
   const TOAST_TIME = 2800;
-  function toast(html, sound) { notify.queue.push({ type: 'toast', html, sound }); pump(); }
+  /** Einblendung: Titel (groß, ExtraBold) und darunter der Inhalt (HTML, bereits maskiert). */
+  function toast(title, bodyHtml, sound) {
+    const html = `<div class="t-title">${esc(title)}</div>` + (bodyHtml ? `<div class="t-body">${bodyHtml}</div>` : '');
+    notify.queue.push({ type: 'toast', html, sound });
+    pump();
+  }
   function showModal(m) { notify.queue.push(Object.assign({ type: 'modal' }, m)); pump(); }
   function pump() {
     if (notify.busy || dialog.open || !notify.queue.length) return;
