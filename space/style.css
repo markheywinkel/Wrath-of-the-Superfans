@@ -251,23 +251,21 @@ canvas {
   50% { opacity: 1; }
 }
 
-/* ---------- Planeten-Info ---------- */
+/* ---------- Ortsinfo direkt am Objekt ---------- */
 .info {
   position: fixed;
   left: 50%;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  width: min(440px, calc(100vw - 32px));
-  max-height: 46vh;
-  overflow: auto;
+  top: 40%;
+  width: min(320px, calc(100vw - 32px));
   padding: 0 4px;
-  transform: translate(-50%, 16px);
+  transform: translate(-50%, -100%);
   opacity: 0;
   pointer-events: none;
   text-align: center;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition: opacity 0.5s ease;
 }
-.info .kicker:empty { display: none; }
-.info.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.info.show { opacity: 1; }
+.info .kicker:empty, .info .body:empty { display: none; }
 .info .kicker {
   margin: 0 0 2px;
   font-size: 12px;
@@ -276,24 +274,22 @@ canvas {
   text-transform: uppercase;
   color: var(--accent);
 }
-.info .name { margin: 0 0 8px; font-size: 24px; font-weight: 800; line-height: 1.15; }
-.info .body { margin: 0; font-size: 14px; line-height: 1.6; color: #d6ddf2; }
-.info .close {
+.info .name { margin: 0 0 6px; font-size: 24px; font-weight: 800; line-height: 1.15; }
+.info .body { margin: 0; font-size: 14px; line-height: 1.55; color: #d6ddf2; }
+
+/* ---------- Namensschilder in der Nähe ---------- */
+.labels { position: fixed; inset: 0; pointer-events: none; }
+.label {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  font: inherit;
-  font-size: 22px;
-  line-height: 1;
-  color: var(--muted);
-  background: none;
-  border: 0;
-  cursor: pointer;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.info .close:hover { color: var(--ink); }
 
 /* ---------- Buttons: nur Text ---------- */
 .btn {
@@ -380,16 +376,22 @@ canvas {
 .nm { font-weight: 800; }
 .dialog .who { margin: 0 0 8px; }
 .dialog .who .name { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; }
-.dialog .who .role { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--muted); }
-.dialog .who .role:empty { display: none; }
 .dialog .line { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: #dfe6f8; min-height: 3.2em; }
 .dialog .foot { display: flex; justify-content: center; }
-.dialog .next { min-height: 36px; }
+.dialog .next {
+  min-height: 40px;
+  padding: 8px 24px;
+  border: 1px solid var(--accent);
+  background: rgba(127, 224, 255, 0.08);
+  text-shadow: none;
+}
+.dialog .next:hover { background: rgba(127, 224, 255, 0.16); }
 
 @media (max-width: 480px) {
   .hud { font-size: 16px; gap: 12px; }
   .badge { padding-left: 8px; }
   .info .name, .pickup { font-size: 22px; }
+  .info .body { font-size: 13px; }
   .badge { font-size: 11px; }
   .toast .t-title { font-size: 22px; }
   .dialog .figure { width: 56px; }

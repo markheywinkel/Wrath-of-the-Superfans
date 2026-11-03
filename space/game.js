@@ -714,7 +714,7 @@
     while (list.length < count && tries < 30000) {
       tries++;
       if (tries % 5000 === 0) minGap -= 6;
-      const rad = Math.sqrt(r()) * (SHIP_LIMIT - 12);
+      const rad = Math.sqrt(r()) * (SHIP_LIMIT - 85); // Abstand zum Asteroidengürtel
       const a = r() * TAU;
       if (rad < Math.max(SUN.avoidR + 14, minRad)) continue;
       let ok = true;
@@ -1012,6 +1012,7 @@
     if (b.station) {
       const t = TEXTS.stations[b.id];
       if (t) {
+        showInfo(b);
         const g = giverLines(t);
         openDialog(t.with, g.lines, t.name || '', g.after);
       }
@@ -1427,6 +1428,7 @@
           ship.mode = 'orbit';
           ship.goal = null;
           startOrbit(ship, g.body, g.body.avoidR);
+          showInfo(g.body);
           arriveAt(g.body);
         } else {
           ship.mode = 'idle';
@@ -1483,7 +1485,6 @@
     for (const npc of npcs) {
       if (npc.hidden || npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
-      hideInfo();
       const dir = ship.speed > 5 ? ship.heading : npc.heading;
       const cr = Math.cos(dir) * (npc.y - ship.y) - Math.sin(dir) * (npc.x - ship.x);
       ship.mode = 'drift';
@@ -1492,6 +1493,7 @@
       marker = null;
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
+      showInfo(npc);
       const g = npc.dealer ? dealerLines() : npc.texts.talk ? { lines: npc.texts.talk } : giverLines(npc.texts);
       openDialog(npc.texts.with, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
@@ -1503,6 +1505,7 @@
     pickDestination(npc);
     if (ship.mode === 'drift') ship.mode = 'idle';
     ship.drift = null;
+    if (infoTarget === npc) hideInfo();
   }
 
   function burst(x, y, kind) {
@@ -2170,6 +2173,8 @@
     }
     drawFog();
     drawQuestMarkers();
+    positionInfo();
+    updateLabels();
   }
 
   // -------------------------------------------------------------------- UI
@@ -2237,17 +2242,69 @@
   }
 
   const info = document.getElementById('info');
-  function showInfo(b) {
-    const t = TEXTS.bodies[b.id];
+  // Ortsinfo erscheint direkt am Objekt, um das man kreist (oder neben dem man treibt)
+  let infoTarget = null;
+  function infoFor(o) {
+    if (!o) return null;
+    if (o.texts) return { kicker: '', name: o.texts.name, body: o.texts.desc || '' };   // Raumschiff
+    if (o.station) { const t = TEXTS.stations[o.id]; return t ? { kicker: '', name: t.name, body: t.desc || '' } : null; }
+    return TEXTS.bodies[o.id] || null;
+  }
+  /** Bildschirmposition eines Objekts: [x, Oberkante, Unterkante] in Spielpixeln */
+  function objScreen(o) {
+    if (o.texts) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 12, sy + 9]; }
+    if (o.station) { const sx = toSX(o.x), sy = toSY(o.y, 3); return [sx, sy - o.hub - 16, sy + o.size * SIN_E + 5]; }
+    if (o.id === 'wreck') { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 28, sy + 24]; }
+    const sx = toSX(o.x), sy = toSY(o.y); return [sx, sy - o.r - 6, sy + o.r + 4];
+  }
+  function showInfo(o) {
+    const t = infoFor(o);
     if (!t) return;
     info.querySelector('.kicker').textContent = t.kicker || '';
     info.querySelector('.name').textContent = t.name || '';
     info.querySelector('.body').textContent = t.body || '';
+    infoTarget = o;
     info.classList.add('show');
     hideHint();
+    positionInfo();
   }
-  function hideInfo() { info.classList.remove('show'); }
-  info.querySelector('.close').addEventListener('click', hideInfo);
+  function hideInfo() { info.classList.remove('show'); infoTarget = null; }
+  function positionInfo() {
+    if (!infoTarget) return;
+    const [sx, top, bottom] = objScreen(infoTarget);
+    const k = 1 / pxPerCss, h = info.offsetHeight, w = info.offsetWidth;
+    let x = clamp(sx * k, w / 2 + 8, window.innerWidth - w / 2 - 8);
+    let y = top * k - 18;                                 // über dem Objekt (Platz für »!«)
+    if (y - h < 70) y = bottom * k + 12 + h;              // zu weit oben: unter das Objekt
+    info.style.left = x + 'px';
+    info.style.top = y + 'px';
+  }
+
+  // Namensschilder an Planeten, Stationen und Schiffen in der Nähe
+  const labelsEl = document.getElementById('labels');
+  const labelPool = new Map();
+  const LABEL_NEAR = 190;
+  function updateLabels() {
+    const seen = new Set();
+    const cands = [...BODIES, ...STATIONS, WRECK, ...npcs.filter(n => !n.hidden)];
+    for (const o of cands) {
+      if (o === infoTarget) continue;
+      const d = Math.hypot(o.x - ship.x, o.y - ship.y);
+      if (d > LABEL_NEAR) continue;
+      const t = infoFor(o);
+      if (!t || !t.name) continue;
+      const [sx, , bottom] = objScreen(o);
+      if (!onScreen(sx, bottom, 20)) continue;
+      let el = labelPool.get(o);
+      if (!el) { el = document.createElement('div'); el.className = 'label'; labelsEl.append(el); labelPool.set(o, el); }
+      if (el.textContent !== t.name) el.textContent = t.name;
+      el.style.left = sx / pxPerCss + 'px';
+      el.style.top = (bottom + 2) / pxPerCss + 'px';
+      el.style.opacity = d < LABEL_NEAR - 40 ? 1 : (LABEL_NEAR - d) / 40;
+      seen.add(o);
+    }
+    for (const [o, el] of labelPool) if (!seen.has(o)) el.style.opacity = 0;
+  }
 
   // --- grobe Pixel-Astronauten (16 × 18 Pixel), aus »look« in texts.js gezeichnet
   const portraitCache = {};
@@ -2341,7 +2398,6 @@
   /** Die Spielfigur (»Du«) spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
   function openDialog(partner, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
-    hideInfo();
     hideHint();
     dialog.open = true;
     dialog.lines = lines;
@@ -2368,7 +2424,6 @@
     figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
     // unter dem Namen nur der Ort (Schiff, Station oder Planet), keine Funktion
-    dialogEl.querySelector('.role').textContent = dialog.role || '';
     dialogEl.querySelector('.line').textContent = text;
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;

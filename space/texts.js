@@ -20,7 +20,7 @@ window.SPACE_TEXTS = {
     du: { name: 'Du', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
     quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
     norman: { name: 'Norman', tier: 'Navigator', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
-    sie: { name: 'Sie', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
+    adele: { name: 'Adele', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
     ivy: { name: 'Ivy', tier: 'Wissenschaftlerin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
     balthasar: { name: 'Balthasar', tier: 'Kuriositätenhändler', look: { suit: '#ffb31a', helmet: false, skin: '#d8a070', hair: '#5a3aa8', hairStyle: 'long' } },
     entitaet: { name: 'Körperlose Entität', tier: '', look: { ghost: true } },
@@ -81,6 +81,7 @@ window.SPACE_TEXTS = {
   ships: [
     {
       name: 'Handelskreuzer Normandy',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'quentin',
       quest: 'brief',
       offer: [
@@ -104,6 +105,7 @@ window.SPACE_TEXTS = {
     },
     {
       name: 'Fährschiff Nostromo',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'norman',
       quest: 'aquarium',
       offer: [
@@ -126,24 +128,25 @@ window.SPACE_TEXTS = {
     },
     {
       name: 'Polizeifregatte Condor',
-      with: 'sie',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      with: 'adele',
       quest: 'fotobuch',
       offer: [
-        ['sie', 'Guten Tag. Keine Sorge, nur eine Fundsache.'],
-        ['sie', 'Dieses Fotoalbum wurde bei uns abgegeben. Es gehört einer Bergarbeiterin auf Cies und zeigt Bilder aus ihrer Schulzeit.'],
+        ['adele', 'Guten Tag. Keine Sorge, nur eine Fundsache.'],
+        ['adele', 'Dieses Fotoalbum wurde bei uns abgegeben. Es gehört einer Bergarbeiterin auf Cies und zeigt Bilder aus ihrer Schulzeit.'],
         ['du', 'Ich bringe es ihr.'],
       ],
-      waiting: [['sie', 'Cies liegt ganz außen. Zieh dich warm an.']],
-      thanks: [['sie', 'Fall abgeschlossen. So mag ich das. Danke dir.']],
+      waiting: [['adele', 'Cies liegt ganz außen. Zieh dich warm an.']],
+      thanks: [['adele', 'Fall abgeschlossen. So mag ich das. Danke dir.']],
       round2: {
         quest: 'koffer',
         offer: [
-          ['sie', 'Da bist du ja. Ich habe wieder etwas für dich.'],
-          ['sie', 'Einen geheimnisvollen Koffer, fest verschlossen. Er soll ins Archiv auf Cies. Frag lieber nicht, was drin ist.'],
+          ['adele', 'Da bist du ja. Ich habe wieder etwas für dich.'],
+          ['adele', 'Einen geheimnisvollen Koffer, fest verschlossen. Er soll ins Archiv auf Cies. Frag lieber nicht, was drin ist.'],
           ['du', 'Ich frage nicht.'],
         ],
-        waiting: [['sie', 'Und bitte nicht schütteln.']],
-        thanks: [['sie', 'Der Koffer ist sicher verwahrt. Gute Arbeit.']],
+        waiting: [['adele', 'Und bitte nicht schütteln.']],
+        thanks: [['adele', 'Der Koffer ist sicher verwahrt. Gute Arbeit.']],
       },
     },
   ],
@@ -152,6 +155,7 @@ window.SPACE_TEXTS = {
   stations: {
     inner: {
       name: 'Forschungsstation Genesis',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
@@ -175,6 +179,7 @@ window.SPACE_TEXTS = {
     },
     outer: {
       name: 'Handelsposten Orion',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'west',
       quest: 'ocarina',
       offer: [
@@ -203,6 +208,7 @@ window.SPACE_TEXTS = {
    */
   dealer: {
     name: 'Händlerschiff Wunderkammer',
+    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
     with: 'balthasar',
     intro: [
       ['balthasar', 'Willkommen in der Wunderkammer! Ich sammle Kuriositäten aus allen Ecken des Alls.'],
@@ -263,11 +269,13 @@ window.SPACE_TEXTS = {
     // Gwynn und Justus fliegen danach selbst durch das Gebiet
     gwynn: {
       name: 'Forschungsschiff Lumen',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'gwynn',
       talk: [['gwynn', 'Ich fliege wieder selbst. Ohne dich wäre ich immer noch ein Schatten zwischen den Trümmern. Danke!']],
     },
     justus: {
       name: 'Reiseschiff Wanderer',
+      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'justus',
       talk: [['justus', 'Mein Schiff fliegt wieder wie neu. Danke für deine Hilfe!']],
     },
