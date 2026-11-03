@@ -150,15 +150,15 @@ window.SPACE_TEXTS = {
   rewards: {
     coins: {
       title: 'Meistererkunder!',
-      body: 'Lorem ipsum: Du hast alle 30 Kristalle gefunden. Dein Antrieb ist jetzt 20 Prozent schneller.',
+      body: 'Alle 30 Kristalle funkeln in deinem Laderaum. Ihre Energie macht deinen Antrieb 20 Prozent schneller.',
     },
     containers: {
       title: 'Aufräumer!',
-      body: 'Lorem ipsum: Du hast alle 10 Frachtcontainer geborgen. Dein Antrieb ist jetzt 10 Prozent schneller.',
+      body: 'Alle 10 verlorenen Frachtcontainer sind geborgen, die Flugrouten sind wieder frei. Zum Dank wurde dein Antrieb verbessert: 10 Prozent schneller.',
     },
     quests: {
       title: 'Meisterbote!',
-      body: 'Lorem ipsum: Du hast alle Aufträge erledigt. Dein Antrieb ist jetzt 20 Prozent schneller.',
+      body: 'Brief, Fisch, Fotoalbum, Kuchen und Ocarina sind angekommen. Im ganzen System spricht man von dir, und dein Antrieb ist jetzt 20 Prozent schneller.',
     },
     final: {
       title: 'Glückwunsch!',
