@@ -32,7 +32,7 @@ Das Spiel ist in Kapitel eingeteilt:
 - Die Spielfigur heißt **Du**: Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit. Name und Beschreibung erscheinen direkt am Objekt, um das man kreist.
 - In der Nähe von Planeten, Stationen, dem Wrack und anderen Schiffen erscheint deren Name als kleines Schild.
-- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich unten, zentriert: beide Figuren mittig nebeneinander (wer spricht, ist etwas größer), darunter Name und Text, ganz unten »Weiter« in einer Box. Name und Beschreibung des Schiffs stehen dabei direkt am Schiff.
+- Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich in der Bildmitte, das Bild dahinter wird unscharf: beide Figuren nebeneinander (wer spricht, ist etwas größer), darunter Name und Text (was »Du« sagt, in Hellblau), ganz unten »Weiter« in einer Box. Auch hinter den Kapiteltafeln (mit Filmbalken) wird das Bild unscharf. Name und Beschreibung des Schiffs stehen dabei direkt am Schiff.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
 - **Sammeln:** 30 Kristalle und 10 verlorene Frachtcontainer.
 - **Zweite Runde:** Sind die ersten fünf Aufträge erledigt, geht es weiter:
