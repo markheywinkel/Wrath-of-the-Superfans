@@ -1005,23 +1005,22 @@
   const onScreen = (sx, sy, m) => sx > -m && sx < W + m && sy > -m && sy < H + m;
 
   // ----------------------------------------------------------------- input
-  const hint = document.getElementById('hint');
-  hint.textContent = TEXTS.hint;
-  let hintGone = false;
-  const hideHint = () => { hintGone = true; hint.classList.add('gone'); };
   const intro = document.getElementById('intro');
+  const CHAPTER_TIME = 4.5; // Dauer der Kapiteltafel (siehe .intro.play in style.css)
+  let chapterTimer = 0;
+  /** Kapiteltafel: das Bild dahinter wird unscharf, solange der Titel steht */
   function showChapter(i) {
     const c = TEXTS.chapters[i] || { num: '', title: TEXTS.intro };
     intro.innerHTML = `<span class="num">${c.num}</span><span class="title">${c.title}</span>`;
     intro.classList.remove('play'); void intro.offsetWidth; intro.classList.add('play');
+    document.body.classList.add('blur');
+    clearTimeout(chapterTimer);
+    chapterTimer = setTimeout(() => document.body.classList.remove('blur'), (CHAPTER_TIME - 0.6) * 1000);
   }
-  showChapter(0);
-  setTimeout(() => { if (!hintGone) hint.classList.add('ready'); }, 3600);
 
   window.addEventListener('pointerdown', () => sfx.init(), { capture: true });
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
-    if (!hintGone) hideHint();
     if (cine.active) return;
     if (dialog.open) { dialogNext(); return; }
     const ix = e.clientX * pxPerCss, iy = e.clientY * pxPerCss;
@@ -1333,7 +1332,7 @@
   function queueChapter2() {
     let focusObj = null;
     notify.queue.push({
-      type: 'cine', chapter: 1, dur: 5.5,
+      type: 'cine', chapter: 1, dur: 7.2,
       start: () => {
         chapter = 2;
         startRound2();
@@ -1348,7 +1347,7 @@
     if (chapter !== 2) return;
     if (!ROUND2.every(q => quests[q] === 'done') || relicsGiven < RELIC_TOTAL) return;
     chapter = 3;
-    notify.queue.push({ type: 'cine', chapter: 2, dur: 5.5, start: openWormhole, focus: () => WH.a });
+    notify.queue.push({ type: 'cine', chapter: 2, dur: 7.2, start: openWormhole, focus: () => WH.a });
     toast(TEXTS.resort.opened, '');
     pump();
   }
@@ -1741,7 +1740,7 @@
     hideInfo();
     ship.mode = 'idle'; ship.goal = null; ship.route = []; marker = null;
     if (it.start) it.start();
-    setTimeout(() => showChapter(it.chapter), 500);
+    setTimeout(() => showChapter(it.chapter), 300);
   }
   function updateCine(dt) {
     if (!cine.active) return;
@@ -2503,7 +2502,6 @@
     info.querySelector('.body').textContent = t.body || '';
     infoTarget = o;
     info.classList.add('show');
-    hideHint();
     positionInfo();
   }
   function hideInfo() { info.classList.remove('show'); infoTarget = null; }
@@ -2636,7 +2634,7 @@
   /** Die Spielfigur (»Du«) spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
   function openDialog(partner, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
-    hideHint();
+    document.body.classList.add('talk');
     dialog.open = true;
     dialog.lines = lines;
     dialog.idx = 0;
@@ -2663,6 +2661,7 @@
     dialogEl.querySelector('.name').textContent = c.name;
     // unter dem Namen nur der Ort (Schiff, Station oder Planet), keine Funktion
     dialogEl.querySelector('.line').textContent = text;
+    dialogEl.classList.toggle('me-speaks', isMe);
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;
   }
@@ -2671,6 +2670,7 @@
     if (dialog.idx < dialog.lines.length - 1) { dialog.idx++; showLine(); return; }
     dialog.open = false;
     dialogEl.classList.remove('show');
+    document.body.classList.remove('talk');
     const cb = dialog.onEnd;
     dialog.onEnd = null;
     if (cb) cb();
@@ -2762,7 +2762,26 @@
     n.y = b.y + Math.sin(n.orbitAng) * n.orbitR;
     n.heading = n.orbitAng + n.orbitDir * Math.PI / 2;
   }
+  // Kapitel 1: Tafel mit Filmbalken wie bei den anderen Kapiteln
+  notify.queue.push({ type: 'cine', chapter: 0, dur: 4.6 });
+  pump();
   requestAnimationFrame(frame);
+
+  // --- Mobil: kein versehentliches Hineinzoomen (iOS Safari ignoriert user-scalable=no)
+  const stop = e => e.preventDefault();
+  for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, stop, { passive: false });
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1 || e.scale && e.scale !== 1) e.preventDefault(); }, { passive: false });
+  document.addEventListener('dblclick', stop, { passive: false });
+  // falls doch gezoomt wurde (z. B. über die Bedienungshilfen), Ansicht zurücksetzen
+  const vpMeta = document.querySelector('meta[name=viewport]');
+  const vpContent = vpMeta.content;
+  if (window.visualViewport) {
+    visualViewport.addEventListener('resize', () => {
+      if (visualViewport.scale <= 1.01) return;
+      vpMeta.content = vpContent.replace('maximum-scale=1', 'maximum-scale=1.01');
+      requestAnimationFrame(() => { vpMeta.content = vpContent; });
+    });
+  }
 
   // kleine Debug-Schnittstelle (für Tests / Konsole)
   window.__space = {

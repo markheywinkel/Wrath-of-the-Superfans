@@ -240,27 +240,6 @@ canvas {
   100% { opacity: 0; transform: translateY(-20vh); }
 }
 
-/* ---------- hint ---------- */
-.hint {
-  position: fixed;
-  left: 50%;
-  bottom: calc(28px + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  padding: 8px 14px;
-  font-size: 15px;
-  color: var(--muted);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.8s;
-}
-.hint.ready { animation: breathe 3.2s ease-in-out infinite; }
-.hint.gone { opacity: 0 !important; animation: none; }
-@keyframes breathe {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
-}
-
 /* ---------- Ortsinfo direkt am Objekt ---------- */
 .info {
   position: fixed;
@@ -423,24 +402,42 @@ canvas {
 .cine-bar.top { top: 0; transform: translateY(-100%); }
 .cine-bar.bottom { bottom: 0; transform: translateY(100%); }
 body.cine .cine-bar { transform: none; }
-body.cine .hud-left, body.cine .top-right, body.cine .hint { opacity: 0; transition: opacity 0.6s ease; }
+body.cine .hud-left, body.cine .top-right { opacity: 0; transition: opacity 0.6s ease; }
 
 /* ---------- Lichtblitz beim Sprung durchs Wurmloch ---------- */
 .flash { position: fixed; inset: 0; background: #e8f4ff; opacity: 0; pointer-events: none; z-index: 6; }
 .flash.go { animation: flash 1s ease forwards; }
 @keyframes flash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
 
-/* ---------- Dialog immer links unten, größerer Text ---------- */
-.dialog {
-  left: calc(16px + env(safe-area-inset-left));
-  width: min(560px, calc(100vw - 32px));
-  transform: translateY(16px);
-  text-align: left;
+/* ---------- Kein Zoomen auf dem Handy ---------- */
+html, body, body * { touch-action: none; }
+
+/* ---------- Unschärfe hinter Kapiteltafeln und Dialogen ---------- */
+#game, #labels, #info, .hud-left, .top-right, .toasts, .pickup {
+  transition: filter 0.6s ease, opacity 0.6s ease;
 }
-.dialog.show { transform: none; }
-.dialog .figures { justify-content: flex-start; padding-left: 6px; }
-.dialog .foot { justify-content: flex-start; }
-.dialog .line { font-size: 19px; line-height: 1.5; color: #eef2ff; }
+body.blur #game, body.blur #labels, body.blur #info,
+body.talk #game, body.talk #labels, body.talk #info { filter: blur(7px) brightness(0.7); }
+body.talk .hud-left, body.talk .top-right, body.talk .pickup { opacity: 0.25; }
+.intro { z-index: 6; }
+
+/* ---------- Dialog in der Bildmitte ---------- */
+.dialog {
+  top: 50%;
+  bottom: auto;
+  left: 50%;
+  width: min(560px, calc(100vw - 32px));
+  transform: translate(-50%, calc(-50% + 16px));
+  text-align: center;
+  z-index: 4;
+}
+.dialog.show { transform: translate(-50%, -50%); }
+.dialog .figures { justify-content: center; padding-left: 0; }
+.dialog .foot { justify-content: center; }
+.dialog .line { font-size: 19px; line-height: 1.5; color: #eef2ff; min-height: 4.5em; transition: color 0.25s ease; }
+/* was »Du« sagt, steht in Hellblau wie der Anzug der Spielfigur */
+.dialog.me-speaks .line { color: #8fd8ff; }
+.dialog.me-speaks .who .name { color: #8fd8ff; }
 @media (max-width: 480px) {
   .dialog .line { font-size: 17px; }
 }

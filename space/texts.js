@@ -13,7 +13,6 @@ window.SPACE_TEXTS = {
   ],
   /* Warnung am äußeren Rand des Nebels und des Urlaubssystems */
   warnEdge: 'Du fliegst zu weit hinaus, kehr um!',
-  hint: 'Tippe irgendwo hin, um zu fliegen',
   dialogNext: 'Weiter',
   dialogClose: 'Tschüss!',
 
