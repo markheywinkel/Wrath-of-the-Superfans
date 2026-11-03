@@ -1770,12 +1770,8 @@
     figThem.classList.toggle('active', !isMe);
     figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
-    const roleEl = dialogEl.querySelector('.role');
-    roleEl.textContent = c.tier || '';
-    if (!isMe && dialog.role) {
-      if (c.tier) roleEl.append(' · ');
-      const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = dialog.role; roleEl.append(nm);
-    }
+    // unter dem Namen nur der Ort (Schiff, Station oder Planet), keine Funktion
+    dialogEl.querySelector('.role').textContent = dialog.role || '';
     dialogEl.querySelector('.line').textContent = text;
     const last = dialog.idx === dialog.lines.length - 1;
     dialogEl.querySelector('.next').textContent = last ? TEXTS.dialogClose : TEXTS.dialogNext;

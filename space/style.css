@@ -380,7 +380,8 @@ canvas {
 .nm { font-weight: 800; }
 .dialog .who { margin: 0 0 8px; }
 .dialog .who .name { display: block; font-size: 24px; font-weight: 800; line-height: 1.2; }
-.dialog .who .role { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.dialog .who .role { display: block; margin-top: 2px; font-size: 12px; font-weight: 400; color: var(--muted); }
+.dialog .who .role:empty { display: none; }
 .dialog .line { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: #dfe6f8; min-height: 3.2em; }
 .dialog .foot { display: flex; justify-content: center; }
 .dialog .next { min-height: 36px; }
