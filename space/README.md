@@ -23,6 +23,12 @@ python3 -m http.server 8000
 
 ## Spielablauf
 
+Das Spiel ist in Kapitel eingeteilt:
+
+1. **Gute Reise!** – Sonnensystem, erste Aufträge.
+2. **Die Kometen kommen** – nach den ersten fünf Aufträgen (mit kurzer Zwischensequenz): neue Aufträge, Kometen, Relikte.
+3. **Das Wurmloch** – wenn Kapitel 2 erledigt ist, öffnet sich dort, wo man gerade ist, ein Wurmloch (Zwischensequenz). Dahinter liegt ein Urlaubssystem mit Doppelsonne, den Planeten Monos, Qratos und Stypos und den Kreuzfahrtschiffen Vida, Zida und Yipa. Die Figuren im alten Gebiet sprechen dann über das Wurmloch.
+
 - Die Spielfigur heißt **Du**: Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit. Name und Beschreibung erscheinen direkt am Objekt, um das man kreist.
 - In der Nähe von Planeten, Stationen, dem Wrack und anderen Schiffen erscheint deren Name als kleines Schild.
@@ -33,7 +39,7 @@ python3 -m http.server 8000
   - Vier neue Lieferungen (Sieben Kräuter, Perlenkette, Geheimnisvoller Koffer, Kostbares Mineral).
   - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug; mit jedem Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
   - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
-- **Neues Gebiet:** Oben rechts hat der Asteroidengürtel eine Lücke. Dahinter liegt, von undurchdringlichem Nebel umgeben, ein Gebiet mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
+- **Nebel:** Oben rechts hat der Asteroidengürtel eine Lücke. Dahinter liegt ein Nebel-Gebiet; fliegt man zu weit hinaus, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
   - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
   - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
 - **Badges** (oben rechts):

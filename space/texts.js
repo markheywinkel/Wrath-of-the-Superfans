@@ -5,6 +5,14 @@
  */
 window.SPACE_TEXTS = {
   intro: 'Gute Reise!',
+  /* Kapitel: erscheinen groß im Bild (Kapitel 2 und 3 mit kurzer Zwischensequenz) */
+  chapters: [
+    { num: 'Kapitel 1', title: 'Gute Reise!' },
+    { num: 'Kapitel 2', title: 'Die Kometen kommen' },
+    { num: 'Kapitel 3', title: 'Das Wurmloch' },
+  ],
+  /* Warnung am äußeren Rand des Nebels und des Urlaubssystems */
+  warnEdge: 'Du fliegst zu weit hinaus, kehr um!',
   hint: 'Tippe irgendwo hin, um zu fliegen',
   dialogNext: 'Weiter',
   dialogClose: 'Tschüss!',
@@ -27,6 +35,9 @@ window.SPACE_TEXTS = {
     gwynn: { name: 'Gwynn', tier: 'Forscherin', look: { suit: '#3affd0', helmet: false, skin: '#f0c8a8', hair: '#f4f4ff', hairStyle: 'bun' } },
     reisender: { name: 'Einsamer Reisender', tier: '', look: { suit: '#9a9aac', helmet: true, visor: '#ff7a3a' } },
     justus: { name: 'Justus', tier: 'Reisender', look: { suit: '#9a9aac', helmet: false, skin: '#c89070', hair: '#3a2a1a', hairStyle: 'short' } },
+    marisol: { name: 'Marisol', tier: 'Kreuzfahrtdirektorin', look: { suit: '#ff5ad0', helmet: false, skin: '#c88a5a', hair: '#1a1014', hairStyle: 'long' } },
+    pio: { name: 'Pio', tier: 'Bademeister', look: { suit: '#3ad0ff', helmet: false, skin: '#f0c8a0', hair: '#f0e070', hairStyle: 'short' } },
+    ambrosius: { name: 'Ambrosius', tier: 'Passagier', look: { suit: '#ffd84a', helmet: false, skin: '#e8b890', hair: '#e8e8e8', hairStyle: 'bald' } },
     west: { name: 'West', tier: 'Notar', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
   },
 
@@ -67,6 +78,23 @@ window.SPACE_TEXTS = {
     mineral: {
       name: 'Kostbares Mineral', target: 'thalassa',
       deliver: [['du', 'In einer Werkstatt hoch über den Meeren von Thalyssa übergebe ich das Mineral. Es glitzert im Licht der Stadt.']],
+    },
+    // --- Kapitel 3 (hinter dem Wurmloch)
+    cocktail: {
+      name: 'Cocktailrezept', target: 'qratos',
+      deliver: [['du', 'In der Lagunenbar von Qratos übergebe ich das Rezept. Der erste Sternenstaub-Cocktail schimmert schon im Glas.']],
+    },
+    champagner: {
+      name: 'Edle Champagnerflasche', target: 'monos',
+      deliver: [['du', 'Im Bungalow auf Monos knallen die Korken. Das Brautpaar stößt auf die Galaxis an.']],
+    },
+    ring: {
+      name: 'Verlobungsring', target: 'stypos',
+      deliver: [['du', 'Am Strand von Stypos verstecke ich den Ring im Sand. Die beiden Sonnen gehen gerade unter.']],
+    },
+    koffer2: {
+      name: 'Geheimnisvoller Koffer', target: 'glacies',
+      deliver: [['du', 'Im Archiv auf Cies stelle ich den zweiten Koffer neben den ersten. Jetzt ticken beide im Takt.']],
     },
     ocarina: {
       name: 'Ocarina der Zeit', target: 'ignis',
@@ -281,6 +309,83 @@ window.SPACE_TEXTS = {
     },
   },
 
+  /*
+   * Kapitel 3: Was die Figuren im alten Gebiet über das Wurmloch sagen.
+   * Schlüssel = Figur; »default« gilt für alle anderen.
+   */
+  wormholeTalk: {
+    quentin: 'Hast du schon dieses neue Wurmloch gesehen? Ich frage mich, was wohl dahinter liegt.',
+    norman: 'Das neue Wurmloch macht mir Angst. Ich halte mich lieber davon fern.',
+    ivy: 'Wurmlöcher sind völlig ungefährliche Phänomene. Wenn ich die Zeit hätte, würde ich sofort hindurchfliegen.',
+    default: 'Ein Wurmloch ist aufgetaucht! Bestimmt werden bald die mutigsten Abenteurer hindurchfliegen!',
+  },
+
+  /*
+   * Kapitel 3: Urlaubssystem hinter dem Wurmloch.
+   * Die Figuren begrüßen dich jedes Mal mit einem dieser Sätze.
+   */
+  resort: {
+    greetings: [
+      'Oh, ein Bote!',
+      'Hallo, Bote! Schön, dass du da bist!',
+      'Was wäre die Galaxis ohne euch Boten?',
+    ],
+    wormhole: 'Wurmloch',
+    opened: 'Ein Wurmloch hat sich geöffnet',
+    ships: [
+      {
+        name: 'Kreuzfahrtschiff Vida',
+        desc: 'Siebzig Decks mit einem großen Unterhaltungsangebot.',
+        with: 'marisol',
+        quest: 'cocktail',
+        offer: [
+          ['marisol', 'Unser Barchef hat sein berühmtes Sternenstaub-Rezept hier an Bord liegen lassen.'],
+          ['marisol', 'Die Lagunenbar auf Qratos wartet darauf. Bringst du es hin?'],
+          ['du', 'Mache ich.'],
+        ],
+        waiting: [['marisol', 'Die Gäste auf Qratos werden schon durstig.']],
+        thanks: [['marisol', 'Auf Qratos wird wieder gemixt. Danke dir!']],
+        // danach ein zweiter Auftrag
+        next: {
+          quest: 'koffer2',
+          offer: [
+            ['marisol', 'Ein Gast hat diesen geheimnisvollen Koffer an Bord vergessen.'],
+            ['marisol', 'Er gehört ins Archiv auf Cies, auf der anderen Seite des Wurmlochs.'],
+            ['du', 'Schon wieder ein Koffer …'],
+          ],
+          waiting: [['marisol', 'Durch das Wurmloch und dann ganz nach außen, nach Cies.']],
+          thanks: [['marisol', 'Der Koffer ist angekommen? Wunderbar, danke!']],
+        },
+      },
+      {
+        name: 'Kreuzfahrtschiff Zida',
+        desc: 'Die Poollandschaft über fünf Decks ist einzigartig in der Galaxis.',
+        with: 'pio',
+        quest: 'champagner',
+        offer: [
+          ['pio', 'Auf Monos feiert ein Brautpaar in seinem Bungalow.'],
+          ['pio', 'Ihr Champagner ist hier an Bord geblieben. Fliegst du ihn hin, bevor er warm wird?'],
+          ['du', 'Ich beeile mich.'],
+        ],
+        waiting: [['pio', 'Monos ist der Planet mit den Bungalows. Schnell, die Feier läuft schon!']],
+        thanks: [['pio', 'Das Brautpaar lässt dich grüßen. Danke!']],
+      },
+      {
+        name: 'Kreuzfahrtschiff Yipa',
+        desc: 'Besser entspannen kann man kaum, sofern man das nötige Kleingeld hat.',
+        with: 'ambrosius',
+        quest: 'ring',
+        offer: [
+          ['ambrosius', 'Ich möchte meiner Liebsten am Strand von Stypos einen Antrag machen.'],
+          ['ambrosius', 'Fliegst du den Ring voraus und versteckst ihn dort im Sand?'],
+          ['du', 'Ehrensache.'],
+        ],
+        waiting: [['ambrosius', 'Bitte vorsichtig, der Ring war nicht ganz billig.']],
+        thanks: [['ambrosius', 'Sie hat Ja gesagt! Ich danke dir von Herzen.']],
+      },
+    ],
+  },
+
   /* Badges (oben rechts). Reihenfolge = Anzeige-Reihenfolge */
   badges: {
     meistererkunder: { name: 'Meistererkunder', text: 'Alle 30 Kristalle gesammelt' },
@@ -398,6 +503,31 @@ window.SPACE_TEXTS = {
       kicker: '',
       name: 'Altes Raumschiffwrack',
       body: 'Ein riesiges, uraltes Raumschiff, verlassen und still. Niemand weiß, wer es gebaut hat.',
+    },
+    aurel: {
+      kicker: '',
+      name: 'Aurel',
+      body: 'Die goldene der beiden Sonnen. Sie tanzt seit Ewigkeiten mit ihrer blauen Schwester.',
+    },
+    azur: {
+      kicker: '',
+      name: 'Azur',
+      body: 'Die kleinere, blaue Sonne. Ihr Licht färbt die Strände des Systems silbern.',
+    },
+    monos: {
+      kicker: '',
+      name: 'Monos',
+      body: 'Nirgendwo in der Galaxis gibt es schönere Bungalows und Poollandschaften.',
+    },
+    qratos: {
+      kicker: '',
+      name: 'Qratos',
+      body: 'Die Lagunen von Qratos sind ein Urlaubsparadies für den gesamten Sektor.',
+    },
+    stypos: {
+      kicker: '',
+      name: 'Stypos',
+      body: 'Die Strände von Stypos sind die schönsten im System.',
     },
   },
 };

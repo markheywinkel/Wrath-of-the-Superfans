@@ -85,9 +85,12 @@
   }
   // Licht-Richtung (Welt-Ebene, normiert) -> Kamera-Koordinaten (x rechts, y runter, z zum Betrachter)
   const camVec = (dx, dy, dz = 0) => [dx, SIN_E * dy - COS_E * dz, COS_E * dy + SIN_E * dz];
+  let LIGHT2 = null; // Mittelpunkt der Doppelsonne im Urlaubssystem (wird später gesetzt)
   function sunLight(x, y) {
-    const d = Math.hypot(x, y) || 1;
-    return camVec(-x / d, -y / d);
+    let cx = 0, cy = 0;
+    if (LIGHT2 && Math.hypot(x - LIGHT2.x, y - LIGHT2.y) < 1400) { cx = LIGHT2.x; cy = LIGHT2.y; }
+    const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1;
+    return camVec(-dx / d, -dy / d);
   }
   // Sonnenlicht plus etwas Fülllicht von vorne, damit auch die "Nachtseite" lesbar bleibt
   function bodyLight(x, y) {
@@ -202,6 +205,11 @@
     for (let i = 0; i < c.length; i++) cloud[i] = smooth(0.45, 0.8, c[i]) * 0.32; // düstere Gewitterwolken
     return { tex: makeTex(i => grad(g, f[i])), cloud };
   }
+  function texStar(seed, stops) {
+    const f = norm01(forSphere((x, y, z) => fbm(x * 6, y * 6, z * 6, seed, 4)));
+    const g = G(stops);
+    return { tex: makeTex(i => grad(g, f[i])) };
+  }
   function texMoon(seed, stops) {
     const f = norm01(forSphere((x, y, z) => fbm(x * 3, y * 3, z * 3, seed, 5)));
     const g = G(stops);
@@ -282,14 +290,14 @@
   }
 
   /** Dithered Glow der Sonne (einmalig vorberechnet). */
-  function makeSunGlow(r) {
+  function makeSunGlow(r, color = '#ffb347') {
     const R = Math.round(r * 2.8);
     const D = R * 2;
     const cv = document.createElement('canvas');
     cv.width = cv.height = D;
     const cx = cv.getContext('2d');
     const img = cx.createImageData(D, D);
-    const col = hex('#ffb347');
+    const col = hex(color);
     for (let j = 0; j < D; j++) {
       for (let i = 0; i < D; i++) {
         const dist = Math.hypot(i + 0.5 - R, j + 0.5 - R);
@@ -407,6 +415,26 @@
     return { V, F, engine: rim + N / 2, scale: 1.1 };
   })();
 
+  // Kreuzfahrtschiff: langer Rumpf, gestufte Decks, Schornstein
+  const CRUISER = (() => {
+    const V = [], F = [];
+    const box = (x0, x1, y0, y1, z0, z1, top, side) => {
+      const b = V.length;
+      V.push([x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]);
+      const q = (a, b2, c, d, col) => { F.push([b + a, b + b2, b + c, col], [b + a, b + c, b + d, col]); };
+      q(4, 5, 6, 7, top); q(0, 1, 5, 4, side); q(1, 2, 6, 5, side); q(2, 3, 7, 6, side); q(3, 0, 4, 7, side); q(0, 1, 2, 3, 'under');
+    };
+    box(-12, 10, -4, 4, 0, 2.6, 'hull', 'hull');
+    const b = V.length;
+    V.push([10, -4, 0], [10, 4, 0], [15, 0, 0.4], [10, -4, 2.6], [10, 4, 2.6], [15, 0, 2.8]);
+    F.push([b, b + 2, b + 3, 'hull'], [b + 2, b + 5, b + 3, 'hull'], [b + 1, b + 4, b + 2, 'hull'], [b + 2, b + 4, b + 5, 'hull'], [b + 3, b + 5, b + 4, 'hull'], [b, b + 1, b + 2, 'under']);
+    box(-10, 7, -3, 3, 2.6, 4.4, 'accent', 'glass');
+    box(-8, 4, -2.4, 2.4, 4.4, 6, 'hull', 'glass');
+    box(-6.5, -3.5, -1, 1, 6, 8.4, 'accent', 'accent');
+    const engine = V.push([-12.6, 0, 1.3]) - 1;
+    return { V, F, engine, scale: 1.05 };
+  })();
+
   const pal = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, hex(v)]));
   const OUTLINE = hex('#070914');
 
@@ -510,6 +538,33 @@
     { id: 'glacies', r: 8, orbit: 555, rotPeriod: -95, tex: texGlacies(83), atmo: hex('#d8f4ff') },
     // im neuen Gebiet hinter dem Asteroidengürtel (feste Position, siehe ZONE)
     { id: 'dark', zone: true, r: 16, orbit: 0, rotPeriod: 240, tex: texDark(97), atmo: hex('#5a4a8a') },
+    // Kapitel 3: Urlaubssystem hinter dem Wurmloch (Doppelsonne, drei riesige Planeten)
+    { id: 'aurel', resort: true, binary: 1, r: 18, orbit: 0, rotPeriod: 120, emissive: true, tex: texSun(5) },
+    { id: 'azur', resort: true, binary: -1, r: 13, orbit: 0, rotPeriod: -90, emissive: true, tex: texStar(7, [[0, '#3a6aff'], [0.45, '#6aa0ff'], [0.75, '#b8d8ff'], [1, '#f0f8ff']]) },
+    {
+      id: 'monos', resort: true, r: 26, orbit: 170, rotPeriod: 90, atmo: hex('#9ff0ff'),
+      tex: texTerra(111, {
+        seaQ: 0.55, cloudQ: 0.72, polar: 1.45,
+        ocean: [[0, '#0e5a7a'], [0.6, '#1a9ac0'], [0.9, '#5ad8e8'], [1, '#a8f0f0']],
+        land: [[0, '#f4e4b0'], [0.12, '#7ad070'], [0.5, '#3a9a50'], [1, '#c8d890']],
+      }),
+    },
+    {
+      id: 'qratos', resort: true, r: 30, orbit: 265, rotPeriod: 110, atmo: hex('#b8fff0'),
+      tex: texTerra(127, {
+        seaQ: 0.5, cloudQ: 0.76, polar: 1.45,
+        ocean: [[0, '#0a4a5a'], [0.5, '#1aa0a8'], [0.85, '#5ae0d0'], [1, '#b8fff0']],
+        land: [[0, '#fff0c0'], [0.2, '#9ae070'], [1, '#4aa060']],
+      }),
+    },
+    {
+      id: 'stypos', resort: true, r: 24, orbit: 365, rotPeriod: -80, atmo: hex('#d0f0ff'),
+      tex: texTerra(139, {
+        seaQ: 0.62, cloudQ: 0.74, polar: 1.45,
+        ocean: [[0, '#103a8a'], [0.6, '#2a6ad0'], [0.9, '#6ab0f0'], [1, '#d0f0ff']],
+        land: [[0, '#fff4d0'], [0.25, '#f0d890'], [0.6, '#d8b870'], [1, '#a8c870']],
+      }),
+    },
   ];
   const keplerPeriod = orbit => 95 * Math.pow(orbit / 115, 1.5); // sehr gemächlich
   // Startwinkel: die fünf Planeten gleichmäßig verteilt (72° Abstand)
@@ -530,6 +585,14 @@
   });
   const SUN = BODIES[0];
   const sunGlow = makeSunGlow(SUN.r);
+  // Urlaubssystem: weit weg vom Sonnensystem, nur durch das Wurmloch erreichbar
+  const RESORT = { x: 0, y: 3200, r: 480 };
+  LIGHT2 = RESORT;
+  for (const b of BODIES) if (b.resort) { b.cx = RESORT.x; b.cy = RESORT.y; }
+  for (const [id, a] of [['monos', 0.3], ['qratos', 2.4], ['stypos', 4.4]]) BODIES.find(b => b.id === id).a0 = a;
+  const resortGlows = { aurel: makeSunGlow(18, '#ffc86a'), azur: makeSunGlow(13, '#8ab8ff') };
+  // Wurmloch: öffnet sich zu Beginn von Kapitel 3 dort, wo man gerade ist; Gegenstück im Urlaubssystem
+  const WH = { open: false, t: 0, cool: 0, a: { x: 0, y: 0 }, b: { x: RESORT.x, y: RESORT.y + 445 } };
   const rocks = makeRocks();
 
   // Raumstationen: eine hinter den bewohnbaren Planeten, eine ganz außen
@@ -556,6 +619,11 @@
 
   /** Nächster erlaubter Punkt: Sonnensystem, Korridor oder neues Gebiet. */
   function projectAllowed(x, y, m = 0) {
+    const dr = Math.hypot(x - RESORT.x, y - RESORT.y);
+    if (dr < RESORT.r + 900) {   // im Urlaubssystem: eigene, kreisförmige Grenze
+      if (dr <= RESORT.r - m) return [x, y];
+      return [RESORT.x + (x - RESORT.x) * (RESORT.r - m) / dr, RESORT.y + (y - RESORT.y) * (RESORT.r - m) / dr];
+    }
     const r = Math.hypot(x, y);
     if (r <= SHIP_LIMIT - m) return [x, y];
     const dz = Math.hypot(x - ZONE.x, y - ZONE.y);
@@ -576,8 +644,9 @@
 
   /** Liegt ein Punkt im Sonnensystem, im neuen Gebiet oder im Korridor dazwischen? */
   function regionOf(x, y) {
-    if (Math.hypot(x, y) <= SHIP_LIMIT - 20) return 'sys';
-    if (Math.hypot(x - ZONE.x, y - ZONE.y) <= ZONE.r - 20) return 'zone';
+    if (Math.hypot(x - RESORT.x, y - RESORT.y) <= RESORT.r + 900) return 'resort';
+    if (Math.hypot(x, y) <= SHIP_LIMIT + 2) return 'sys';
+    if (Math.hypot(x - ZONE.x, y - ZONE.y) <= ZONE.r + 2) return 'zone';
     return 'gate';
   }
   /** Zwischenziele, damit das Schiff durch die Lücke im Gürtel fliegt statt am Rand hängen zu bleiben. */
@@ -585,7 +654,7 @@
     const G1 = [GATE_UX * (SHIP_LIMIT - 70), GATE_UY * (SHIP_LIMIT - 70)];
     const G2 = [GATE_UX * (ZONE_D - ZONE_R + 40), GATE_UY * (ZONE_D - ZONE_R + 40)];
     const a = regionOf(fx, fy), b = regionOf(tx, ty);
-    if (a === b) return [];
+    if (a === b || a === 'resort' || b === 'resort') return [];
     if (a === 'sys') return b === 'zone' ? [G1, G2] : [G1];
     if (a === 'zone') return b === 'sys' ? [G2, G1] : [G2];
     return b === 'sys' ? [G1] : [G2];
@@ -596,7 +665,7 @@
   const WRECK = { id: 'wreck', zone: true, fixed: true, x: ZONE.x - 110, y: ZONE.y + 120, avoidR: 54, coreR: 40, size: 40 };
 
   const OBSTACLES = [...BODIES, ...STATIONS, WRECK];
-  const DESTINATIONS = [...BODIES.slice(1), ...STATIONS].filter(d => !d.zone);
+  const DESTINATIONS = [...BODIES.slice(1), ...STATIONS].filter(d => !d.zone && !d.resort);
   // Wegpunkte, zwischen denen Gwynn und Justus später im Gebiet umherfliegen
   const ZONE_DESTS = [DARK, WRECK,
     { id: 'wp1', x: ZONE.x - 60, y: ZONE.y - 170, avoidR: 14, coreR: 0 },
@@ -618,32 +687,13 @@
     return list;
   })();
 
-  // undurchdringlicher Nebel rund um das Gebiet und an den Wänden des Korridors
-  const fog = (() => {
-    const r = mulberry32(31337), list = [];
-    const entry = GATE_ANG + Math.PI;                 // Richtung vom Gebiet zum Korridor
-    const n = 200;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * TAU;
-      if (Math.abs(angDiff(a, entry)) < (GATE_HALF + 6) / ZONE.r) continue;
-      for (let layer = 0; layer < 3; layer++) {
-        const d = ZONE.r + 16 + layer * 34 + r() * 14;
-        list.push({ x: ZONE.x + Math.cos(a) * d, y: ZONE.y + Math.sin(a) * d, s: (r() * 3) | 0, ph: r() * TAU });
-      }
-    }
-    for (let t = 690; t <= ZONE_D - ZONE.r + 40; t += 14) {
-      for (const side of [-1, 1]) for (let layer = 0; layer < 3; layer++) {
-        const off = side * (GATE_HALF + 18 + layer * 30 + r() * 10);
-        list.push({ x: GATE_UX * t - GATE_UY * off, y: GATE_UY * t + GATE_UX * off, s: (r() * 3) | 0, ph: r() * TAU });
-      }
-    }
-    return list;
-  })();
-  const fogSprites = [18, 26, 36].map(R => {
+  // Das Gebiet ist ein Nebel: Schwaden in Violett, Petrol und Magenta füllen es ganz aus
+  const FOG_PALETTES = [['#5a4a8a', '#2a2448'], ['#2a6a7a', '#14303e'], ['#7a3a7a', '#321a3a']];
+  const fogSprites = FOG_PALETTES.map(([c1h, c2h]) => [18, 26, 36].map(R => {
     const D = R * 2, cv = document.createElement('canvas');
     cv.width = cv.height = D;
     const cx = cv.getContext('2d'), img = cx.createImageData(D, D);
-    const c1 = hex('#4a3e6a'), c2 = hex('#2a2440');
+    const c1 = hex(c1h), c2 = hex(c2h);
     for (let j = 0; j < D; j++) for (let i = 0; i < D; i++) {
       const d = Math.hypot(i + 0.5 - R, j + 0.5 - R) / R;
       if (d >= 1) continue;
@@ -656,7 +706,27 @@
     }
     cx.putImageData(img, 0, 0);
     return { cv, R };
-  });
+  }));
+  const fogBack = [], fogFront = [];
+  {
+    const r = mulberry32(31337);
+    for (let gy = -ZONE.r - 30; gy <= ZONE.r + 30; gy += 44) {
+      for (let gx = -ZONE.r - 30; gx <= ZONE.r + 30; gx += 44) {
+        const x = ZONE.x + gx + (r() - 0.5) * 30, y = ZONE.y + gy + (r() - 0.5) * 30;
+        if (Math.hypot(x - ZONE.x, y - ZONE.y) > ZONE.r + 10) continue;
+        const p = Math.min(2, Math.floor(vnoise(x / 170, y / 170, 3, 21) * 3));
+        fogBack.push({ x, y, p, s: 1 + ((r() * 2) | 0), ph: r() * TAU });
+        if (r() < 0.12) fogFront.push({ x: x + 10, y: y - 10, p, s: 2, ph: r() * TAU });
+      }
+    }
+    // Schwaden an den Wänden des Korridors
+    for (let t = 690; t <= ZONE_D - ZONE.r + 30; t += 16) {
+      for (const side of [-1, 1]) for (let layer = 0; layer < 2; layer++) {
+        const off = side * (GATE_HALF + 18 + layer * 30 + r() * 10);
+        fogFront.push({ x: GATE_UX * t - GATE_UY * off, y: GATE_UY * t + GATE_UX * off, p: 0, s: (r() * 3) | 0, ph: r() * TAU, wall: true });
+      }
+    }
+  }
 
   // altes Raumschiffwrack: einmal vorgezeichnet
   const wreckSprite = (() => {
@@ -719,7 +789,7 @@
       if (rad < Math.max(SUN.avoidR + 14, minRad)) continue;
       let ok = true;
       for (const b of OBSTACLES) {
-        if (b.orbit && Math.abs(rad - b.orbit) < b.avoidR * 0.85 + 6) { ok = false; break; }
+        if (b.orbit && !b.resort && Math.abs(rad - b.orbit) < b.avoidR * 0.85 + 6) { ok = false; break; }
       }
       if (!ok) continue;
       const x = Math.cos(a) * rad, y = Math.sin(a) * rad;
@@ -812,6 +882,22 @@
   npcs.push(gwynnNpc);
   const justusNpc = zoneNpc(TEXTS.zone.justus, { hull: '#b8bcc8', accent: '#ff7a3a', under: '#4a4e5a', glass: '#ffd84a' }, DARK);
   npcs.push(justusNpc);
+  // Kapitel 3: drei Kreuzfahrtschiffe verkehren zwischen den Urlaubsplaneten
+  const RESORT_PLANETS = BODIES.filter(b => b.resort && !b.emissive);
+  const CRUISE_LOOK = ['#ff5ad0', '#3ad0ff', '#ffd84a'];
+  const resortNpcs = TEXTS.resort.ships.map((t, i) => {
+    const start = RESORT_PLANETS[i % RESORT_PLANETS.length];
+    return makeAgent({
+      idx: npcs.length + i, texts: t, greet: true, dests: RESORT_PLANETS,
+      model: CRUISER, colors: pal({ hull: '#f4f6fa', accent: CRUISE_LOOK[i % 3], under: '#2a3a6a', glass: '#5ab8ff' }), spr: makeShipSprite(),
+      state: 'linger', target: start, linger: 4 + i * 3, cooldown: 6,
+      orbitBody: start, orbitAng: i * 2, orbitR: start.avoidR + 10, orbitDir: 1,
+      beam: ['#ffffff', '#ffe8c8', '#ffb86a', '#e07a3a'],
+      trail: ['#fff4e0', '#ffc88a', '#8a6aa8'],
+      beamLen: 4,
+    });
+  });
+  npcs.push(...resortNpcs);
   function revealNpc(n, at) {
     n.hidden = false;
     n.x = at.x + 30; n.y = at.y + 30;
@@ -845,8 +931,13 @@
   quests.elixier = 'open';
   quests.teile = 'open';
   let partsFound = 0;
-  const ALL_QUESTS = () => ROUND1.concat(ROUND2, ['elixier', 'teile']);
-  const PLANETS = BODIES.filter(b => b.orbit > 0);
+  let chapter = 1;
+  // Kapitel 3: Aufträge der Kreuzfahrtschiffe (einschließlich Folgeaufträgen)
+  const CH3 = [];
+  for (const t of TEXTS.resort.ships) { CH3.push(t.quest); if (t.next) CH3.push(t.next.quest); }
+  for (const id of CH3) quests[id] = 'open';
+  const ALL_QUESTS = () => ROUND1.concat(ROUND2, ['elixier', 'teile'], CH3);
+  const PLANETS = BODIES.filter(b => b.orbit > 0 && !b.resort);
 
   // ---------------------------------------------------------------- canvas
   const canvas = document.getElementById('game');
@@ -919,13 +1010,19 @@
   let hintGone = false;
   const hideHint = () => { hintGone = true; hint.classList.add('gone'); };
   const intro = document.getElementById('intro');
-  intro.textContent = TEXTS.intro || '';
+  function showChapter(i) {
+    const c = TEXTS.chapters[i] || { num: '', title: TEXTS.intro };
+    intro.innerHTML = `<span class="num">${c.num}</span><span class="title">${c.title}</span>`;
+    intro.classList.remove('play'); void intro.offsetWidth; intro.classList.add('play');
+  }
+  showChapter(0);
   setTimeout(() => { if (!hintGone) hint.classList.add('ready'); }, 3600);
 
   window.addEventListener('pointerdown', () => sfx.init(), { capture: true });
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (!hintGone) hideHint();
+    if (cine.active) return;
     if (dialog.open) { dialogNext(); return; }
     const ix = e.clientX * pxPerCss, iy = e.clientY * pxPerCss;
 
@@ -975,8 +1072,14 @@
     } else {
       let x = ix - W / 2 + cam.x;
       let y = (iy - H / 2) / SIN_E + cam.y;
-      [x, y] = projectAllowed(x, y, 4);
-      flyToPoint(x, y);
+      const reg = regionOf(ship.x, ship.y);
+      const [px2, py2] = projectAllowed(x, y, 4);
+      const moved = Math.hypot(px2 - x, py2 - y) > 8;
+      const edge = !moved ? null
+        : reg === 'zone' && Math.hypot(x - ZONE.x, y - ZONE.y) > ZONE.r ? 'zone'
+        : reg === 'resort' ? 'resort' : null;
+      flyToPoint(px2, py2);
+      if (edge) ship.goal.warn = edge;
     }
   });
 
@@ -1018,7 +1121,7 @@
       }
       return;
     }
-    if (b.orbit > 0 && !visited.has(b.id)) {
+    if (b.orbit > 0 && !b.resort && !visited.has(b.id)) {
       visited.add(b.id);
       if (visited.size === PLANETS.length) award('tourist');
     }
@@ -1155,14 +1258,19 @@
   /** Aktueller Auftrag eines Auftraggebers: erste Runde, danach die zweite. */
   function currentQuest(t) {
     if (round >= 2 && t.round2 && quests[t.quest] === 'done') return t.round2;
+    if (t.next && quests[t.quest] === 'done') return t.next;
     return t;
   }
+  /** Kapitel 3: Was die Figuren im alten Gebiet über das Wurmloch sagen */
+  const wormLine = who => [[who, TEXTS.wormholeTalk[who] || TEXTS.wormholeTalk.default]];
+  const isResortTexts = t => TEXTS.resort.ships.includes(t);
   /** Welche Zeilen sagt ein Auftraggeber gerade? */
   function giverLines(t) {
     const q = currentQuest(t);
     const st = quests[q.quest];
     if (st === 'open') return { lines: q.offer, after: () => acceptQuest(q.quest) };
     if (st === 'active') return { lines: q.waiting };
+    if (chapter >= 3 && !isResortTexts(t)) return { lines: wormLine(t.with) };
     return { lines: q.thanks };
   }
   function acceptQuest(id) {
@@ -1198,8 +1306,9 @@
     if (id === 'brief') award('amor');
     if (round === 1 && ROUND1.every(q => quests[q] === 'done')) {
       milestone('meisterbote', 0.2, TEXTS.rewards.quests);
-      startRound2();
+      queueChapter2();
     }
+    checkChapter3();
     checkFinal();
   }
 
@@ -1220,18 +1329,42 @@
     renderQuests();
   }
 
+  /** Kapitel 2: Zwischensequenz, die Kamera fliegt zu einem der Kometen */
+  function queueChapter2() {
+    let focusObj = null;
+    notify.queue.push({
+      type: 'cine', chapter: 1, dur: 5.5,
+      start: () => {
+        chapter = 2;
+        startRound2();
+        focusObj = comets.slice().sort((a, b) => Math.hypot(a.x - ship.x, a.y - ship.y) - Math.hypot(b.x - ship.x, b.y - ship.y))[0];
+      },
+      focus: () => focusObj,
+    });
+    pump();
+  }
+  /** Kapitel 3 beginnt, wenn alles aus Kapitel 2 erledigt ist: ein Wurmloch öffnet sich */
+  function checkChapter3() {
+    if (chapter !== 2) return;
+    if (!ROUND2.every(q => quests[q] === 'done') || relicsGiven < RELIC_TOTAL) return;
+    chapter = 3;
+    notify.queue.push({ type: 'cine', chapter: 2, dur: 5.5, start: openWormhole, focus: () => WH.a });
+    toast(TEXTS.resort.opened, '');
+    pump();
+  }
+
   function checkComets() {
     if (quests.kometen !== 'active' || cometsCaught < COMET_TOTAL) return;
     quests.kometen = 'done';
     renderQuests();
-    setTimeout(() => { milestone('kometenjaeger', 0.3, TEXTS.rewards.comets); checkFinal(); }, 900);
+    setTimeout(() => { milestone('kometenjaeger', 0.3, TEXTS.rewards.comets); checkChapter3(); checkFinal(); }, 900);
   }
 
   /** Was sagt der Kuriositätenhändler? Übergibt dabei alle gefundenen Relikte. */
   function dealerLines() {
     const D = TEXTS.dealer;
     const fill = (arr, n, rest) => arr.map(([w, t]) => [w, t.replace('{n}', n).replace('{rest}', rest)]);
-    if (relicsGiven >= RELIC_TOTAL) return { lines: D.thanks };
+    if (relicsGiven >= RELIC_TOTAL) return { lines: chapter >= 3 ? wormLine(D.with) : D.thanks };
     let lines = dealerMet ? [] : D.intro.slice();
     let hand = null;
     const n = relicsFound.size;
@@ -1240,7 +1373,7 @@
       hand = () => {
         relicsGiven = n;
         toast(TEXTS.toast.relicsGiven, `${n} / ${RELIC_TOTAL}`, 'deliver');
-        if (n >= RELIC_TOTAL) milestone('ahnenforscher', 0.2, TEXTS.rewards.relics);
+        if (n >= RELIC_TOTAL) { milestone('ahnenforscher', 0.2, TEXTS.rewards.relics); checkChapter3(); }
       };
     } else if (dealerMet) {
       lines = lines.concat(fill(D.missing, relicsGiven, RELIC_TOTAL - relicsGiven));
@@ -1433,6 +1566,12 @@
         } else {
           ship.mode = 'idle';
           ship.goal = null;
+          if (g.warn) {
+            // zu weit hinaus: Warnung und automatisch umkehren
+            pickupText(TEXTS.warnEdge);
+            const c = g.warn === 'zone' ? ZONE : RESORT;
+            flyToPoint(c.x + (ship.x - c.x) * 0.62, c.y + (ship.y - c.y) * 0.62);
+          }
         }
       }
     } else {
@@ -1481,7 +1620,7 @@
 
   /** Begegnung: Spieler und Schiff treiben nebeneinander, Dialog öffnet sich. */
   function checkEncounters() {
-    if (dialog.open || ship.mode === 'drift' || modal.open || notify.queue.some(n => n.type === 'modal')) return;
+    if (dialog.open || ship.mode === 'drift' || modal.open || cine.active || notify.queue.some(n => n.type === 'modal' || n.type === 'cine')) return;
     for (const npc of npcs) {
       if (npc.hidden || npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
@@ -1494,7 +1633,14 @@
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
       showInfo(npc);
-      const g = npc.dealer ? dealerLines() : npc.texts.talk ? { lines: npc.texts.talk } : giverLines(npc.texts);
+      let g = npc.dealer ? dealerLines()
+        : npc.texts.talk ? { lines: chapter >= 3 ? wormLine(npc.texts.with) : npc.texts.talk }
+        : giverLines(npc.texts);
+      if (npc.greet) {
+        // Figuren im Urlaubssystem freuen sich immer über Boten
+        const G = TEXTS.resort.greetings;
+        g = Object.assign({}, g, { lines: [[npc.texts.with, G[(Math.random() * G.length) | 0]]].concat(g.lines) });
+      }
       openDialog(npc.texts.with, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
     }
@@ -1561,6 +1707,52 @@
     }
   }
 
+  function teleportTo(to, towardX, towardY) {
+    const dx = towardX - to.x, dy = towardY - to.y, d = Math.hypot(dx, dy) || 1;
+    [ship.x, ship.y] = projectAllowed(to.x + (dx / d) * 48, to.y + (dy / d) * 48, 12);
+    ship.heading = Math.atan2(dy, dx);
+    ship.speed = 30;
+    ship.mode = 'idle'; ship.goal = null; ship.route = []; marker = null;
+    hideInfo();
+    cam.x = ship.x; cam.y = ship.y;
+    WH.cool = 2.5;
+    const fl = document.getElementById('flash');
+    fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+    sfx.play('comet');
+  }
+  function updateWormhole(dt) {
+    if (!WH.open) return;
+    WH.t = Math.min(1, WH.t + dt * 0.45);
+    WH.cool = Math.max(0, WH.cool - dt);
+    if (WH.cool > 0 || cine.active) return;
+    if (Math.hypot(ship.x - WH.a.x, ship.y - WH.a.y) < 16) teleportTo(WH.b, RESORT.x, RESORT.y);
+    else if (Math.hypot(ship.x - WH.b.x, ship.y - WH.b.y) < 16) teleportTo(WH.a, 0, 0);
+  }
+  function openWormhole() {
+    const h = ship.heading;
+    [WH.a.x, WH.a.y] = projectAllowed(ship.x + Math.cos(h) * 80, ship.y + Math.sin(h) * 80, 30);
+    WH.open = true; WH.t = 0; WH.cool = 0;
+  }
+
+  const cine = { active: false, t: 0, dur: 0, focus: null };
+  function runCine(it) {
+    cine.active = true; cine.t = 0; cine.dur = it.dur; cine.focus = it.focus || null;
+    document.body.classList.add('cine');
+    hideInfo();
+    ship.mode = 'idle'; ship.goal = null; ship.route = []; marker = null;
+    if (it.start) it.start();
+    setTimeout(() => showChapter(it.chapter), 500);
+  }
+  function updateCine(dt) {
+    if (!cine.active) return;
+    cine.t += dt;
+    if (cine.t < cine.dur) return;
+    cine.active = false;
+    document.body.classList.remove('cine');
+    notify.busy = false;
+    setTimeout(pump, 300);
+  }
+
   function updateZone() {
     for (const p of zoneParts) {
       if (!p.active || p.taken || Math.hypot(p.x - ship.x, p.y - ship.y) >= 18) continue;
@@ -1591,10 +1783,14 @@
   function updateWorld(dt) {
     time += dt;
     for (const b of BODIES) {
-      if (b.orbit) {
+      if (b.binary) {
+        const a = (time * TAU) / 50, d = b.binary > 0 ? 24 : 36;
+        b.x = RESORT.x + Math.cos(a) * d * b.binary;
+        b.y = RESORT.y + Math.sin(a) * d * b.binary;
+      } else if (b.orbit) {
         const a = b.a0 + (time * TAU) / b.period;
-        b.x = Math.cos(a) * b.orbit;
-        b.y = Math.sin(a) * b.orbit;
+        b.x = (b.cx || 0) + Math.cos(a) * b.orbit;
+        b.y = (b.cy || 0) + Math.sin(a) * b.orbit;
       }
       b.rot = (time * TAU) / b.rotPeriod;
       b.cloudRot = b.rot * 1.3 + 1.7;
@@ -1616,6 +1812,8 @@
     updateComets(dt);
     updateShip(dt);
     for (const npc of npcs) updateNpc(npc, dt);
+    updateCine(dt);
+    updateWormhole(dt);
     checkEncounters();
     updateCoins();
     updateZone();
@@ -1630,11 +1828,13 @@
     }
     if (marker) marker.t += dt;
 
-    // Kamera folgt sanft, mit leichtem Vorlauf
+    // Kamera folgt sanft, mit leichtem Vorlauf; in Zwischensequenzen auf das gezeigte Objekt
     const lead = ship.speed * 0.35;
-    const tx = ship.x + Math.cos(ship.heading) * lead;
-    const ty = ship.y + Math.sin(ship.heading) * lead;
-    const k = 1 - Math.exp(-dt * 2.2);
+    let tx = ship.x + Math.cos(ship.heading) * lead;
+    let ty = ship.y + Math.sin(ship.heading) * lead;
+    const f = cine.active && cine.t < cine.dur - 1.3 && cine.focus && cine.focus();
+    if (f) { tx = f.x; ty = f.y; }
+    const k = 1 - Math.exp(-dt * (f ? 1.6 : 2.2));
     cam.x += (tx - cam.x) * k;
     cam.y += (ty - cam.y) * k;
   }
@@ -1642,7 +1842,7 @@
   // ---------------------------------------------------------------- render
   const ORBIT_DOTS = OBSTACLES.filter(b => b.orbit).map(b => {
     const n = Math.round((b.orbit * TAU) / (b.station ? 9 : 6));
-    return { b, pts: Array.from({ length: n }, (_, i) => [Math.cos((i / n) * TAU) * b.orbit, Math.sin((i / n) * TAU) * b.orbit]) };
+    return { b, cx: b.cx || 0, cy: b.cy || 0, pts: Array.from({ length: n }, (_, i) => [Math.cos((i / n) * TAU) * b.orbit, Math.sin((i / n) * TAU) * b.orbit]) };
   });
 
   function drawBackground() {
@@ -1671,7 +1871,7 @@
       ctx.fillStyle = o.b.station ? '#ffd27a' : '#8fa6ff';
       ctx.globalAlpha = o.b.station ? 0.12 : 0.16;
       for (const [x, y] of o.pts) {
-        const sx = toSX(x), sy = toSY(y);
+        const sx = toSX(x + o.cx), sy = toSY(y + o.cy);
         if (sx >= 0 && sx < W && sy >= 0 && sy < H) ctx.fillRect(sx | 0, sy | 0, 1, 1);
       }
     }
@@ -1964,14 +2164,43 @@
     px(sx, sy - 3, '#f4f6ff'); px(sx + 1, sy - 2, '#f4f6ff'); px(sx, sy - 1, '#f4f6ff'); px(sx + 1, sy, '#f4f6ff'); px(sx, sy + 1, '#dfe6ff');
   }
 
-  function drawFog() {
-    for (const f of fog) {
-      const spr = fogSprites[f.s];
-      const sx = toSX(f.x + Math.sin(time * 0.15 + f.ph) * 6), sy = toSY(f.y + Math.cos(time * 0.12 + f.ph) * 6);
+  function drawFogLayer(list, alphaInner, alphaWall) {
+    for (const f of list) {
+      const spr = fogSprites[f.p][f.s];
+      const sx = toSX(f.x + Math.sin(time * 0.15 + f.ph) * 7), sy = toSY(f.y + Math.cos(time * 0.12 + f.ph) * 7);
       if (!onScreen(sx, sy, spr.R + 4)) continue;
-      ctx.globalAlpha = 0.9;
+      ctx.globalAlpha = f.wall ? alphaWall : alphaInner;
       ctx.drawImage(spr.cv, Math.round(sx - spr.R), Math.round(sy - spr.R));
     }
+    ctx.globalAlpha = 1;
+  }
+  /** Nebel hinter den Objekten, dazu ein leichter Farbschleier, solange man im Nebel ist */
+  function drawFogBack() {
+    const f = clamp((ZONE.r + 60 - Math.hypot(cam.x - ZONE.x, cam.y - ZONE.y)) / 160, 0, 1);
+    if (f > 0) { ctx.globalAlpha = 0.2 * f; ctx.fillStyle = '#2a1648'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    drawFogLayer(fogBack, 0.55, 0.55);
+  }
+  function drawFog() { drawFogLayer(fogFront, 0.2, 0.85); }
+
+  /** Wurmloch: wirbelnde Ringe in Violett und Türkis mit hellem Kern */
+  function drawWormhole(p, s) {
+    const sx = toSX(p.x), sy = toSY(p.y, 4);
+    if (!onScreen(sx, sy, 40) || s <= 0) return;
+    const cols = ['#3a1a6a', '#6a3ab0', '#a87aff', '#7fe0ff', '#e8fdff'];
+    for (let k = 0; k < 5; k++) {
+      const r = 24 * s * (1 - k * 0.17), n = Math.max(6, Math.round(r * 2.6));
+      const dir = k % 2 ? -1 : 1;
+      ctx.globalAlpha = 0.45 + k * 0.1;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * TAU + time * (1.2 + k * 0.5) * dir;
+        const wob = 1 + 0.08 * Math.sin(a * 3 + time * 2);
+        px(sx + Math.cos(a) * r * wob, sy + Math.sin(a) * r * SIN_E * wob * 1.2, cols[k], k < 2 ? 2 : 1, 1);
+      }
+    }
+    ctx.globalAlpha = 0.85;
+    px(sx - 3 * s, sy - 1, '#0a0614', Math.max(1, 6 * s), 3);
+    ctx.globalAlpha = 0.5 + 0.5 * Math.sin(time * 4);
+    px(sx, sy, '#ffffff');
     ctx.globalAlpha = 1;
   }
 
@@ -2111,8 +2340,15 @@
     const gs = sunGlow;
     ctx.globalAlpha = 0.85 + 0.15 * Math.sin(time * 0.8);
     ctx.drawImage(gs.cv, Math.round(toSX(0) - gs.R), Math.round(toSY(0) - gs.R));
+    for (const b of BODIES) {
+      const gl = resortGlows[b.id];
+      if (!gl) continue;
+      const gx = toSX(b.x), gy = toSY(b.y);
+      if (onScreen(gx, gy, gl.R)) ctx.drawImage(gl.cv, Math.round(gx - gl.R), Math.round(gy - gl.R));
+    }
     ctx.globalAlpha = 1;
 
+    drawFogBack();
     drawMarkers();
     drawParticles();
 
@@ -2130,6 +2366,7 @@
     for (const c of comets) if (c.active && !c.caught) drawList.push({ y: c.y, k: 7, o: c });
     for (const r of relics) if (r.active && !r.taken) drawList.push({ y: r.y, k: 8, o: r });
     drawList.push({ y: WRECK.y, k: 9, o: WRECK });
+    if (WH.open) { drawList.push({ y: WH.a.y, k: 11, o: WH.a }); drawList.push({ y: WH.b.y, k: 11, o: WH.b }); }
     for (const p of zoneParts) if (p.active && !p.taken) drawList.push({ y: p.y, k: 10, o: p });
     const rotA = (time * TAU) / BELT_PERIOD;
     for (const a of asteroids) {
@@ -2168,6 +2405,7 @@
         case 7: drawComet(it.o); break;
         case 8: drawRelic(it.o); break;
         case 9: drawWreck(); break;
+        case 11: drawWormhole(it.o, it.o === WH.a ? WH.t : 1); break;
         case 10: drawPart(it.o); break;
       }
     }
@@ -2469,7 +2707,9 @@
     if (notify.busy || dialog.open || !notify.queue.length) return;
     const it = notify.queue.shift();
     notify.busy = true;
-    if (it.type === 'toast') {
+    if (it.type === 'cine') {
+      runCine(it);
+    } else if (it.type === 'toast') {
       if (it.sound) sfx.play(it.sound);
       const el = document.createElement('div');
       el.className = 'toast box';
@@ -2528,7 +2768,8 @@
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
-    comets, relics, dealerNpc, startRound2, relicsFound, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
+    comets, relics, dealerNpc, startRound2, relicsFound, RESORT, WH, resortNpcs, cine,
+    get chapter() { return chapter; }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
     get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
     step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,

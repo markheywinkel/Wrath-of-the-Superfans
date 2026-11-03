@@ -207,12 +207,22 @@ canvas {
   pointer-events: none;
 }
 .intro {
-  font-size: clamp(42px, 10vw, 92px);
-  letter-spacing: -0.01em;
-  animation: intro 4s ease forwards;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  visibility: hidden;
 }
+.intro .num {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.intro .title { font-size: clamp(42px, 10vw, 92px); letter-spacing: -0.01em; line-height: 1.05; }
+.intro.play { animation: intro 4.5s ease forwards; }
 @keyframes intro {
-  0% { opacity: 0; transform: scale(0.94); }
+  0% { opacity: 0; transform: scale(0.94); visibility: visible; }
   12% { opacity: 1; transform: scale(1); }
   75% { opacity: 1; transform: scale(1.02); }
   100% { opacity: 0; transform: scale(1.04); visibility: hidden; }
@@ -397,4 +407,40 @@ canvas {
   .dialog .figure { width: 56px; }
   .dialog .figures { height: 80px; }
   .dialog .who .name { font-size: 22px; }
+}
+
+/* ---------- Zwischensequenz: Kino-Balken ---------- */
+.cine-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 11vh;
+  background: #000;
+  pointer-events: none;
+  transition: transform 0.9s ease;
+  z-index: 5;
+}
+.cine-bar.top { top: 0; transform: translateY(-100%); }
+.cine-bar.bottom { bottom: 0; transform: translateY(100%); }
+body.cine .cine-bar { transform: none; }
+body.cine .hud-left, body.cine .top-right, body.cine .hint { opacity: 0; transition: opacity 0.6s ease; }
+
+/* ---------- Lichtblitz beim Sprung durchs Wurmloch ---------- */
+.flash { position: fixed; inset: 0; background: #e8f4ff; opacity: 0; pointer-events: none; z-index: 6; }
+.flash.go { animation: flash 1s ease forwards; }
+@keyframes flash { 0% { opacity: 0.9; } 100% { opacity: 0; } }
+
+/* ---------- Dialog immer links unten, größerer Text ---------- */
+.dialog {
+  left: calc(16px + env(safe-area-inset-left));
+  width: min(560px, calc(100vw - 32px));
+  transform: translateY(16px);
+  text-align: left;
+}
+.dialog.show { transform: none; }
+.dialog .figures { justify-content: flex-start; padding-left: 6px; }
+.dialog .foot { justify-content: flex-start; }
+.dialog .line { font-size: 19px; line-height: 1.5; color: #eef2ff; }
+@media (max-width: 480px) {
+  .dialog .line { font-size: 17px; }
 }
