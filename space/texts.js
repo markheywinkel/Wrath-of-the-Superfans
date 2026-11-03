@@ -62,10 +62,10 @@ window.SPACE_TEXTS = {
       quest: 'brief',
       offer: [
         ['quentin', 'Lorem ipsum dolor sit amet! Hast du kurz Zeit?'],
-        ['quentin', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Aqua?'],
+        ['quentin', 'Consectetur adipiscing elit: Bringst du diesen Liebesbrief nach Ayathla?'],
         ['du', 'Lorem ipsum, mache ich!'],
       ],
-      waiting: [['quentin', 'Lorem ipsum – ist der Brief schon auf Aqua?']],
+      waiting: [['quentin', 'Lorem ipsum – ist der Brief schon auf Ayathla?']],
       thanks: [['quentin', 'Lorem ipsum dolor, vielen Dank!']],
     },
     {
@@ -74,7 +74,7 @@ window.SPACE_TEXTS = {
       quest: 'aquarium',
       offer: [
         ['norman', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'],
-        ['norman', 'Sed do eiusmod: Dieser seltene Fisch muss nach Thalassa.'],
+        ['norman', 'Sed do eiusmod: Dieser seltene Fisch muss nach Thalyssa.'],
         ['du', 'Lorem ipsum, ich passe gut auf den Fisch auf.'],
       ],
       waiting: [['norman', 'Lorem ipsum – geht es dem Fisch gut?']],
@@ -86,10 +86,10 @@ window.SPACE_TEXTS = {
       quest: 'fotobuch',
       offer: [
         ['sie', 'Lorem ipsum! Dolor sit amet, consectetur adipiscing elit.'],
-        ['sie', 'Nemo enim ipsam: Bringst du das Fotoalbum nach Glacies?'],
+        ['sie', 'Nemo enim ipsam: Bringst du das Fotoalbum nach Cies?'],
         ['du', 'Lorem ipsum, klar!'],
       ],
-      waiting: [['sie', 'Lorem ipsum – Glacies liegt ganz außen.']],
+      waiting: [['sie', 'Lorem ipsum – Cies liegt ganz außen.']],
       thanks: [['sie', 'Lorem ipsum, großartig!']],
     },
   ],
@@ -173,32 +173,32 @@ window.SPACE_TEXTS = {
     sun: {
       kicker: '',
       name: 'Sol',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      body: 'Die orangefarbene Sonne unseres Systems. Hell und warm, Quell des Lebens.',
     },
     ignis: {
       kicker: 'Planet I',
       name: 'Ignis',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+      body: 'Unter den wirbelnden Wolkenbändern liegt eine ungastliche Vulkanlandschaft.',
     },
     aqua: {
       kicker: 'Planet II',
-      name: 'Aqua',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+      name: 'Ayathla',
+      body: 'Auf den weiten grünen Kontinenten liegt die Wiege unserer Zivilisation.',
     },
     thalassa: {
       kicker: 'Planet III',
-      name: 'Thalassa',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+      name: 'Thalyssa',
+      body: 'Millionenstädte überziehen den Planeten bis zu den türkisfarbenen Meeren.',
     },
     gigas: {
       kicker: 'Planet IV',
       name: 'Gigas',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
+      body: 'Auf dem Gasriesen lebt unser Volk unter kristallenen Kuppeln. Seine Monde sind durchzogen von Minen.',
     },
     glacies: {
       kicker: 'Planet V',
-      name: 'Glacies',
-      body: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.',
+      name: 'Cies',
+      body: 'Auf dem Eisplanet werden kostbare Minerale abgebaut.',
     },
   },
 };
