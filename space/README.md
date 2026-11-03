@@ -32,6 +32,9 @@ python3 -m http.server 8000
   - Vier neue Lieferungen (Sieben Kräuter, Perlenkette, Geheimnisvoller Koffer, Kostbares Mineral).
   - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug; mit jedem Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
   - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
+- **Neues Gebiet:** Oben rechts hat der Asteroidengürtel eine Lücke. Dahinter liegt, von undurchdringlichem Nebel umgeben, ein Gebiet mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
+  - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
+  - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
 - **Badges** (oben rechts):
   - Meistererkunder: alle Kristalle → Antrieb +20 %
   - Aufräumer: alle Container → Antrieb +10 %
@@ -40,7 +43,10 @@ python3 -m http.server 8000
   - Amor: Liebesbrief überbracht
   - Kometenjäger: alle fünf Kometen gefangen → Antrieb +30 %
   - Ahnenforscher: alle fünf Relikte zum Kuriositätenhändler gebracht → Antrieb +20 %
-  - Weltenbummler: alle anderen Badges und alle Aufträge beider Runden → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
+  - Grenzgänger: das neue Gebiet betreten → Antrieb +10 %
+  - Ghostbuster: Gwynn befreit
+  - Helfer in der Not: Justus’ Raumschiff zusammengesetzt
+  - Weltenbummler: alle anderen Badges und alle Aufträge → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 

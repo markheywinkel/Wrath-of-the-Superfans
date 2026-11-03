@@ -12,7 +12,8 @@ window.SPACE_TEXTS = {
   /*
    * Spielfigur und Figuren: Astronautinnen und Astronauten, im Dialog als grobe Pixel-Figuren.
    * look: suit = Anzugfarbe, helmet = mit Helm (true/false), visor = Farbe des Visiers,
-   *       skin = Hautfarbe, hair = Haarfarbe, hairStyle = short | long | bun | mohawk | bald
+   *       skin = Hautfarbe, hair = Haarfarbe, hairStyle = short | long | bun | mohawk | bald,
+   *       ghost = true zeichnet eine körperlose, leuchtende Gestalt
    */
   player: 'du',
   characters: {
@@ -22,6 +23,10 @@ window.SPACE_TEXTS = {
     sie: { name: 'Sie', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
     ivy: { name: 'Ivy', tier: 'Wissenschaftlerin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
     balthasar: { name: 'Balthasar', tier: 'Kuriositätenhändler', look: { suit: '#ffb31a', helmet: false, skin: '#d8a070', hair: '#5a3aa8', hairStyle: 'long' } },
+    entitaet: { name: 'Körperlose Entität', tier: '', look: { ghost: true } },
+    gwynn: { name: 'Gwynn', tier: 'Forscherin', look: { suit: '#3affd0', helmet: false, skin: '#f0c8a8', hair: '#f4f4ff', hairStyle: 'bun' } },
+    reisender: { name: 'Einsamer Reisender', tier: '', look: { suit: '#9a9aac', helmet: true, visor: '#ff7a3a' } },
+    justus: { name: 'Justus', tier: 'Reisender', look: { suit: '#9a9aac', helmet: false, skin: '#c89070', hair: '#3a2a1a', hairStyle: 'short' } },
     west: { name: 'West', tier: 'Notar', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
   },
 
@@ -215,6 +220,59 @@ window.SPACE_TEXTS = {
     thanks: [['balthasar', 'Ich studiere die Relikte noch immer. Jeden Tag entdecke ich etwas Neues.']],
   },
 
+  /*
+   * Neues Gebiet hinter der Lücke im Asteroidengürtel: Raumschiffwrack und Dunkler Planet.
+   * {rest} = Zahl der noch fehlenden Schiffsteile.
+   */
+  zone: {
+    entity: {
+      with: 'entitaet',
+      offer: [
+        ['entitaet', '… hörst du mich? Ich bin hier, zwischen den Trümmern.'],
+        ['entitaet', 'Ich habe keinen Körper mehr. Nur das blaue Elixier aus dem Eis von Cies kann mir helfen. Bringst du es mir?'],
+        ['du', 'Ich fliege nach Cies.'],
+      ],
+      waiting: [['entitaet', 'Das Elixier … aus dem Eis von Cies … bitte beeil dich.']],
+      complete: [
+        ['entitaet', 'Du hast es gebracht … ich spüre es schon.'],
+        ['du', 'Was passiert mit dir?'],
+        ['gwynn', 'Ich … habe wieder Hände! Ich bin Gwynn, Forscherin.'],
+        ['gwynn', 'Ich habe dieses Wrack untersucht. Eine fremde Technologie hat mich in Licht verwandelt. Du hast mich gerettet. Danke!'],
+      ],
+    },
+    elixir: {
+      name: 'Blaues Elixier',
+      from: 'glacies',
+      pickup: [['du', 'Tief im Eis von Cies leuchtet eine Phiole mit blauem Elixier. Ich nehme sie vorsichtig mit.']],
+    },
+    traveler: {
+      with: 'reisender',
+      offer: [
+        ['reisender', 'Ein Besucher? Hier draußen kommt sonst niemand vorbei.'],
+        ['reisender', 'Ein Sturm hat mein Raumschiff zerlegt. Fünf Teile treiben irgendwo in diesem Gebiet. Sammelst du sie für mich ein?'],
+        ['du', 'Ich halte Ausschau.'],
+      ],
+      waiting: [['reisender', 'Es fehlen noch {rest} Teile. Sie müssen hier irgendwo treiben.']],
+      complete: [
+        ['reisender', 'Alle fünf Teile! Jetzt kann ich mein Schiff reparieren.'],
+        ['justus', 'Ich habe mich noch gar nicht vorgestellt: Ich bin Justus.'],
+        ['justus', 'Danke, dass du mir geholfen hast. Wir sehen uns da draußen!'],
+      ],
+    },
+    partsName: 'Schiffsteile',
+    // Gwynn und Justus fliegen danach selbst durch das Gebiet
+    gwynn: {
+      name: 'Forschungsschiff Lumen',
+      with: 'gwynn',
+      talk: [['gwynn', 'Ich fliege wieder selbst. Ohne dich wäre ich immer noch ein Schatten zwischen den Trümmern. Danke!']],
+    },
+    justus: {
+      name: 'Reiseschiff Wanderer',
+      with: 'justus',
+      talk: [['justus', 'Mein Schiff fliegt wieder wie neu. Danke für deine Hilfe!']],
+    },
+  },
+
   /* Badges (oben rechts). Reihenfolge = Anzeige-Reihenfolge */
   badges: {
     meistererkunder: { name: 'Meistererkunder', text: 'Alle 30 Kristalle gesammelt' },
@@ -224,6 +282,9 @@ window.SPACE_TEXTS = {
     amor: { name: 'Amor', text: 'Den Liebesbrief überbracht' },
     kometenjaeger: { name: 'Kometenjäger', text: 'Alle fünf Kometen gefangen' },
     ahnenforscher: { name: 'Ahnenforscher', text: 'Alle fünf Relikte zum Kuriositätenhändler gebracht' },
+    grenzgaenger: { name: 'Grenzgänger', text: 'Das Gebiet hinter dem Asteroidengürtel betreten' },
+    ghostbuster: { name: 'Ghostbuster', text: 'Gwynn aus ihrer körperlosen Form befreit' },
+    helfer: { name: 'Helfer in der Not', text: 'Justus’ Raumschiff wieder zusammengesetzt' },
     weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
   },
 
@@ -236,6 +297,7 @@ window.SPACE_TEXTS = {
     round2: 'Neue Aufträge',
     round2Body: 'Fünf Kometen und fünf Relikte sind im System aufgetaucht.',
     relicsGiven: 'Relikte übergeben',
+    received: 'Erhalten',
   },
 
   /* großer Text im Bild beim Einsammeln */
@@ -244,6 +306,7 @@ window.SPACE_TEXTS = {
     container: 'Frachtcontainer',
     comet: 'Komet',
     relic: 'Relikt',
+    part: 'Schiffsteil',
   },
 
   /* Einträge in der Auftragsliste oben links */
@@ -273,6 +336,10 @@ window.SPACE_TEXTS = {
     relics: {
       title: 'Ahnenforscher!',
       body: 'Die Relikte erzählen von einer längst untergegangenen Zivilisation. Dein Antrieb ist jetzt 20 Prozent schneller.',
+    },
+    border: {
+      title: 'Grenzgänger!',
+      body: 'Du hast den Asteroidengürtel hinter dir gelassen und ein unbekanntes Gebiet betreten. Dein Antrieb ist jetzt 10 Prozent schneller.',
     },
     final: {
       title: 'Glückwunsch!',
@@ -313,6 +380,16 @@ window.SPACE_TEXTS = {
       kicker: 'Planet V',
       name: 'Cies',
       body: 'Auf dem Eisplanet werden kostbare Minerale abgebaut.',
+    },
+    dark: {
+      kicker: '',
+      name: 'Dunkler Planet',
+      body: 'Düstere Gewitterwolken überziehen den Planeten und hüllen ihn in ewige Nacht.',
+    },
+    wreck: {
+      kicker: '',
+      name: 'Altes Raumschiffwrack',
+      body: 'Ein riesiges, uraltes Raumschiff, verlassen und still. Niemand weiß, wer es gebaut hat.',
     },
   },
 };

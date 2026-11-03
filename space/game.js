@@ -191,6 +191,17 @@
     const crack = hex('#6a9cc4');
     return { tex: makeTex(i => (1 - Math.abs(r[i] * 2 - 1) > 0.95 ? crack : grad(g, f[i]))) };
   }
+  function texDark(seed) {
+    const f = norm01(forSphere((x, y, z) => fbm(x * 2.5, y * 2.5, z * 2.5, seed, 5)));
+    const g = G([[0, '#08060e'], [0.5, '#1a1426'], [1, '#2e2440']]);
+    const c = norm01(forSphere((x, y, z) => {
+      const w = fbm(x * 2, y * 2, z * 2, seed + 3, 3) * 2;
+      return fbm(x * 2 + w, y * 6, z * 2 - w, seed + 9, 5);
+    }));
+    const cloud = new Float32Array(c.length);
+    for (let i = 0; i < c.length; i++) cloud[i] = smooth(0.45, 0.8, c[i]) * 0.32; // düstere Gewitterwolken
+    return { tex: makeTex(i => grad(g, f[i])), cloud };
+  }
   function texMoon(seed, stops) {
     const f = norm01(forSphere((x, y, z) => fbm(x * 3, y * 3, z * 3, seed, 5)));
     const g = G(stops);
@@ -497,6 +508,8 @@
       ],
     },
     { id: 'glacies', r: 8, orbit: 555, rotPeriod: -95, tex: texGlacies(83), atmo: hex('#d8f4ff') },
+    // im neuen Gebiet hinter dem Asteroidengürtel (feste Position, siehe ZONE)
+    { id: 'dark', zone: true, r: 16, orbit: 0, rotPeriod: 240, tex: texDark(97), atmo: hex('#5a4a8a') },
   ];
   const keplerPeriod = orbit => 95 * Math.pow(orbit / 115, 1.5); // sehr gemächlich
   // Startwinkel: die fünf Planeten gleichmäßig verteilt (72° Abstand)
@@ -530,8 +543,148 @@
     st.tex = texMoon(st.orbit, [[0, '#56607a'], [0.5, '#9aa4bc'], [1, '#e2e8f4']]);
     st.spr = makeSprite(st.hub, 1);
   }
-  const OBSTACLES = [...BODIES, ...STATIONS];
-  const DESTINATIONS = [...BODIES.slice(1), ...STATIONS];
+  // ---------------------------------------------------------- neues Gebiet
+  // Lücke im Asteroidengürtel, dahinter ein Korridor und ein rundes Gebiet (Viertel der Fläche)
+  const GATE_ANG = -Math.PI / 4;                      // oben rechts
+  const GATE_UX = Math.cos(GATE_ANG), GATE_UY = Math.sin(GATE_ANG);
+  const GATE_HALF = 62;                               // halbe Breite des Durchgangs
+  const ZONE_R = 400;
+  const ZONE_D = 792 + 70 + ZONE_R;                   // hinter dem äußeren Gürtelrand
+  const ZONE = { x: GATE_UX * ZONE_D, y: GATE_UY * ZONE_D, r: ZONE_R };
+  const GATE_HALF_ANG = (GATE_HALF + 22) / 750;       // Winkelbreite der Lücke im Gürtel
+  const inGate = ang => Math.abs(angDiff(ang, GATE_ANG)) < GATE_HALF_ANG;
+
+  /** Nächster erlaubter Punkt: Sonnensystem, Korridor oder neues Gebiet. */
+  function projectAllowed(x, y, m = 0) {
+    const r = Math.hypot(x, y);
+    if (r <= SHIP_LIMIT - m) return [x, y];
+    const dz = Math.hypot(x - ZONE.x, y - ZONE.y);
+    if (dz <= ZONE.r - m) return [x, y];
+    const along = x * GATE_UX + y * GATE_UY, perp = -x * GATE_UY + y * GATE_UX;
+    const a0 = SHIP_LIMIT - 40, a1 = ZONE_D;
+    if (along >= a0 && along <= a1 && Math.abs(perp) <= GATE_HALF - m) return [x, y];
+    const cands = [
+      [x * (SHIP_LIMIT - m) / r, y * (SHIP_LIMIT - m) / r],
+      [ZONE.x + (x - ZONE.x) * (ZONE.r - m) / dz, ZONE.y + (y - ZONE.y) * (ZONE.r - m) / dz],
+    ];
+    const ca = clamp(along, a0, a1), cp = clamp(perp, -(GATE_HALF - m), GATE_HALF - m);
+    cands.push([ca * GATE_UX - cp * GATE_UY, ca * GATE_UY + cp * GATE_UX]);
+    let best = cands[0], bd = Infinity;
+    for (const c of cands) { const d = Math.hypot(c[0] - x, c[1] - y); if (d < bd) { bd = d; best = c; } }
+    return best;
+  }
+
+  /** Liegt ein Punkt im Sonnensystem, im neuen Gebiet oder im Korridor dazwischen? */
+  function regionOf(x, y) {
+    if (Math.hypot(x, y) <= SHIP_LIMIT - 20) return 'sys';
+    if (Math.hypot(x - ZONE.x, y - ZONE.y) <= ZONE.r - 20) return 'zone';
+    return 'gate';
+  }
+  /** Zwischenziele, damit das Schiff durch die Lücke im Gürtel fliegt statt am Rand hängen zu bleiben. */
+  function routeBetween(fx, fy, tx, ty) {
+    const G1 = [GATE_UX * (SHIP_LIMIT - 70), GATE_UY * (SHIP_LIMIT - 70)];
+    const G2 = [GATE_UX * (ZONE_D - ZONE_R + 40), GATE_UY * (ZONE_D - ZONE_R + 40)];
+    const a = regionOf(fx, fy), b = regionOf(tx, ty);
+    if (a === b) return [];
+    if (a === 'sys') return b === 'zone' ? [G1, G2] : [G1];
+    if (a === 'zone') return b === 'sys' ? [G2, G1] : [G2];
+    return b === 'sys' ? [G1] : [G2];
+  }
+
+  const DARK = BODIES.find(b => b.id === 'dark');
+  DARK.x = ZONE.x + 130; DARK.y = ZONE.y - 80;
+  const WRECK = { id: 'wreck', zone: true, fixed: true, x: ZONE.x - 110, y: ZONE.y + 120, avoidR: 54, coreR: 40, size: 40 };
+
+  const OBSTACLES = [...BODIES, ...STATIONS, WRECK];
+  const DESTINATIONS = [...BODIES.slice(1), ...STATIONS].filter(d => !d.zone);
+  // Wegpunkte, zwischen denen Gwynn und Justus später im Gebiet umherfliegen
+  const ZONE_DESTS = [DARK, WRECK,
+    { id: 'wp1', x: ZONE.x - 60, y: ZONE.y - 170, avoidR: 14, coreR: 0 },
+    { id: 'wp2', x: ZONE.x + 180, y: ZONE.y + 140, avoidR: 14, coreR: 0 },
+    { id: 'wp3', x: ZONE.x - 230, y: ZONE.y - 20, avoidR: 14, coreR: 0 }];
+
+  // fünf Schiffsteile des einsamen Reisenden, verstreut im Gebiet
+  const PART_TOTAL = 5;
+  const zoneParts = (() => {
+    const r = mulberry32(5150), list = [];
+    let tries = 0;
+    while (list.length < PART_TOTAL && tries++ < 5000) {
+      const a = r() * TAU, d = 60 + Math.sqrt(r()) * (ZONE.r - 110);
+      const x = ZONE.x + Math.cos(a) * d, y = ZONE.y + Math.sin(a) * d;
+      if (Math.hypot(x - DARK.x, y - DARK.y) < 80 || Math.hypot(x - WRECK.x, y - WRECK.y) < 90) continue;
+      if (list.some(p => Math.hypot(p.x - x, p.y - y) < 120)) continue;
+      list.push({ id: list.length, x, y, phase: r() * TAU, v: (r() * 3) | 0, taken: false, active: false });
+    }
+    return list;
+  })();
+
+  // undurchdringlicher Nebel rund um das Gebiet und an den Wänden des Korridors
+  const fog = (() => {
+    const r = mulberry32(31337), list = [];
+    const entry = GATE_ANG + Math.PI;                 // Richtung vom Gebiet zum Korridor
+    const n = 200;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * TAU;
+      if (Math.abs(angDiff(a, entry)) < (GATE_HALF + 6) / ZONE.r) continue;
+      for (let layer = 0; layer < 3; layer++) {
+        const d = ZONE.r + 16 + layer * 34 + r() * 14;
+        list.push({ x: ZONE.x + Math.cos(a) * d, y: ZONE.y + Math.sin(a) * d, s: (r() * 3) | 0, ph: r() * TAU });
+      }
+    }
+    for (let t = 690; t <= ZONE_D - ZONE.r + 40; t += 14) {
+      for (const side of [-1, 1]) for (let layer = 0; layer < 3; layer++) {
+        const off = side * (GATE_HALF + 18 + layer * 30 + r() * 10);
+        list.push({ x: GATE_UX * t - GATE_UY * off, y: GATE_UY * t + GATE_UX * off, s: (r() * 3) | 0, ph: r() * TAU });
+      }
+    }
+    return list;
+  })();
+  const fogSprites = [18, 26, 36].map(R => {
+    const D = R * 2, cv = document.createElement('canvas');
+    cv.width = cv.height = D;
+    const cx = cv.getContext('2d'), img = cx.createImageData(D, D);
+    const c1 = hex('#4a3e6a'), c2 = hex('#2a2440');
+    for (let j = 0; j < D; j++) for (let i = 0; i < D; i++) {
+      const d = Math.hypot(i + 0.5 - R, j + 0.5 - R) / R;
+      if (d >= 1) continue;
+      const a = (1 - d) * (1 - d);
+      const q = Math.floor(a * 5 + BAYER[(j & 3) * 4 + (i & 3)]) / 5;
+      if (q <= 0) continue;
+      const col = mix(c2, c1, 1 - d);
+      const k = (j * D + i) * 4;
+      img.data[k] = col[0]; img.data[k + 1] = col[1]; img.data[k + 2] = col[2]; img.data[k + 3] = Math.min(255, q * 255);
+    }
+    cx.putImageData(img, 0, 0);
+    return { cv, R };
+  });
+
+  // altes Raumschiffwrack: einmal vorgezeichnet
+  const wreckSprite = (() => {
+    const Wd = 104, Ht = 52, cv = document.createElement('canvas');
+    cv.width = Wd; cv.height = Ht;
+    const c = cv.getContext('2d');
+    const P = (x, y, col, w = 1, h = 1) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+    const out = '#0c0a12';
+    // vorderes Rumpfstück
+    P(6, 18, out, 48, 16); P(2, 22, out, 6, 8);
+    P(7, 19, '#8a8f9e', 46, 14); P(3, 23, '#7a7f8e', 5, 6);
+    P(7, 19, '#b4b8c4', 46, 3); P(7, 29, '#5a5e6c', 46, 4);
+    for (let x = 12; x < 50; x += 6) P(x, 24, '#1a1c26', 3, 2);
+    P(24, 24, '#e8c86a', 1, 1); P(42, 24, '#7fe0ff', 1, 1);
+    P(16, 27, '#8a5a3a', 6, 2); P(36, 21, '#8a5a3a', 4, 2);
+    P(30, 12, out, 10, 8); P(31, 13, '#9aa0ae', 8, 6); P(31, 13, '#c4c8d2', 8, 2);   // Brückenturm
+    // Bruchkante mit Spanten
+    for (let y = 19; y < 33; y += 3) P(53, y, '#4a4e5a', 3, 1);
+    // hinteres Rumpfstück, leicht versetzt
+    P(60, 22, out, 36, 18); P(61, 23, '#7e8392', 34, 16); P(61, 23, '#a8adb9', 34, 3); P(61, 35, '#50545f', 34, 4);
+    for (let y = 25; y < 37; y += 5) P(95, y, '#2a2c36', 6, 3);                     // Triebwerke
+    P(70, 28, '#8a5a3a', 8, 2); P(84, 26, '#1a1c26', 3, 2);
+    for (let x = 58; x < 62; x++) P(x, 24 + (x % 2) * 8, '#4a4e5a', 1, 6);
+    P(72, 8, out, 6, 15); P(73, 9, '#8a8f9e', 4, 13);                                 // abgeknickte Flosse
+    // Trümmer
+    P(50, 40, '#6a6e7a', 3, 2); P(46, 10, '#6a6e7a', 2, 2); P(98, 14, '#6a6e7a', 2, 3); P(20, 40, '#5a5e6c', 4, 2);
+    return { cv, Wd, Ht };
+  })();
 
   // Asteroidengürtel
   const asteroids = [];
@@ -646,6 +799,26 @@
     beamLen: 5,
   });
   npcs.push(dealerNpc);
+  const zoneNpc = (texts, colors, start) => makeAgent({
+    idx: npcs.length, texts, hidden: true, dests: ZONE_DESTS,
+    model: ARROW, colors: pal(colors), spr: makeShipSprite(),
+    state: 'linger', target: start, linger: 9999, cooldown: 0,
+    orbitBody: start, orbitAng: 0, orbitR: start.avoidR + 8, orbitDir: 1,
+    beam: ['#ffffff', '#c8f8ff', '#7fe0ff', '#3a9ae8', '#1a4a8a'],
+    trail: ['#e8fdff', '#7fe0ff', '#3a4a8a'],
+    beamLen: 5,
+  });
+  const gwynnNpc = zoneNpc(TEXTS.zone.gwynn, { hull: '#e8fffa', accent: '#3affd0', under: '#3a6a68', glass: '#c8a2ff' }, WRECK);
+  npcs.push(gwynnNpc);
+  const justusNpc = zoneNpc(TEXTS.zone.justus, { hull: '#b8bcc8', accent: '#ff7a3a', under: '#4a4e5a', glass: '#ffd84a' }, DARK);
+  npcs.push(justusNpc);
+  function revealNpc(n, at) {
+    n.hidden = false;
+    n.x = at.x + 30; n.y = at.y + 30;
+    n.state = 'travel';
+    n.cooldown = 30;
+    pickDestination(n);
+  }
 
   const cam = { x: ship.x, y: ship.y };
   const particles = [];
@@ -668,6 +841,11 @@
   let cometsCaught = 0;
   const relicsFound = new Set();
   let relicsGiven = 0, dealerMet = false;
+  // neues Gebiet: Blaues Elixier ('open' → 'active' → 'carrying' → 'done'), Schiffsteile
+  quests.elixier = 'open';
+  quests.teile = 'open';
+  let partsFound = 0;
+  const ALL_QUESTS = () => ROUND1.concat(ROUND2, ['elixier', 'teile']);
   const PLANETS = BODIES.filter(b => b.orbit > 0);
 
   // ---------------------------------------------------------------- canvas
@@ -765,6 +943,10 @@
       const d = Math.hypot(ix - toSX(st.x), iy - toSY(st.y, 3));
       if (d <= st.size + 5 && d < best) { best = d; hit = st; }
     }
+    {
+      const d = Math.hypot(ix - toSX(WRECK.x), iy - toSY(WRECK.y, 4));
+      if (d <= 34 && d < best) { best = d; hit = WRECK; }
+    }
     // Treffer auf ein anderes Raumschiff: hinfliegen und ansprechen
     let npcHit = null;
     for (const n of npcs) {
@@ -781,6 +963,7 @@
     }
     if (cometHit) {
       hideInfo();
+      ship.route = routeBetween(ship.x, ship.y, cometHit.x, cometHit.y);
       ship.mode = 'fly';
       ship.goal = { comet: cometHit };
       ship.sides.clear();
@@ -792,14 +975,14 @@
     } else {
       let x = ix - W / 2 + cam.x;
       let y = (iy - H / 2) / SIN_E + cam.y;
-      const rad = Math.hypot(x, y);
-      if (rad > SHIP_LIMIT - 4) { x *= (SHIP_LIMIT - 4) / rad; y *= (SHIP_LIMIT - 4) / rad; }
+      [x, y] = projectAllowed(x, y, 4);
       flyToPoint(x, y);
     }
   });
 
   function flyToPoint(x, y) {
     hideInfo();
+    ship.route = routeBetween(ship.x, ship.y, x, y);
     ship.mode = 'fly';
     ship.goal = { x, y };
     ship.sides.clear();
@@ -807,6 +990,7 @@
   }
   function flyToNpc(n) {
     hideInfo();
+    ship.route = routeBetween(ship.x, ship.y, n.x, n.y);
     n.cooldown = 0;
     ship.mode = 'fly';
     ship.goal = { npc: n };
@@ -816,12 +1000,15 @@
   function flyToBody(b) {
     if (ship.mode === 'orbit' && ship.orbitBody === b) { arriveAt(b); return; }
     hideInfo();
+    ship.route = routeBetween(ship.x, ship.y, b.x, b.y);
     ship.mode = 'fly';
     ship.goal = { body: b };
     ship.sides.clear();
     marker = null;
   }
   function arriveAt(b) {
+    if (b.id === 'wreck') { arriveWreck(); return; }
+    if (b.id === 'dark') { arriveDark(); return; }
     if (b.station) {
       const t = TEXTS.stations[b.id];
       if (t) {
@@ -835,12 +1022,63 @@
       if (visited.size === PLANETS.length) award('tourist');
     }
     const due = Object.keys(TEXTS.items).filter(id => quests[id] === 'active' && TEXTS.items[id].target === b.id);
-    if (due.length) {
-      const lines = due.flatMap(id => TEXTS.items[id].deliver);
-      openDialog(null, lines, bodyName(b.id), () => { due.forEach(deliver); showInfo(b); });
+    const fetchHere = b.id === TEXTS.zone.elixir.from && quests.elixier === 'active';
+    if (due.length || fetchHere) {
+      const lines = due.flatMap(id => TEXTS.items[id].deliver).concat(fetchHere ? TEXTS.zone.elixir.pickup : []);
+      openDialog(null, lines, bodyName(b.id), () => {
+        due.forEach(deliver);
+        if (fetchHere) {
+          quests.elixier = 'carrying';
+          toast(TEXTS.toast.received, esc(TEXTS.zone.elixir.name), 'deliver');
+          renderQuests();
+        }
+        showInfo(b);
+      });
     } else {
       showInfo(b);
     }
+  }
+
+  /** Raumschiffwrack: die körperlose Entität bittet um das Blaue Elixier. */
+  function arriveWreck() {
+    const E = TEXTS.zone.entity, st = quests.elixier;
+    if (st === 'done') { showInfo(WRECK); return; }
+    let lines, after = null;
+    if (st === 'open') { lines = E.offer; after = () => acceptQuest('elixier'); }
+    else if (st === 'active') lines = E.waiting;
+    else {
+      lines = E.complete;
+      after = () => {
+        quests.elixier = 'done';
+        toast(TEXTS.toast.delivered, esc(TEXTS.zone.elixir.name), 'deliver');
+        revealNpc(gwynnNpc, WRECK);
+        award('ghostbuster');
+        renderQuests();
+        checkFinal();
+      };
+    }
+    openDialog(E.with, lines, bodyName('wreck'), () => { if (after) after(); showInfo(WRECK); });
+  }
+
+  /** Dunkler Planet: ein einsamer Reisender sucht die Teile seines Raumschiffs. */
+  function arriveDark() {
+    const R = TEXTS.zone.traveler, st = quests.teile;
+    if (st === 'done') { showInfo(DARK); return; }
+    let lines, after = null;
+    if (st === 'open') { lines = R.offer; after = () => acceptQuest('teile'); }
+    else if (partsFound < PART_TOTAL) lines = R.waiting.map(([w, t]) => [w, t.replace('{rest}', PART_TOTAL - partsFound)]);
+    else {
+      lines = R.complete;
+      after = () => {
+        quests.teile = 'done';
+        toast(TEXTS.toast.delivered, esc(TEXTS.zone.partsName), 'deliver');
+        revealNpc(justusNpc, DARK);
+        award('helfer');
+        renderQuests();
+        checkFinal();
+      };
+    }
+    openDialog(R.with, lines, bodyName('dark'), () => { if (after) after(); showInfo(DARK); });
   }
 
   // ----------------------------------------------------------------- sound
@@ -929,6 +1167,17 @@
   function acceptQuest(id) {
     if (quests[id] !== 'open') return;
     quests[id] = 'active';
+    if (id === 'elixier') {
+      toast(TEXTS.toast.quest, `${esc(TEXTS.zone.elixir.name)}: <span class="nm">${esc(bodyName(TEXTS.zone.elixir.from))}</span> → <span class="nm">${esc(bodyName('wreck'))}</span>`);
+      renderQuests();
+      return;
+    }
+    if (id === 'teile') {
+      for (const p of zoneParts) p.active = true;
+      toast(TEXTS.toast.quest, `${esc(TEXTS.zone.partsName)} ${partsFound} / ${PART_TOTAL}`);
+      renderQuests();
+      return;
+    }
     if (id === 'kometen') {
       toast(TEXTS.toast.quest, `${esc(TEXTS.questList.comets)} ${cometsCaught} / ${COMET_TOTAL}`);
       renderQuests();
@@ -1013,7 +1262,7 @@
   function checkFinal() {
     if (badges.has(FINAL_BADGE)) return;
     if (!BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) return;
-    if (!ROUND1.concat(ROUND2).every(q => quests[q] === 'done')) return;
+    if (!ALL_QUESTS().every(q => quests[q] === 'done')) return;
     award(FINAL_BADGE);
     const f = TEXTS.rewards.final;
     showModal({ title: f.title, body: f.body, button: f.button, restart: f.restart, final: true });
@@ -1122,8 +1371,7 @@
       const min = o.coreR + 2;
       if (d < min) { agent.x = o.x + (dx / d) * min; agent.y = o.y + (dy / d) * min; }
     }
-    const rad = Math.hypot(agent.x, agent.y);
-    if (rad > SHIP_LIMIT) { agent.x *= SHIP_LIMIT / rad; agent.y *= SHIP_LIMIT / rad; }
+    [agent.x, agent.y] = projectAllowed(agent.x, agent.y);
     agent.bank += (clamp(agent.turnVel * 0.22, -0.55, 0.55) - agent.bank) * Math.min(1, dt * 5);
   }
 
@@ -1156,7 +1404,11 @@
     } else if (ship.mode === 'fly' && ship.goal) {
       const g = ship.goal;
       let arrived;
-      if (g.comet) {
+      if (ship.route && ship.route.length) {
+        const w = ship.route[0];
+        if (flyAgent(ship, dt, w[0], w[1], 18, null, maxSpeed(), true)) ship.route.shift();
+        arrived = false;
+      } else if (g.comet) {
         if (g.comet.caught) arrived = true;
         else {
           // Vorhalt: dorthin fliegen, wo der Komet gleich sein wird
@@ -1189,7 +1441,7 @@
   }
 
   function pickDestination(npc) {
-    const options = DESTINATIONS.filter(d => d !== npc.target && d !== npc.prevTarget);
+    const options = (npc.dests || DESTINATIONS).filter(d => d !== npc.target && d !== npc.prevTarget);
     npc.prevTarget = npc.target;
     npc.target = options[(Math.random() * options.length) | 0];
     npc.sides.clear();
@@ -1236,10 +1488,11 @@
       const cr = Math.cos(dir) * (npc.y - ship.y) - Math.sin(dir) * (npc.x - ship.x);
       ship.mode = 'drift';
       ship.goal = null;
+      ship.route = [];
       marker = null;
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
-      const g = npc.dealer ? dealerLines() : giverLines(npc.texts);
+      const g = npc.dealer ? dealerLines() : npc.texts.talk ? { lines: npc.texts.talk } : giverLines(npc.texts);
       openDialog(npc.texts.with, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
     }
@@ -1305,6 +1558,21 @@
     }
   }
 
+  function updateZone() {
+    for (const p of zoneParts) {
+      if (!p.active || p.taken || Math.hypot(p.x - ship.x, p.y - ship.y) >= 18) continue;
+      p.taken = true;
+      partsFound++;
+      burst(p.x, p.y, 'crate');
+      sfx.play('crate');
+      pickupText(`${TEXTS.pickup.part} ${partsFound} / ${PART_TOTAL}`);
+      renderQuests();
+    }
+    if (!badges.has('grenzgaenger') && Math.hypot(ship.x - ZONE.x, ship.y - ZONE.y) < ZONE.r - 20) {
+      milestone('grenzgaenger', 0.1, TEXTS.rewards.border);
+    }
+  }
+
   function updateComets(dt) {
     for (const c of comets) {
       if (!c.active || c.caught) continue;
@@ -1347,6 +1615,7 @@
     for (const npc of npcs) updateNpc(npc, dt);
     checkEncounters();
     updateCoins();
+    updateZone();
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life += dt;
@@ -1425,6 +1694,7 @@
     ctx.fillStyle = '#9a8f9e';
     for (const d of dust) {
       const a = d.a + rotA;
+      if (inGate(a)) continue;
       const sx = toSX(Math.cos(a) * d.rad), sy = toSY(Math.sin(a) * d.rad, d.z);
       if (!onScreen(sx, sy, 2)) continue;
       ctx.globalAlpha = 0.12 + d.b * 0.22;
@@ -1461,6 +1731,7 @@
     if (!onScreen(sx, sy, b.spr.D)) return;
     renderSphere(b.spr, b.r, b, b.emissive ? [0, 0, 1] : bodyLight(b.x, b.y));
     ctx.drawImage(b.spr.cv, Math.round(sx - b.spr.D / 2), Math.round(sy - b.spr.D / 2));
+    if (b.id === 'dark') drawStorm(b);
   }
 
   // --- Raumstationen (pixelweise gezeichnet)
@@ -1644,6 +1915,63 @@
     if (pulse > 0.8) { px(x, y - 5, '#ffffff', 1, 2); px(x, y + 4, '#ffffff', 1, 2); px(x - 5, y, '#ffffff', 2, 1); px(x + 4, y, '#ffffff', 2, 1); }
   }
 
+  /** Raumschiffwrack, solange die Entität darin wohnt mit geisterhaftem Schimmer */
+  function drawWreck() {
+    const sx = toSX(WRECK.x), sy = toSY(WRECK.y, 4);
+    if (!onScreen(sx, sy, 70)) return;
+    const S = wreckSprite;
+    ctx.drawImage(S.cv, Math.round(sx - S.Wd / 2), Math.round(sy - S.Ht / 2));
+    if (quests.elixier !== 'done') {
+      const p = 0.5 + 0.5 * Math.sin(time * 1.4);
+      ctx.globalAlpha = 0.12 + 0.12 * p;
+      px(sx - 30 + Math.sin(time * 0.7) * 6, sy - 8, '#bff6ff', 9, 9);
+      ctx.globalAlpha = 0.35 + 0.35 * p;
+      px(sx - 27 + Math.sin(time * 0.7) * 6, sy - 5, '#e8fdff', 3, 3);
+      ctx.globalAlpha = 1;
+    }
+    if ((time % 2.4) < 0.3) px(sx + 22, sy - 14, '#7fe0ff');
+  }
+
+  /** Schiffsteil: verbogene Metallplatte mit orangem Streifen */
+  function drawPart(p) {
+    const bob = Math.sin(time * 1.2 + p.phase) * 1.2;
+    const sx = toSX(p.x), sy = toSY(p.y, 6 + bob);
+    if (!onScreen(sx, sy, 12)) return;
+    const x = Math.round(sx), y = Math.round(sy);
+    const t = ((time * 0.8 + p.phase) % TAU) < Math.PI ? 0 : 1;
+    px(x - 4, y - 3, '#0c0a12', 9, 7);
+    px(x - 3, y - 2, t ? '#9aa0ae' : '#b4b8c4', 7, 5);
+    px(x - 3, y, '#ff7a3a', 7, 1);
+    px(x - 2, y - 1, '#4a4e5a'); px(x + 2, y + 1, '#4a4e5a');
+    if (p.v === 1) px(x + 3, y - 4, '#0c0a12', 2, 2);
+    if (p.v === 2) px(x - 5, y + 1, '#9aa0ae', 2, 1);
+  }
+
+  function drawStorm(b) {
+    // Blitze in den Gewitterwolken des Dunklen Planeten
+    if (!b.flash || b.flash <= 0) {
+      if (Math.random() < 0.012) { b.flash = 0.2; b.fx = (Math.random() - 0.5) * b.r * 1.2; b.fy = (Math.random() - 0.5) * b.r; }
+      return;
+    }
+    b.flash -= 1 / 60;
+    const sx = Math.round(toSX(b.x) + b.fx), sy = Math.round(toSY(b.y) + b.fy);
+    ctx.globalAlpha = 0.25;
+    px(sx - 5, sy - 5, '#c8d0ff', 11, 11);
+    ctx.globalAlpha = 1;
+    px(sx, sy - 3, '#f4f6ff'); px(sx + 1, sy - 2, '#f4f6ff'); px(sx, sy - 1, '#f4f6ff'); px(sx + 1, sy, '#f4f6ff'); px(sx, sy + 1, '#dfe6ff');
+  }
+
+  function drawFog() {
+    for (const f of fog) {
+      const spr = fogSprites[f.s];
+      const sx = toSX(f.x + Math.sin(time * 0.15 + f.ph) * 6), sy = toSY(f.y + Math.cos(time * 0.12 + f.ph) * 6);
+      if (!onScreen(sx, sy, spr.R + 4)) continue;
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(spr.cv, Math.round(sx - spr.R), Math.round(sy - spr.R));
+    }
+    ctx.globalAlpha = 1;
+  }
+
   /** Relikt: alte Steintafel mit leuchtenden Zeichen */
   function drawRelic(r) {
     const bob = Math.sin(time * 1.3 + r.phase) * 1.2;
@@ -1677,7 +2005,7 @@
       if (n.hidden || n.state === 'drift') continue;
       const wants = n.dealer
         ? relicsGiven < RELIC_TOTAL && (!dealerMet || relicsFound.size > relicsGiven)
-        : quests[currentQuest(n.texts).quest] === 'open';
+        : n.texts.talk ? false : quests[currentQuest(n.texts).quest] === 'open';
       if (!wants) continue;
       const sx = toSX(n.x), sy = toSY(n.y, 4);
       if (onScreen(sx, sy, 20)) bang(sx, sy - 13);
@@ -1688,11 +2016,21 @@
       const sx = toSX(st.x), sy = toSY(st.y, 3);
       if (onScreen(sx, sy, 30)) bang(sx, sy - st.hub - 18);
     }
+    const zx = toSX(WRECK.x), zy = toSY(WRECK.y, 4);
+    if (quests.elixier === 'open' && onScreen(zx, zy, 40)) bang(zx, zy - 30);
+    const dx = toSX(DARK.x), dy = toSY(DARK.y);
+    if (quests.teile === 'open' && onScreen(dx, dy, 40)) bang(dx, dy - DARK.r - 14);
+    const targets = [];
     for (const [id, state] of Object.entries(quests)) {
       if (state !== 'active' || !TEXTS.items[id]) continue;
       const b = BODIES.find(o => o.id === TEXTS.items[id].target);
-      if (!b) continue;
-      const sx = Math.round(toSX(b.x)), sy = Math.round(toSY(b.y) - b.r - 7) + bounce;
+      if (b) targets.push([toSX(b.x), toSY(b.y) - b.r - 7]);
+    }
+    if (quests.elixier === 'active') { const b = BODIES.find(o => o.id === TEXTS.zone.elixir.from); targets.push([toSX(b.x), toSY(b.y) - b.r - 7]); }
+    if (quests.elixier === 'carrying') targets.push([zx, zy - 28]);
+    if (quests.teile === 'active' && partsFound >= PART_TOTAL) targets.push([dx, dy - DARK.r - 7]);
+    for (const [tx, ty] of targets) {
+      const sx = Math.round(tx), sy = Math.round(ty) + bounce;
       if (!onScreen(sx, sy, 10)) continue;
       px(sx - 1, sy - 3, '#1a1204', 3, 7); px(sx - 3, sy - 1, '#1a1204', 7, 3);
       px(sx, sy - 2, '#7fe0ff', 1, 5); px(sx - 2, sy, '#7fe0ff', 5, 1); px(sx - 1, sy - 1, '#7fe0ff', 3, 3);
@@ -1788,9 +2126,12 @@
     for (const n of npcs) if (!n.hidden) drawList.push({ y: n.y, k: 3, o: n });
     for (const c of comets) if (c.active && !c.caught) drawList.push({ y: c.y, k: 7, o: c });
     for (const r of relics) if (r.active && !r.taken) drawList.push({ y: r.y, k: 8, o: r });
+    drawList.push({ y: WRECK.y, k: 9, o: WRECK });
+    for (const p of zoneParts) if (p.active && !p.taken) drawList.push({ y: p.y, k: 10, o: p });
     const rotA = (time * TAU) / BELT_PERIOD;
     for (const a of asteroids) {
       const ang = a.a + rotA;
+      if (inGate(ang)) continue;
       const x = Math.cos(ang) * a.rad, y = Math.sin(ang) * a.rad;
       const sx = toSX(x), sy = toSY(y, a.z);
       if (!onScreen(sx, sy, 8)) continue;
@@ -1823,8 +2164,11 @@
         case 6: drawCrate(it.o); break;
         case 7: drawComet(it.o); break;
         case 8: drawRelic(it.o); break;
+        case 9: drawWreck(); break;
+        case 10: drawPart(it.o); break;
       }
     }
+    drawFog();
     drawQuestMarkers();
   }
 
@@ -1869,6 +2213,15 @@
     if (quests.kometen === 'active') {
       add(`<span class="nm">${esc(TEXTS.questList.comets)}</span> <span class="to">${cometsCaught} / ${COMET_TOTAL}</span>`);
     }
+    if (quests.elixier === 'active') {
+      add(`<span class="nm">${esc(TEXTS.zone.elixir.name)}</span> <span class="to">aus <span class="nm">${esc(bodyName(TEXTS.zone.elixir.from))}</span> holen</span>`);
+    }
+    if (quests.elixier === 'carrying') {
+      add(`<span class="nm">${esc(TEXTS.zone.elixir.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName('wreck'))}</span></span>`);
+    }
+    if (quests.teile === 'active') {
+      add(`<span class="nm">${esc(TEXTS.zone.partsName)}</span> <span class="to">${partsFound} / ${PART_TOTAL} → <span class="nm">${esc(bodyName('dark'))}</span></span>`);
+    }
     if (round >= 2 && relicsGiven < RELIC_TOTAL && (dealerMet || relicsFound.size > 0)) {
       add(`<span class="nm">${esc(TEXTS.questList.relics)}</span> <span class="to">${relicsFound.size} / ${RELIC_TOTAL} → <span class="nm">${esc(TEXTS.dealer.name)}</span></span>`);
     }
@@ -1911,6 +2264,16 @@
     const suitD = shade(L.suit, 0.72), suitL = shade(L.suit, 1.25);
     const white = '#eef0f6', grey = '#a8b0c4', greyD = '#6a7290';
 
+    if (L.ghost) {
+      // körperlose, leuchtende Gestalt mit wehendem Saum
+      const g1 = '#e8fdff', g2 = '#9fe8ff', g3 = '#5ab8e8';
+      rect(4, 2, 8, 8, g2); rect(3, 3, 10, 6, g2); rect(5, 1, 6, 1, g2);
+      rect(5, 3, 6, 5, g1);
+      rect(4, 10, 8, 4, g2); rect(5, 14, 6, 2, g2);
+      set(4, 14, g3); set(6, 16, g3); set(9, 16, g3); set(11, 14, g3); set(7, 17, g3);
+      set(6, 6, '#1a3a5a'); set(9, 6, '#1a3a5a');
+      rect(6, 11, 4, 2, g1);
+    } else {
     // Rucksack hinter dem Körper
     rect(2, 12, 1, 5, greyD); rect(13, 12, 1, 5, greyD);
     // Anzug
@@ -1954,12 +2317,14 @@
       set(4, 6, greyD); set(4, 8, greyD); set(5, 9, greyD);
     }
 
+    }
     // Kontur
     const cv = document.createElement('canvas');
     cv.width = GW + 2; cv.height = GH + 2;
     const cx = cv.getContext('2d');
     const filled = (x, y) => y >= 0 && y < GH && x >= 0 && x < GW && grid[y][x];
-    cx.fillStyle = dark;
+    if (L.ghost) cx.globalAlpha = 0.85;
+    cx.fillStyle = L.ghost ? '#3a8ac0' : dark;
     for (let y = -1; y <= GH; y++) for (let x = -1; x <= GW; x++) {
       if (filled(x, y)) continue;
       if (filled(x - 1, y) || filled(x + 1, y) || filled(x, y - 1) || filled(x, y + 1)) cx.fillRect(x + 1, y + 1, 1, 1);
@@ -1994,6 +2359,11 @@
     const [who, text] = dialog.lines[dialog.idx];
     const c = TEXTS.characters[who] || { name: who, tier: '' };
     const isMe = who === TEXTS.player;
+    if (!isMe && who !== dialog.partner) {
+      dialog.partner = who;
+      figThem.src = portrait(who);
+      figThem.hidden = false;
+    }
     figThem.classList.toggle('active', !isMe);
     figMe.classList.toggle('active', isMe);
     dialogEl.querySelector('.name').textContent = c.name;
@@ -2103,7 +2473,8 @@
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
-    comets, relics, dealerNpc, startRound2, relicsFound,
+    comets, relics, dealerNpc, startRound2, relicsFound, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
+    get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
     step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
   };
