@@ -580,6 +580,25 @@
   const coins = scatter(COIN_TOTAL, 777, 48, [], 0);
   // verlorene Frachtcontainer: eher weiter draußen, weit auseinander
   const crates = scatter(CRATE_TOTAL, 4711, 150, coins, 150);
+  // zweite Runde: fünf Relikte einer untergegangenen Zivilisation
+  const RELIC_TOTAL = 5;
+  const relics = scatter(RELIC_TOTAL, 9001, 170, coins.concat(crates), 120);
+
+  // zweite Runde: fünf Kometen auf langen Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug
+  const COMET_TOTAL = 5;
+  const comets = [
+    { a: 380, e: 0.70, w: 0.4, v: 115 },
+    { a: 330, e: 0.60, w: 2.1, v: 122 },
+    { a: 360, e: 0.72, w: 3.6, v: 130 },
+    { a: 300, e: 0.50, w: 5.0, v: 137 },
+    { a: 410, e: 0.58, w: 1.2, v: 145 },
+  ].map((c, i) => Object.assign(c, { id: i, b: c.a * Math.sqrt(1 - c.e * c.e), E: i * 1.3 + 0.5, x: 0, y: 0, vx: 0, vy: 0, active: false, caught: false }));
+  function cometPos(c, E) {
+    const px = c.a * (Math.cos(E) - c.e), py = c.b * Math.sin(E); // Sonne im Brennpunkt
+    const cw = Math.cos(c.w), sw = Math.sin(c.w);
+    return [px * cw - py * sw, px * sw + py * cw];
+  }
+  for (const c of comets) [c.x, c.y] = cometPos(c, c.E);
 
   // ----------------------------------------------------------------- state
   const makeAgent = (o) => Object.assign({
@@ -616,6 +635,17 @@
       beamLen: 5,
     });
   });
+  const outerStation = DESTINATIONS.find(d => d.id === 'outer');
+  const dealerNpc = makeAgent({
+    idx: npcs.length, texts: TEXTS.dealer, dealer: true, hidden: true,
+    model: ARROW, colors: pal({ hull: '#ffb31a', accent: '#5a3aa8', under: '#5a3a1a', glass: '#c9a2ff' }), spr: makeShipSprite(),
+    state: 'linger', target: outerStation, linger: 9999, cooldown: 0,
+    orbitBody: outerStation, orbitAng: 0, orbitR: outerStation.avoidR + 8, orbitDir: 1,
+    beam: ['#fff0d8', '#ffc97a', '#c98aff', '#7a4ad0', '#3a2a7a'],
+    trail: ['#ffe6c0', '#c98aff', '#4a3a8a'],
+    beamLen: 5,
+  });
+  npcs.push(dealerNpc);
 
   const cam = { x: ship.x, y: ship.y };
   const particles = [];
@@ -630,7 +660,14 @@
   const maxSpeed = () => SHIP_MAX_SPEED * (1 + speedBonus);
   // Quests: Gegenstand -> 'open' | 'active' | 'done'
   const quests = {};
-  for (const id of Object.keys(TEXTS.items)) quests[id] = 'open';
+  const GIVERS = [...TEXTS.ships, ...Object.values(TEXTS.stations)];
+  const ROUND1 = GIVERS.map(g => g.quest);
+  const ROUND2 = GIVERS.filter(g => g.round2).map(g => g.round2.quest);
+  for (const id of ROUND1.concat(ROUND2)) quests[id] = 'open';
+  let round = 1;
+  let cometsCaught = 0;
+  const relicsFound = new Set();
+  let relicsGiven = 0, dealerMet = false;
   const PLANETS = BODIES.filter(b => b.orbit > 0);
 
   // ---------------------------------------------------------------- canvas
@@ -731,11 +768,24 @@
     // Treffer auf ein anderes Raumschiff: hinfliegen und ansprechen
     let npcHit = null;
     for (const n of npcs) {
-      if (n.state === 'drift') continue;
+      if (n.hidden || n.state === 'drift') continue;
       const d = Math.hypot(ix - toSX(n.x), iy - toSY(n.y, 4));
       if (d <= 11 && d < best) { best = d; npcHit = n; }
     }
-    if (npcHit) {
+    // Treffer auf einen Kometen: hinterherfliegen
+    let cometHit = null;
+    for (const c of comets) {
+      if (!c.active || c.caught) continue;
+      const d = Math.hypot(ix - toSX(c.x), iy - toSY(c.y, 6));
+      if (d <= 12 && d < best) { best = d; cometHit = c; npcHit = null; }
+    }
+    if (cometHit) {
+      hideInfo();
+      ship.mode = 'fly';
+      ship.goal = { comet: cometHit };
+      ship.sides.clear();
+      marker = null;
+    } else if (npcHit) {
       flyToNpc(npcHit);
     } else if (hit) {
       flyToBody(hit);
@@ -838,6 +888,10 @@
       badge() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, i * 0.09, 0.7, 0.24, 'triangle')); },
       // Abgeliefert: freundliches Zwei-Ton-»Ding-Dong«
       deliver() { tone(659.25, 0, 0.55, 0.3, 'triangle'); tone(987.77, 0.16, 0.8, 0.26, 'triangle'); },
+      // Komet: weich aufsteigendes Schimmern
+      comet() { [523.25, 659.25, 783.99].forEach((f, i) => tone(f, i * 0.12, 1.2, 0.14, 'sine', 0, 0.06)); },
+      // Relikt: tiefer, warmer, etwas geheimnisvoller Klang
+      relic() { tone(220, 0, 1.4, 0.2, 'sine', 0, 0.08); tone(329.63, 0.15, 1.4, 0.12, 'sine', 0, 0.1); },
     };
     return {
       init,
@@ -859,16 +913,28 @@
   const bodyName = id => (TEXTS.bodies[id] || {}).name || id;
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
+  /** Aktueller Auftrag eines Auftraggebers: erste Runde, danach die zweite. */
+  function currentQuest(t) {
+    if (round >= 2 && t.round2 && quests[t.quest] === 'done') return t.round2;
+    return t;
+  }
   /** Welche Zeilen sagt ein Auftraggeber gerade? */
   function giverLines(t) {
-    const st = quests[t.quest];
-    if (st === 'open') return { lines: t.offer, after: () => acceptQuest(t.quest) };
-    if (st === 'active') return { lines: t.waiting };
-    return { lines: t.thanks };
+    const q = currentQuest(t);
+    const st = quests[q.quest];
+    if (st === 'open') return { lines: q.offer, after: () => acceptQuest(q.quest) };
+    if (st === 'active') return { lines: q.waiting };
+    return { lines: q.thanks };
   }
   function acceptQuest(id) {
     if (quests[id] !== 'open') return;
     quests[id] = 'active';
+    if (id === 'kometen') {
+      toast(TEXTS.toast.quest, `${esc(TEXTS.questList.comets)} ${cometsCaught} / ${COMET_TOTAL}`);
+      renderQuests();
+      checkComets();
+      return;
+    }
     const it = TEXTS.items[id];
     toast(TEXTS.toast.quest, `${esc(it.name)} → <span class="nm">${esc(bodyName(it.target))}</span>`);
     renderQuests();
@@ -880,7 +946,56 @@
     toast(TEXTS.toast.delivered, esc(it.name), 'deliver');
     renderQuests();
     if (id === 'brief') award('amor');
-    if (Object.values(quests).every(q => q === 'done')) milestone('meisterbote', 0.2, TEXTS.rewards.quests);
+    if (round === 1 && ROUND1.every(q => quests[q] === 'done')) {
+      milestone('meisterbote', 0.2, TEXTS.rewards.quests);
+      startRound2();
+    }
+    checkFinal();
+  }
+
+  /** Zweite Runde: neue Aufträge, fünf Kometen, fünf Relikte und der Kuriositätenhändler. */
+  function startRound2() {
+    if (round >= 2) return;
+    round = 2;
+    for (const c of comets) c.active = true;
+    for (const r of relics) r.active = true;
+    const a = Math.random() * TAU;
+    dealerNpc.x = Math.cos(a) * (SHIP_LIMIT - 20);
+    dealerNpc.y = Math.sin(a) * (SHIP_LIMIT - 20);
+    dealerNpc.hidden = false;
+    dealerNpc.state = 'travel';
+    dealerNpc.cooldown = 6;
+    pickDestination(dealerNpc);
+    toast(TEXTS.toast.round2, esc(TEXTS.toast.round2Body));
+    renderQuests();
+  }
+
+  function checkComets() {
+    if (quests.kometen !== 'active' || cometsCaught < COMET_TOTAL) return;
+    quests.kometen = 'done';
+    renderQuests();
+    setTimeout(() => { milestone('kometenjaeger', 0.3, TEXTS.rewards.comets); checkFinal(); }, 900);
+  }
+
+  /** Was sagt der Kuriositätenhändler? Übergibt dabei alle gefundenen Relikte. */
+  function dealerLines() {
+    const D = TEXTS.dealer;
+    const fill = (arr, n, rest) => arr.map(([w, t]) => [w, t.replace('{n}', n).replace('{rest}', rest)]);
+    if (relicsGiven >= RELIC_TOTAL) return { lines: D.thanks };
+    let lines = dealerMet ? [] : D.intro.slice();
+    let hand = null;
+    const n = relicsFound.size;
+    if (n > relicsGiven) {
+      lines = lines.concat(n >= RELIC_TOTAL ? D.complete : fill(D.handIn, n, RELIC_TOTAL - n));
+      hand = () => {
+        relicsGiven = n;
+        toast(TEXTS.toast.relicsGiven, `${n} / ${RELIC_TOTAL}`, 'deliver');
+        if (n >= RELIC_TOTAL) milestone('ahnenforscher', 0.2, TEXTS.rewards.relics);
+      };
+    } else if (dealerMet) {
+      lines = lines.concat(fill(D.missing, relicsGiven, RELIC_TOTAL - relicsGiven));
+    }
+    return { lines, after: () => { dealerMet = true; if (hand) hand(); renderQuests(); checkFinal(); } };
   }
 
   // ----------------------------------------------------- badges & rewards
@@ -892,11 +1007,16 @@
     const b = TEXTS.badges[id];
     toast(TEXTS.toast.badge, esc(b.name), 'badge');
     renderBadges();
-    if (id !== FINAL_BADGE && BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) {
-      award(FINAL_BADGE);
-      const f = TEXTS.rewards.final;
-      showModal({ title: f.title, body: f.body, button: f.button, restart: f.restart, final: true });
-    }
+    if (id !== FINAL_BADGE) checkFinal();
+  }
+  /** Das Spiel endet erst, wenn alle Badges und alle Aufträge beider Runden geschafft sind. */
+  function checkFinal() {
+    if (badges.has(FINAL_BADGE)) return;
+    if (!BADGE_IDS.filter(x => x !== FINAL_BADGE).every(x => badges.has(x))) return;
+    if (!ROUND1.concat(ROUND2).every(q => quests[q] === 'done')) return;
+    award(FINAL_BADGE);
+    const f = TEXTS.rewards.final;
+    showModal({ title: f.title, body: f.body, button: f.button, restart: f.restart, final: true });
   }
   /** Meilenstein: schnellerer Antrieb + Badge + Belohnungsdialog */
   function milestone(badgeId, bonus, reward) {
@@ -956,13 +1076,13 @@
   }
 
   /** Fliegt auf (tx, ty) zu; true, sobald arriveR erreicht ist. */
-  function flyAgent(agent, dt, tx, ty, arriveR, exclude, maxSpeed) {
+  function flyAgent(agent, dt, tx, ty, arriveR, exclude, maxSpeed, chase = false) {
     const dist = Math.hypot(tx - agent.x, ty - agent.y);
     if (dist <= arriveR) return true;
     const want = steer(agent, tx, ty, exclude);
     const diff = turnTowards(agent, want, dist < 24 ? 6 : 3.2, dt);
     const remaining = dist - arriveR;
-    const tgt = Math.min(maxSpeed, 9 + remaining * 1.3) * Math.max(0.2, Math.cos(Math.min(Math.PI / 2, Math.abs(diff))));
+    const tgt = (chase ? maxSpeed : Math.min(maxSpeed, 9 + remaining * 1.3)) * Math.max(0.2, Math.cos(Math.min(Math.PI / 2, Math.abs(diff))));
     agent.speed += (tgt - agent.speed) * Math.min(1, dt * 2.2);
     agent.x += Math.cos(agent.heading) * agent.speed * dt;
     agent.y += Math.sin(agent.heading) * agent.speed * dt;
@@ -1036,11 +1156,19 @@
     } else if (ship.mode === 'fly' && ship.goal) {
       const g = ship.goal;
       let arrived;
-      if (g.npc) arrived = flyAgent(ship, dt, g.npc.x, g.npc.y, 12, null, maxSpeed());
+      if (g.comet) {
+        if (g.comet.caught) arrived = true;
+        else {
+          // Vorhalt: dorthin fliegen, wo der Komet gleich sein wird
+          const c = g.comet;
+          const lead = Math.min(1.5, Math.hypot(c.x - ship.x, c.y - ship.y) / maxSpeed());
+          arrived = flyAgent(ship, dt, c.x + c.vx * lead, c.y + c.vy * lead, 2, null, maxSpeed(), true);
+        }
+      } else if (g.npc) arrived = flyAgent(ship, dt, g.npc.x, g.npc.y, 12, null, maxSpeed());
       else if (g.body) arrived = flyAgent(ship, dt, g.body.x, g.body.y, g.body.avoidR + 1, g.body, maxSpeed());
       else arrived = flyAgent(ship, dt, g.x, g.y, 2.5, null, maxSpeed());
       if (arrived) {
-        if (g.npc) {
+        if (g.npc || g.comet) {
           ship.mode = 'idle';
           ship.goal = null;
         } else if (g.body) {
@@ -1068,6 +1196,7 @@
   }
 
   function updateNpc(npc, dt) {
+    if (npc.hidden) return;
     npc.cooldown = Math.max(0, npc.cooldown - dt);
     if (npc.state === 'travel') {
       const t = npc.target;
@@ -1100,7 +1229,7 @@
   function checkEncounters() {
     if (dialog.open || ship.mode === 'drift' || modal.open || notify.queue.some(n => n.type === 'modal')) return;
     for (const npc of npcs) {
-      if (npc.cooldown > 0 || npc.state === 'drift') continue;
+      if (npc.hidden || npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
       hideInfo();
       const dir = ship.speed > 5 ? ship.heading : npc.heading;
@@ -1110,7 +1239,7 @@
       marker = null;
       ship.drift = { npc, dir, side: cr >= 0 ? 1 : -1 };
       npc.state = 'drift';
-      const g = giverLines(npc.texts);
+      const g = npc.dealer ? dealerLines() : giverLines(npc.texts);
       openDialog(npc.texts.with, g.lines, npc.texts.name, () => { if (g.after) g.after(); endEncounter(npc); });
       return;
     }
@@ -1155,6 +1284,37 @@
       pickupText(`${TEXTS.pickup.container} ${cratesTaken.size} / ${CRATE_TOTAL}`);
       if (cratesTaken.size >= CRATE_TOTAL) setTimeout(() => milestone('aufraeumer', 0.1, TEXTS.rewards.containers), 900);
     }
+    for (const r of relics) {
+      if (!r.active || r.taken || Math.hypot(r.x - ship.x, r.y - ship.y) >= 18) continue;
+      r.taken = true;
+      relicsFound.add(r.id);
+      burst(r.x, r.y, 'relic');
+      sfx.play('relic');
+      pickupText(`${TEXTS.pickup.relic} ${relicsFound.size} / ${RELIC_TOTAL}`);
+      renderQuests();
+    }
+    for (const c of comets) {
+      if (!c.active || c.caught || Math.hypot(c.x - ship.x, c.y - ship.y) >= 14) continue;
+      c.caught = true;
+      cometsCaught++;
+      burst(c.x, c.y, 'comet');
+      sfx.play('comet');
+      pickupText(`${TEXTS.pickup.comet} ${cometsCaught} / ${COMET_TOTAL}`);
+      renderQuests();
+      checkComets();
+    }
+  }
+
+  function updateComets(dt) {
+    for (const c of comets) {
+      if (!c.active || c.caught) continue;
+      // gleichmäßige Bahngeschwindigkeit v entlang der Ellipse
+      const dP = Math.hypot(c.a * Math.sin(c.E), c.b * Math.cos(c.E)) || 1;
+      c.E += (c.v * dt) / dP;
+      const [x, y] = cometPos(c, c.E);
+      if (dt > 0) { c.vx = (x - c.x) / dt; c.vy = (y - c.y) / dt; }
+      c.x = x; c.y = y;
+    }
   }
 
   function updateWorld(dt) {
@@ -1182,6 +1342,7 @@
       st.y = Math.sin(a) * st.orbit;
       st.rot = time * 0.3;
     }
+    updateComets(dt);
     updateShip(dt);
     for (const npc of npcs) updateNpc(npc, dt);
     checkEncounters();
@@ -1450,6 +1611,59 @@
     if (on) { ctx.globalAlpha = 0.3; px(x - 1, y - 6 + tilt, '#ff6a6a', 3, 3); ctx.globalAlpha = 1; }
   }
 
+  /** Komet: heller Kopf mit Schweif, der von der Sonne weg zeigt */
+  function drawComet(c) {
+    const sx = toSX(c.x), sy = toSY(c.y, 6);
+    if (!onScreen(sx, sy, 50)) return;
+    const d = Math.hypot(c.x, c.y) || 1;
+    const ax = c.x / d, ay = c.y / d;                 // weg von der Sonne
+    const sp = Math.hypot(c.vx, c.vy) || 1;
+    const bx = -c.vx / sp, by = -c.vy / sp;           // entgegen der Flugrichtung
+    const len = 34 + 26 * Math.min(1, 160 / d);       // nah an der Sonne länger
+    for (let i = 1; i < len; i++) {
+      const t = i / len;
+      // Ionenschweif (bläulich, gerade von der Sonne weg), vorne zwei Pixel breit
+      const ix = toSX(c.x + ax * i), iy = toSY(c.y + ay * i, 6);
+      ctx.globalAlpha = 0.75 * (1 - t);
+      px(ix, iy, t < 0.25 ? '#ffffff' : t < 0.55 ? '#bfe8ff' : '#7fc8ff', t < 0.4 ? 2 : 1, 1);
+      // Staubschweif (warmweiß, leicht entlang der Bahn gebogen)
+      if (i % 2 === 0) {
+        const mx = ax * 0.6 + bx * 0.4, my = ay * 0.6 + by * 0.4;
+        ctx.globalAlpha = 0.45 * (1 - t);
+        px(toSX(c.x + mx * i * 0.8), toSY(c.y + my * i * 0.8, 6), '#fff4e0');
+      }
+    }
+    const x = Math.round(sx), y = Math.round(sy);
+    const pulse = 0.5 + 0.5 * Math.sin(time * 6 + c.id);
+    ctx.globalAlpha = 0.15 + 0.1 * pulse;
+    px(x - 5, y - 5, '#9fe0ff', 11, 11);
+    ctx.globalAlpha = 0.45;
+    px(x - 3, y - 2, '#cfefff', 7, 5); px(x - 2, y - 3, '#cfefff', 5, 7);
+    ctx.globalAlpha = 1;
+    px(x - 1, y - 2, '#ffffff', 3, 5); px(x - 2, y - 1, '#ffffff', 5, 3);
+    if (pulse > 0.8) { px(x, y - 5, '#ffffff', 1, 2); px(x, y + 4, '#ffffff', 1, 2); px(x - 5, y, '#ffffff', 2, 1); px(x + 4, y, '#ffffff', 2, 1); }
+  }
+
+  /** Relikt: alte Steintafel mit leuchtenden Zeichen */
+  function drawRelic(r) {
+    const bob = Math.sin(time * 1.3 + r.phase) * 1.2;
+    const sx = toSX(r.x), sy = toSY(r.y, 6 + bob);
+    if (!onScreen(sx, sy, 12)) return;
+    const x = Math.round(sx), y = Math.round(sy);
+    const glow = 0.5 + 0.5 * Math.sin(time * 2 + r.phase);
+    ctx.globalAlpha = 0.12 + 0.12 * glow;
+    px(x - 5, y - 6, '#b98aff', 11, 13);
+    ctx.globalAlpha = 1;
+    px(x - 3, y - 4, '#1e1828', 7, 9);                 // Kontur
+    px(x - 2, y - 3, '#6a5a78', 5, 7);                 // Stein
+    px(x - 2, y - 3, '#9a8aa8', 5, 1);                 // Oberkante
+    px(x + 2, y - 2, '#4a3e58', 1, 6);                 // Schatten
+    ctx.globalAlpha = 0.6 + 0.4 * glow;
+    const gc = '#9ff0ff';
+    px(x - 1, y - 1, gc); px(x + 1, y - 1, gc); px(x, y, gc); px(x - 1, y + 2, gc); px(x + 1, y + 1, gc);
+    ctx.globalAlpha = 1;
+  }
+
   /** Quest-Hinweise: »!« über Auftraggebern, Raute über Zielplaneten */
   function drawQuestMarkers() {
     const bounce = Math.round(Math.sin(time * 3) * 1.5);
@@ -1460,18 +1674,22 @@
       px(x, y + 1, '#ffd84a', 2, 1);
     };
     for (const n of npcs) {
-      if (quests[n.texts.quest] !== 'open' || n.state === 'drift') continue;
+      if (n.hidden || n.state === 'drift') continue;
+      const wants = n.dealer
+        ? relicsGiven < RELIC_TOTAL && (!dealerMet || relicsFound.size > relicsGiven)
+        : quests[currentQuest(n.texts).quest] === 'open';
+      if (!wants) continue;
       const sx = toSX(n.x), sy = toSY(n.y, 4);
       if (onScreen(sx, sy, 20)) bang(sx, sy - 13);
     }
     for (const st of STATIONS) {
       const t = TEXTS.stations[st.id];
-      if (!t || quests[t.quest] !== 'open') continue;
+      if (!t || quests[currentQuest(t).quest] !== 'open') continue;
       const sx = toSX(st.x), sy = toSY(st.y, 3);
       if (onScreen(sx, sy, 30)) bang(sx, sy - st.hub - 18);
     }
     for (const [id, state] of Object.entries(quests)) {
-      if (state !== 'active') continue;
+      if (state !== 'active' || !TEXTS.items[id]) continue;
       const b = BODIES.find(o => o.id === TEXTS.items[id].target);
       if (!b) continue;
       const sx = Math.round(toSX(b.x)), sy = Math.round(toSY(b.y) - b.r - 7) + bounce;
@@ -1529,8 +1747,9 @@
       const sx = toSX(p.x), sy = toSY(p.y, p.z);
       if (!onScreen(sx, sy, 2)) continue;
       const t = p.life / p.max;
-      if (p.kind === 'gold' || p.kind === 'crate') {
-        ctx.fillStyle = p.kind === 'gold' ? (t < 0.4 ? '#e6fdff' : '#5fd3ff') : (t < 0.4 ? '#ffd0a0' : '#e07b2c');
+      if (p.kind !== 'trail') {
+        const pc = { gold: ['#e6fdff', '#5fd3ff'], crate: ['#ffd0a0', '#e07b2c'], comet: ['#ffffff', '#9fe0ff'], relic: ['#e8d8ff', '#a87aff'] }[p.kind] || ['#ffffff', '#cccccc'];
+        ctx.fillStyle = t < 0.4 ? pc[0] : pc[1];
         ctx.globalAlpha = 1 - t;
       } else {
         ctx.fillStyle = p.cols[t < 0.2 ? 0 : t < 0.5 ? 1 : 2];
@@ -1566,7 +1785,9 @@
     for (const c of coins) if (!c.taken) drawList.push({ y: c.y, k: 2, o: c });
     for (const c of crates) if (!c.taken) drawList.push({ y: c.y, k: 6, o: c });
     drawList.push({ y: ship.y, k: 3, o: ship });
-    for (const n of npcs) drawList.push({ y: n.y, k: 3, o: n });
+    for (const n of npcs) if (!n.hidden) drawList.push({ y: n.y, k: 3, o: n });
+    for (const c of comets) if (c.active && !c.caught) drawList.push({ y: c.y, k: 7, o: c });
+    for (const r of relics) if (r.active && !r.taken) drawList.push({ y: r.y, k: 8, o: r });
     const rotA = (time * TAU) / BELT_PERIOD;
     for (const a of asteroids) {
       const ang = a.a + rotA;
@@ -1600,6 +1821,8 @@
         }
         case 5: drawStation(it.o); break;
         case 6: drawCrate(it.o); break;
+        case 7: drawComet(it.o); break;
+        case 8: drawRelic(it.o); break;
       }
     }
     drawQuestMarkers();
@@ -1637,13 +1860,17 @@
   const questEl = document.getElementById('quests');
   function renderQuests() {
     questEl.innerHTML = '';
+    const add = html => { const li = document.createElement('li'); li.className = 'box'; li.innerHTML = html; questEl.append(li); };
     for (const [id, state] of Object.entries(quests)) {
-      if (state !== 'active') continue;
+      if (state !== 'active' || !TEXTS.items[id]) continue;
       const it = TEXTS.items[id];
-      const li = document.createElement('li');
-      li.className = 'box';
-      li.innerHTML = `<span class="nm">${esc(it.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`;
-      questEl.append(li);
+      add(`<span class="nm">${esc(it.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`);
+    }
+    if (quests.kometen === 'active') {
+      add(`<span class="nm">${esc(TEXTS.questList.comets)}</span> <span class="to">${cometsCaught} / ${COMET_TOTAL}</span>`);
+    }
+    if (round >= 2 && relicsGiven < RELIC_TOTAL && (dealerMet || relicsFound.size > 0)) {
+      add(`<span class="nm">${esc(TEXTS.questList.relics)}</span> <span class="to">${relicsFound.size} / ${RELIC_TOTAL} → <span class="nm">${esc(TEXTS.dealer.name)}</span></span>`);
     }
   }
 
@@ -1876,6 +2103,8 @@
   window.__space = {
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
+    comets, relics, dealerNpc, startRound2, relicsFound,
+    get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
     step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
   };
 })();

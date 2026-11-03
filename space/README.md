@@ -28,13 +28,19 @@ python3 -m http.server 8000
 - Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich, zentriert: beide Figuren mittig nebeneinander (wer spricht, ist etwas größer), darunter Name, Funktion und Text, ganz unten »Weiter«.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
 - **Sammeln:** 30 Kristalle und 10 verlorene Frachtcontainer.
+- **Zweite Runde:** Sind die ersten fünf Aufträge erledigt, geht es weiter:
+  - Vier neue Lieferungen (Sieben Kräuter, Perlenkette, Geheimnisvoller Koffer, Kostbares Mineral).
+  - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug; mit jedem Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
+  - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
 - **Badges** (oben rechts):
   - Meistererkunder: alle Kristalle → Antrieb +20 %
   - Aufräumer: alle Container → Antrieb +10 %
   - Meisterbote: alle Quests → Antrieb +20 %
   - Tourist: alle fünf Planeten besucht
   - Amor: Liebesbrief überbracht
-  - Weltenbummler: alle anderen Badges → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
+  - Kometenjäger: alle fünf Kometen gefangen → Antrieb +30 %
+  - Ahnenforscher: alle fünf Relikte zum Kuriositätenhändler gebracht → Antrieb +20 %
+  - Weltenbummler: alle anderen Badges und alle Aufträge beider Runden → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 

@@ -21,6 +21,7 @@ window.SPACE_TEXTS = {
     norman: { name: 'Norman', tier: 'Navigator', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
     sie: { name: 'Sie', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
     ivy: { name: 'Ivy', tier: 'Wissenschaftlerin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
+    balthasar: { name: 'Balthasar', tier: 'Kuriositätenhändler', look: { suit: '#ffb31a', helmet: false, skin: '#d8a070', hair: '#5a3aa8', hairStyle: 'long' } },
     west: { name: 'West', tier: 'Notar', look: { suit: '#ff3af0', helmet: false, skin: '#6a4028', hair: '#e8e8e8', hairStyle: 'bald' } },
   },
 
@@ -45,6 +46,23 @@ window.SPACE_TEXTS = {
       name: 'Leckerer Kuchen', target: 'gigas',
       deliver: [['du', 'Unter einer Kristallkuppel auf Gigas übergebe ich den Kuchen. Er ist noch ganz frisch.']],
     },
+    // --- zweite Runde (beginnt, sobald die ersten fünf Aufträge erledigt sind)
+    kraeuter: {
+      name: 'Sieben Kräuter', target: 'gigas',
+      deliver: [['du', 'Unter den Kuppeln von Gigas übergebe ich die sieben Kräuter. Bald duftet es in allen Küchen.']],
+    },
+    perlenkette: {
+      name: 'Perlenkette', target: 'aqua',
+      deliver: [['du', 'Auf Ayathla gebe ich die Perlenkette zurück. Die Besitzerin legt sie sofort an.']],
+    },
+    koffer: {
+      name: 'Geheimnisvoller Koffer', target: 'glacies',
+      deliver: [['du', 'Im Archiv tief im Eis von Cies stelle ich den Koffer ab. Er tickt leise. Oder bilde ich mir das nur ein?']],
+    },
+    mineral: {
+      name: 'Kostbares Mineral', target: 'thalassa',
+      deliver: [['du', 'In einer Werkstatt hoch über den Meeren von Thalyssa übergebe ich das Mineral. Es glitzert im Licht der Stadt.']],
+    },
     ocarina: {
       name: 'Ocarina der Zeit', target: 'ignis',
       deliver: [['du', 'In einer Station über den Vulkanen von Ignis übergebe ich die Ocarina. Ein leiser Ton klingt durch die Gänge.']],
@@ -67,6 +85,17 @@ window.SPACE_TEXTS = {
       ],
       waiting: [['quentin', 'Ayathla ist der Planet mit den weiten grünen Kontinenten. Du kannst ihn nicht verfehlen.']],
       thanks: [['quentin', 'Sie hat geantwortet! Danke dir. Ich zähle die Tage bis zum nächsten Landgang.']],
+      // zweite Runde
+      round2: {
+        quest: 'kraeuter',
+        offer: [
+          ['quentin', 'Da bist du ja wieder! Der Brief hat Wunder gewirkt.'],
+          ['quentin', 'Die Köche unter den Kuppeln von Gigas warten auf sieben Kräuter aus meinem Laderaum. Nimmst du sie mit?'],
+          ['du', 'Mache ich. Es duftet herrlich.'],
+        ],
+        waiting: [['quentin', 'Sieben Kräuter, keins weniger. Die Köche zählen nach.']],
+        thanks: [['quentin', 'Ich habe gehört, es gab ein Festessen. Danke dir!']],
+      },
     },
     {
       name: 'Fährschiff Nostromo',
@@ -79,6 +108,16 @@ window.SPACE_TEXTS = {
       ],
       waiting: [['norman', 'Flieg ruhig und gleichmäßig. Er mag keine Wellen im Becken.']],
       thanks: [['norman', 'Wieder zu Hause. Danke, dass du das übernommen hast.']],
+      round2: {
+        quest: 'perlenkette',
+        offer: [
+          ['norman', 'Schön, dich zu sehen. Eine Passagierin hat bei mir etwas liegen lassen.'],
+          ['norman', 'Eine Perlenkette aus den Meeren von Thalyssa. Die Besitzerin wohnt auf Ayathla. Bringst du sie ihr?'],
+          ['du', 'Natürlich.'],
+        ],
+        waiting: [['norman', 'Die Kette ist ein Erbstück. Pass gut auf sie auf.']],
+        thanks: [['norman', 'Sie hat mir eine Karte geschickt. Danke!']],
+      },
     },
     {
       name: 'Polizeifregatte Condor',
@@ -91,6 +130,16 @@ window.SPACE_TEXTS = {
       ],
       waiting: [['sie', 'Cies liegt ganz außen. Zieh dich warm an.']],
       thanks: [['sie', 'Fall abgeschlossen. So mag ich das. Danke dir.']],
+      round2: {
+        quest: 'koffer',
+        offer: [
+          ['sie', 'Da bist du ja. Ich habe wieder etwas für dich.'],
+          ['sie', 'Einen geheimnisvollen Koffer, fest verschlossen. Er soll ins Archiv auf Cies. Frag lieber nicht, was drin ist.'],
+          ['du', 'Ich frage nicht.'],
+        ],
+        waiting: [['sie', 'Und bitte nicht schütteln.']],
+        thanks: [['sie', 'Der Koffer ist sicher verwahrt. Gute Arbeit.']],
+      },
     },
   ],
 
@@ -107,6 +156,17 @@ window.SPACE_TEXTS = {
       ],
       waiting: [['ivy', 'Und nicht unterwegs naschen!']],
       thanks: [['ivy', 'Er hat mir geschrieben, der Kuchen war ein Traum. Danke!']],
+      // zweite Runde: Kometen fangen (keine Lieferung)
+      round2: {
+        quest: 'kometen',
+        offer: [
+          ['ivy', 'Gut, dass du da bist! Unsere Instrumente zeigen fünf Kometen im System.'],
+          ['ivy', 'Sie sind schnell, schneller als dein Schiff. Kannst du alle fünf für unsere Forschung einfangen?'],
+          ['du', 'Ich versuche es.'],
+        ],
+        waiting: [['ivy', 'Mit jedem Erfolg wird dein Antrieb schneller. Dann holst du sie ein.']],
+        thanks: [['ivy', 'Fünf Kometen! Die Proben werden uns jahrelang beschäftigen. Danke!']],
+      },
     },
     outer: {
       name: 'Handelsposten Orion',
@@ -119,16 +179,51 @@ window.SPACE_TEXTS = {
       ],
       waiting: [['west', 'Ignis ist der heiße Planet nah an der Sonne. Bleib über den Wolken.']],
       thanks: [['west', 'Die Übergabe ist beurkundet. Vielen Dank für deine Hilfe.']],
+      round2: {
+        quest: 'mineral',
+        offer: [
+          ['west', 'Willkommen zurück. Ein Kaufvertrag ist unterzeichnet.'],
+          ['west', 'Dieses kostbare Mineral aus den Minen von Cies gehört nun einem Juwelier auf Thalyssa. Lieferst du es aus?'],
+          ['du', 'Gern.'],
+        ],
+        waiting: [['west', 'Laut Vertrag muss es unversehrt ankommen.']],
+        thanks: [['west', 'Lieferung bestätigt. Alles hat seine Ordnung.']],
+      },
     },
+  },
+
+  /*
+   * Kuriositätenhändler: taucht in der zweiten Runde auf und nimmt die fünf Relikte entgegen.
+   * {n} = Zahl der übergebenen Relikte, {rest} = Zahl der fehlenden.
+   */
+  dealer: {
+    name: 'Händlerschiff Wunderkammer',
+    with: 'balthasar',
+    intro: [
+      ['balthasar', 'Willkommen in der Wunderkammer! Ich sammle Kuriositäten aus allen Ecken des Alls.'],
+      ['balthasar', 'In diesem System sind fünf seltsame Relikte aufgetaucht. Bringst du sie mir? Ich möchte sie untersuchen.'],
+      ['du', 'Ich halte die Augen offen.'],
+    ],
+    handIn: [['balthasar', 'Ah, wunderbar! Damit habe ich {n} von 5 Relikten.']],
+    missing: [['balthasar', 'Es fehlen noch {rest} Relikte. Sie schimmern leise im Dunkeln.']],
+    complete: [
+      ['balthasar', 'Das ist das letzte! Lass mich kurz nachsehen …'],
+      ['balthasar', 'Unglaublich. Die Relikte stammen von einer längst untergegangenen Zivilisation. Sie war lange vor uns in diesem System.'],
+      ['du', 'Dann sind wir nicht die Ersten hier.'],
+      ['balthasar', 'Nein. Danke, dass du ihre Spuren gefunden hast.'],
+    ],
+    thanks: [['balthasar', 'Ich studiere die Relikte noch immer. Jeden Tag entdecke ich etwas Neues.']],
   },
 
   /* Badges (oben rechts). Reihenfolge = Anzeige-Reihenfolge */
   badges: {
     meistererkunder: { name: 'Meistererkunder', text: 'Alle 30 Kristalle gesammelt' },
     aufraeumer: { name: 'Aufräumer', text: 'Alle 10 Frachtcontainer geborgen' },
-    meisterbote: { name: 'Meisterbote', text: 'Alle Aufträge erledigt' },
+    meisterbote: { name: 'Meisterbote', text: 'Die ersten fünf Aufträge erledigt' },
     tourist: { name: 'Tourist', text: 'Alle Planeten besucht' },
     amor: { name: 'Amor', text: 'Den Liebesbrief überbracht' },
+    kometenjaeger: { name: 'Kometenjäger', text: 'Alle fünf Kometen gefangen' },
+    ahnenforscher: { name: 'Ahnenforscher', text: 'Alle fünf Relikte zum Kuriositätenhändler gebracht' },
     weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
   },
 
@@ -138,12 +233,23 @@ window.SPACE_TEXTS = {
     boost: 'Antrieb verbessert',
     quest: 'Neuer Auftrag',
     delivered: 'Abgeliefert',
+    round2: 'Neue Aufträge',
+    round2Body: 'Fünf Kometen und fünf Relikte sind im System aufgetaucht.',
+    relicsGiven: 'Relikte übergeben',
   },
 
   /* großer Text im Bild beim Einsammeln */
   pickup: {
     crystal: 'Kristall',
     container: 'Frachtcontainer',
+    comet: 'Komet',
+    relic: 'Relikt',
+  },
+
+  /* Einträge in der Auftragsliste oben links */
+  questList: {
+    comets: 'Kometen fangen',
+    relics: 'Relikte',
   },
 
   /* Belohnungsdialoge */
@@ -159,6 +265,14 @@ window.SPACE_TEXTS = {
     quests: {
       title: 'Meisterbote!',
       body: 'Brief, Fisch, Fotoalbum, Kuchen und Ocarina sind angekommen. Im ganzen System spricht man von dir, und dein Antrieb ist jetzt 20 Prozent schneller.',
+    },
+    comets: {
+      title: 'Kometenjäger!',
+      body: 'Alle fünf Kometen sind gefangen. Ivy ist begeistert, und dein Antrieb ist jetzt 30 Prozent schneller.',
+    },
+    relics: {
+      title: 'Ahnenforscher!',
+      body: 'Die Relikte erzählen von einer längst untergegangenen Zivilisation. Dein Antrieb ist jetzt 20 Prozent schneller.',
     },
     final: {
       title: 'Glückwunsch!',
