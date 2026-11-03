@@ -254,7 +254,7 @@ window.SPACE_TEXTS = {
   },
 
   /*
-   * Neues Gebiet hinter der Lücke im Asteroidengürtel: Raumschiffwrack und Dunkler Planet.
+   * Neues Gebiet oben rechts außerhalb des Sonnensystems (grüner Nebel): Raumschiffwrack und Dunkler Planet.
    * {rest} = Zahl der noch fehlenden Schiffsteile.
    */
   zone: {
@@ -394,7 +394,7 @@ window.SPACE_TEXTS = {
     amor: { name: 'Amor', text: 'Den Liebesbrief überbracht' },
     kometenjaeger: { name: 'Kometenjäger', text: 'Alle fünf Kometen gefangen' },
     ahnenforscher: { name: 'Ahnenforscher', text: 'Alle fünf Relikte zum Kuriositätenhändler gebracht' },
-    grenzgaenger: { name: 'Grenzgänger', text: 'Das Gebiet hinter dem Asteroidengürtel betreten' },
+    grenzgaenger: { name: 'Grenzgänger', text: 'Den grünen Nebel jenseits des Sonnensystems betreten' },
     ghostbuster: { name: 'Ghostbuster', text: 'Gwynn aus ihrer körperlosen Form befreit' },
     helfer: { name: 'Helfer in der Not', text: 'Justus’ Raumschiff wieder zusammengesetzt' },
     weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
@@ -451,7 +451,7 @@ window.SPACE_TEXTS = {
     },
     border: {
       title: 'Grenzgänger!',
-      body: 'Du hast den Asteroidengürtel hinter dir gelassen und ein unbekanntes Gebiet betreten. Dein Antrieb ist jetzt 10 Prozent schneller.',
+      body: 'Du hast das Sonnensystem hinter dir gelassen und ein unbekanntes Gebiet betreten. Dein Antrieb ist jetzt 10 Prozent schneller.',
     },
     final: {
       title: 'Glückwunsch!',

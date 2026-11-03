@@ -1,7 +1,7 @@
 # Space
 
 Ein ruhiges Pixel-Browserspiel: Ein kleines Raumschiff fliegt per Tippen durch ein
-Sonnensystem (Sonne, 5 Planeten, 3 Monde um den Gasriesen, Asteroidengürtel als Kartenrand)
+Sonnensystem (Sonne, 5 Planeten, 3 Monde um den Gasriesen, Asteroidengürtel als Bogen über ein Fünftel des Randes)
 und sammelt 30 Kristalle.
 
 Reine statische Seite – kein Build, keine Abhängigkeiten.
@@ -27,19 +27,20 @@ Das Spiel ist in Kapitel eingeteilt:
 
 1. **Gute Reise!** – Sonnensystem, erste Aufträge.
 2. **Die Kometen kommen** – nach den ersten fünf Aufträgen (mit kurzer Zwischensequenz): neue Aufträge, Kometen, Relikte.
-3. **Das Wurmloch** – wenn Kapitel 2 erledigt ist, öffnet sich dort, wo man gerade ist, ein Wurmloch (Zwischensequenz). Dahinter liegt ein Urlaubssystem mit Doppelsonne, den Planeten Monos, Qratos und Stypos und den Kreuzfahrtschiffen Vida, Zida und Yipa. Die Figuren im alten Gebiet sprechen dann über das Wurmloch.
+3. **Das Wurmloch** – wenn Kapitel 2 erledigt ist, öffnet sich nach der Kapiteltafel (etwa vier Sekunden) dort, wo man gerade ist, ein Wurmloch (Zwischensequenz). Dahinter liegt ein Urlaubssystem mit lila Himmel, Doppelsonne, den Planeten Monos, Qratos und Stypos und den Kreuzfahrtschiffen Vida, Zida und Yipa, die gemächlich zwischen den Planeten und um die Doppelsonne kreuzen. Die Figuren im alten Gebiet sprechen dann über das Wurmloch.
 
 - Die Spielfigur heißt **Du**: Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit. Name und Beschreibung erscheinen direkt am Objekt, um das man kreist.
 - In der Nähe von Planeten, Stationen, dem Wrack und anderen Schiffen erscheint deren Name als kleines Schild.
 - Tippen auf eine Raumstation oder ein anderes Raumschiff: hinfliegen und ansprechen. Bei Begegnungen treiben beide Schiffe nebeneinander, ein Dialog öffnet sich in der Bildmitte, das Bild dahinter wird unscharf: beide Figuren nebeneinander (wer spricht, ist etwas größer), darunter Name und Text (was »Du« sagt, in Hellblau), ganz unten »Weiter« in einer Box. Auch hinter den Kapiteltafeln (mit Filmbalken) wird das Bild unscharf. Name und Beschreibung des Schiffs stehen dabei direkt am Schiff.
 - **Quests:** Jedes der drei Schiffe und jede der zwei Stationen gibt einen Auftrag (»!« über dem Auftraggeber). Den Gegenstand bringt man zum Zielplaneten (blaue Raute über dem Planeten).
-- **Sammeln:** 30 Kristalle und 10 verlorene Frachtcontainer.
+- **Sammeln:** 30 Kristalle (jeder macht den Antrieb 1 % schneller) und 10 verlorene Frachtcontainer.
 - **Zweite Runde:** Sind die ersten fünf Aufträge erledigt, geht es weiter:
   - Vier neue Lieferungen (Sieben Kräuter, Perlenkette, Geheimnisvoller Koffer, Kostbares Mineral).
   - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug; mit jedem Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
   - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
-- **Nebel:** Oben rechts hat der Asteroidengürtel eine Lücke. Dahinter liegt ein Nebel-Gebiet; fliegt man zu weit hinaus, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
+- **Rand:** Der Asteroidengürtel umspannt nur ein Fünftel des Systems (unten links). Fliegt man irgendwo zu weit hinaus – im Sonnensystem, im Nebel oder im Urlaubssystem –, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um.
+- **Nebel:** Oben rechts führt ein Korridor in ein grünes Nebel-Gebiet. Schiffe verdrängen den Nebel ein wenig, danach bildet er sich langsam nach. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
   - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
   - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
 - **Badges** (oben rechts als runde Pixel-Abzeichen; Antippen zeigt Name und Beschreibung):
