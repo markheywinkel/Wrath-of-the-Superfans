@@ -42,7 +42,7 @@ Das Spiel ist in Kapitel eingeteilt:
 - **Nebel:** Oben rechts hat der Asteroidengürtel eine Lücke. Dahinter liegt ein Nebel-Gebiet; fliegt man zu weit hinaus, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
   - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
   - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
-- **Badges** (oben rechts):
+- **Badges** (oben rechts als runde Pixel-Abzeichen; Antippen zeigt Name und Beschreibung):
   - Meistererkunder: alle Kristalle → Antrieb +20 %
   - Aufräumer: alle Container → Antrieb +10 %
   - Meisterbote: alle Quests → Antrieb +20 %

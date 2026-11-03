@@ -1383,11 +1383,48 @@
   // ----------------------------------------------------- badges & rewards
   const BADGE_IDS = Object.keys(TEXTS.badges);
   const FINAL_BADGE = 'weltenbummler';
+  /* Abzeichen: runde Pixel-Medaillen (13×13), Symbol 7×7 – '#' hell, '+' dunkel */
+  const BADGE_ART = {
+    meistererkunder: ['#2f7fd8', ['...#...', '..###..', '.##+##.', '###+###', '.##+##.', '..###..', '...#...']],
+    aufraeumer: ['#c8641f', ['#######', '#+++++#', '#######', '#+++++#', '#+++++#', '#+++++#', '#######']],
+    meisterbote: ['#2e9e6a', ['.......', '#######', '#+###+#', '##+#+##', '###+###', '#######', '.......']],
+    tourist: ['#6a5ad8', ['.......', '..###..', '.#####.', '+++++++', '.#####.', '..###..', '.......']],
+    amor: ['#e0457a', ['.......', '.##.##.', '#######', '#######', '.#####.', '..###..', '...#...']],
+    kometenjaeger: ['#1f9fb8', ['.....++', '...++..', '.##+...', '####...', '####...', '.##....', '.......']],
+    ahnenforscher: ['#a8743a', ['.#####.', '..###..', '.#####.', '#######', '#+++++#', '.#####.', '..###..']],
+    grenzgaenger: ['#55709a', ['#++++..', '#+++++.', '#++++..', '#......', '#......', '#......', '##.....']],
+    ghostbuster: ['#7a4fc0', ['..###..', '.#####.', '.#+#+#.', '.#####.', '.#####.', '.#####.', '.#.#.#.']],
+    helfer: ['#c99a1c', ['..###..', '..###..', '#######', '#######', '#######', '..###..', '..###..']],
+    weltenbummler: ['#f0b632', ['...#...', '...#...', '#######', '.#####.', '..###..', '.##.##.', '.#...#.']],
+  };
+  const badgeIcons = {};
+  function badgeIcon(id) {
+    if (badgeIcons[id]) return badgeIcons[id];
+    const [col, sym] = BADGE_ART[id] || ['#7fe0ff', []];
+    const c = document.createElement('canvas'); c.width = c.height = 13;
+    const x = c.getContext('2d');
+    const base = hex(col);
+    const mix = (k, t) => `rgb(${base.map(v => Math.round(v + (t - v) * k)).join(',')})`;
+    for (let j = 0; j < 13; j++) for (let i = 0; i < 13; i++) {
+      const d = Math.hypot(i - 6, j - 6);
+      if (d > 6.4) continue;
+      // Rand dunkel, Fläche in der Farbe, oben links ein Glanz
+      x.fillStyle = d > 5.3 ? mix(0.55, 10) : (i + j < 7 && d > 3.8 ? mix(0.35, 255) : col);
+      x.fillRect(i, j, 1, 1);
+    }
+    sym.forEach((row, j) => [...row].forEach((ch, i) => {
+      if (ch === '.') return;
+      x.fillStyle = ch === '#' ? mix(0.82, 255) : mix(0.45, 20);
+      x.fillRect(i + 3, j + 3, 1, 1);
+    }));
+    return (badgeIcons[id] = c.toDataURL());
+  }
+
   function award(id) {
     if (badges.has(id)) return;
     badges.add(id);
     const b = TEXTS.badges[id];
-    toast(TEXTS.toast.badge, esc(b.name), 'badge');
+    toast(TEXTS.toast.badge, `<img class="t-badge" src="${badgeIcon(id)}" alt="">${esc(b.name)}`, 'badge');
     renderBadges();
     if (id !== FINAL_BADGE) checkFinal();
   }
@@ -2435,9 +2472,10 @@
       const b = TEXTS.badges[id];
       const el = document.createElement('button');
       el.type = 'button';
-      el.className = 'badge box' + (id === FINAL_BADGE ? ' top' : '');
+      el.className = 'badge' + (id === FINAL_BADGE ? ' top' : '');
       el.title = `${b.name}: ${b.text}`;
-      el.textContent = b.name;
+      el.setAttribute('aria-label', el.title);
+      el.innerHTML = `<img src="${badgeIcon(id)}" alt="">`;
       el.addEventListener('click', () => toast(b.name, esc(b.text)));
       badgeEl.append(el);
     }
@@ -2791,6 +2829,6 @@
     get chapter() { return chapter; }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
     get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
-    step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
+    award, step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
   };
 })();
