@@ -27,7 +27,10 @@ Das Spiel ist in Kapitel eingeteilt:
 
 1. **Gute Reise!** – Sonnensystem, erste Aufträge.
 2. **Die Kometen kommen** – nach den ersten fünf Aufträgen (mit kurzer Zwischensequenz): neue Aufträge, Kometen, Relikte.
-3. **Das Wurmloch** – wenn Kapitel 2 erledigt ist, öffnet sich nach der Kapiteltafel (etwa vier Sekunden) dort, wo man gerade ist, ein Wurmloch (Zwischensequenz). Dahinter liegt ein Urlaubssystem mit lila Himmel, Doppelsonne, den Planeten Monos, Qratos und Stypos und den Kreuzfahrtschiffen Vida, Zida und Yipa, die gemächlich zwischen den Planeten und um die Doppelsonne kreuzen. Die Figuren im alten Gebiet sprechen dann über das Wurmloch.
+3. **Das Wurmloch** – sobald alle fünf Kometen gefangen sind, öffnet sich nach der Kapiteltafel (etwa vier Sekunden) dort, wo man gerade ist, ein Wurmloch (Zwischensequenz). Die übrigen Aufträge aus Kapitel 2 laufen weiter. Dahinter liegt ein großes Urlaubssystem mit lila Himmel, Doppelsonne, den weit auseinanderliegenden Planeten Monos, Qratos und Stypos, einem Asteroidengürtel über ein Drittel des Randes und den Kreuzfahrtschiffen Vida, Zida und Yipa, die schwerfällig zwischen den Planeten und um die Doppelsonne kreuzen. Die Figuren im alten Gebiet sprechen dann über das Wurmloch.
+   - Im Urlaubssystem liegen zehn lila Frachtcontainer (eigener Zähler oben links) → Badge Müllabfuhr, Antrieb +10 %.
+   - Zwei sehr schnelle Kometen umkreisen die Doppelsonne; jeder gefangene Komet bringt +10 %.
+   - Gwynn (im Nebel) bittet um drei Alien-Relikte: eines im Nebel, eines im Sonnensystem, eines im Urlaubssystem. Alle drei gefunden → das Schiff wird golden, Antrieb +10 %.
 
 - Die Spielfigur heißt **Du**: Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit. Name und Beschreibung erscheinen direkt am Objekt, um das man kreist.
@@ -40,10 +43,10 @@ Das Spiel ist in Kapitel eingeteilt:
   - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, etwa so schnell wie das Schiff im Standardflug; mit jedem Kristall und Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
   - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
 - **Rand:** Der Asteroidengürtel umspannt nur ein Fünftel des Systems (unten links). Fliegt man irgendwo zu weit hinaus – im Sonnensystem, im Nebel oder im Urlaubssystem –, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um.
-- **Nebel:** Oben rechts schließt sich fließend ein grünes Nebel-Gebiet an; ein breiter, unmarkierter Übergang führt hinein, der Nebel wird zum Rand hin allmählich dichter. Schiffe verdrängen den Nebel ein wenig, danach bildet er sich langsam nach. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
+- **Nebel:** Oben rechts schließt sich fließend ein großes grünes Nebel-Gebiet an (das Wrack liegt ein gutes Stück im Inneren); ein breiter, unmarkierter Übergang führt hinein, der Nebel wird zum Rand hin allmählich dichter. Schiffe verdrängen den Nebel ein wenig, danach bildet er sich langsam nach. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
   - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
   - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
-- **Badges** (oben rechts als runde Pixel-Abzeichen; Antippen zeigt Name und Beschreibung):
+- **Badges** (oben rechts als runde Pixel-Abzeichen; Antippen zeigt Name und Beschreibung). Ein neues Badge erscheint als eine Meldung mit Abzeichen, Name und darunter dem Geschwindigkeitsbonus:
   - Meistererkunder: alle Kristalle → Antrieb +20 %
   - Aufräumer: alle Container → Antrieb +10 %
   - Meisterbote: alle Quests → Antrieb +20 %
@@ -54,6 +57,7 @@ Das Spiel ist in Kapitel eingeteilt:
   - Grenzgänger: das neue Gebiet betreten → Antrieb +10 %
   - Ghostbuster: Gwynn befreit
   - Helfer in der Not: Justus’ Raumschiff zusammengesetzt
+  - Müllabfuhr: alle zehn Container im Urlaubssystem → Antrieb +10 %
   - Weltenbummler: alle anderen Badges und alle Aufträge → Abschlussdialog mit »Weiterfliegen« oder »Neu beginnen«
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.

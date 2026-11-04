@@ -299,6 +299,17 @@ window.SPACE_TEXTS = {
       desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
       with: 'gwynn',
       talk: [['gwynn', 'Ich fliege wieder selbst. Ohne dich wäre ich immer noch ein Schatten zwischen den Trümmern. Danke!']],
+      // Kapitel 3: drei Alien-Relikte (im Nebel, im Sonnensystem, hinter dem Wurmloch)
+      alien: {
+        offer: [
+          ['gwynn', 'Seit das Wurmloch offen ist, spüre ich ein Echo. Dieselbe fremde Technik, die mich damals in einen Schatten verwandelt hat.'],
+          ['gwynn', 'Drei Relikte der Fremden senden es aus: eines hier im Nebel, eines in eurem Sonnensystem und eines hinter dem Wurmloch.'],
+          ['du', 'Und wenn ich sie einsammle?'],
+          ['gwynn', 'Dann legt sich ihr Glanz auf dein Schiff. Bring sie zusammen – ich bin gespannt, was passiert.'],
+        ],
+        waiting: [['gwynn', 'Noch {rest} Alien-Relikte. Eines im Nebel, eines im Sonnensystem, eines hinter dem Wurmloch.']],
+        thanks: [['gwynn', 'Dein Schiff glänzt wie die Relikte selbst. Die Fremden hätten ihre Freude daran.']],
+      },
     },
     justus: {
       name: 'Reiseschiff Wanderer',
@@ -397,6 +408,7 @@ window.SPACE_TEXTS = {
     grenzgaenger: { name: 'Grenzgänger', text: 'Den grünen Nebel jenseits des Sonnensystems betreten' },
     ghostbuster: { name: 'Ghostbuster', text: 'Gwynn aus ihrer körperlosen Form befreit' },
     helfer: { name: 'Helfer in der Not', text: 'Justus’ Raumschiff wieder zusammengesetzt' },
+    muellabfuhr: { name: 'Müllabfuhr', text: 'Alle 10 Frachtcontainer im Urlaubssystem geborgen' },
     weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
   },
 
@@ -410,12 +422,17 @@ window.SPACE_TEXTS = {
     round2Body: 'Fünf Kometen und fünf Relikte sind im System aufgetaucht.',
     relicsGiven: 'Relikte übergeben',
     received: 'Erhalten',
+    // Zusatzzeile unter Badge und Belohnung, {n} = Prozent
+    speed: '+{n} % Geschwindigkeit',
+    golden: 'Goldenes Schiff',
   },
 
   /* großer Text im Bild beim Einsammeln */
   pickup: {
     crystal: 'Kristall',
     crystalBoost: '+1 % Geschwindigkeit',
+    fastComet: 'Schneller Komet',
+    alien: 'Alien-Relikt',
     container: 'Frachtcontainer',
     comet: 'Komet',
     relic: 'Relikt',
@@ -426,6 +443,7 @@ window.SPACE_TEXTS = {
   questList: {
     comets: 'Kometen fangen',
     relics: 'Relikte',
+    alien: 'Alien-Relikte',
   },
 
   /* Belohnungsdialoge */

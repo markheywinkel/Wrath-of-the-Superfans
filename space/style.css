@@ -447,3 +447,7 @@ body.talk .hud-left, body.talk .top-right, body.talk .pickup { opacity: 0.25; }
 @media (max-width: 480px) {
   .dialog .line { font-size: 17px; }
 }
+
+/* ---------- Badge-Meldung: Geschwindigkeitsbonus in Regular darunter ---------- */
+.toast .t-sub { margin-top: 2px; font-size: 15px; font-weight: 400; color: #eef2ff; }
+.counter[hidden] { display: none; }
