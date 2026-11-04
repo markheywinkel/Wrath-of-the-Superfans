@@ -37,10 +37,10 @@ Das Spiel ist in Kapitel eingeteilt:
 - **Sammeln:** 30 Kristalle (jeder macht den Antrieb 1 % schneller) und 10 verlorene Frachtcontainer.
 - **Zweite Runde:** Sind die ersten fünf Aufträge erledigt, geht es weiter:
   - Vier neue Lieferungen (Sieben Kräuter, Perlenkette, Geheimnisvoller Koffer, Kostbares Mineral).
-  - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug; mit jedem Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
+  - Die Forschungsstation gibt den Auftrag, fünf Kometen zu fangen. Die Kometen ziehen schnelle Ellipsenbahnen um die Sonne, etwa so schnell wie das Schiff im Standardflug; mit jedem Kristall und Antriebs-Upgrade wird es leichter. Antippen eines Kometen nimmt die Verfolgung auf.
   - Fünf Relikte tauchen auf, dazu das Händlerschiff Wunderkammer mit dem Kuriositätenhändler, der sie entgegennimmt.
 - **Rand:** Der Asteroidengürtel umspannt nur ein Fünftel des Systems (unten links). Fliegt man irgendwo zu weit hinaus – im Sonnensystem, im Nebel oder im Urlaubssystem –, erscheint »Du fliegst zu weit hinaus, kehr um!« und das Schiff kehrt um.
-- **Nebel:** Oben rechts führt ein Korridor in ein grünes Nebel-Gebiet. Schiffe verdrängen den Nebel ein wenig, danach bildet er sich langsam nach. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
+- **Nebel:** Oben rechts schließt sich fließend ein grünes Nebel-Gebiet an; ein breiter, unmarkierter Übergang führt hinein, der Nebel wird zum Rand hin allmählich dichter. Schiffe verdrängen den Nebel ein wenig, danach bildet er sich langsam nach. Darin liegt mit einem alten Raumschiffwrack und dem Dunklen Planeten. Tippt man ein Ziel im anderen Bereich an, fliegt das Schiff automatisch durch die Lücke.
   - Im Wrack wohnt eine körperlose Entität: Sie braucht das Blaue Elixier von Cies. Danach wird sie wieder zu Gwynn, einer Forscherin, und fliegt selbst durchs Gebiet.
   - Auf dem Dunklen Planeten bittet ein einsamer Reisender um fünf Teile seines Raumschiffs. Danach stellt er sich als Justus vor und fliegt ebenfalls umher.
 - **Badges** (oben rechts als runde Pixel-Abzeichen; Antippen zeigt Name und Beschreibung):

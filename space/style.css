@@ -238,7 +238,9 @@ canvas {
   opacity: 0;
   transform: translateY(-18vh);
 }
-.pickup.show { animation: pickup 1.6s ease forwards; }
+.pickup.show { animation: pickup 2s ease forwards; }
+.pickup { flex-direction: column; gap: 2px; }
+.pickup .sub { font-size: 15px; font-weight: 400; }
 @keyframes pickup {
   0% { opacity: 0; transform: translateY(-16vh) scale(0.96); }
   15% { opacity: 1; transform: translateY(-18vh) scale(1); }

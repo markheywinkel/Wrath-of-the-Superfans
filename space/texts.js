@@ -415,6 +415,7 @@ window.SPACE_TEXTS = {
   /* großer Text im Bild beim Einsammeln */
   pickup: {
     crystal: 'Kristall',
+    crystalBoost: '+1 % Geschwindigkeit',
     container: 'Frachtcontainer',
     comet: 'Komet',
     relic: 'Relikt',

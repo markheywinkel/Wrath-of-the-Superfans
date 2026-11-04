@@ -610,9 +610,9 @@
   // oben rechts führt ein Korridor aus dem Sonnensystem in ein rundes Nebel-Gebiet (Viertel der Fläche)
   const GATE_ANG = -Math.PI / 4;                      // oben rechts
   const GATE_UX = Math.cos(GATE_ANG), GATE_UY = Math.sin(GATE_ANG);
-  const GATE_HALF = 62;                               // halbe Breite des Durchgangs
+  const GATE_HALF = 120;                              // halbe Breite des Übergangs
   const ZONE_R = 400;
-  const ZONE_D = 792 + 70 + ZONE_R;                   // hinter dem äußeren Gürtelrand
+  const ZONE_D = SHIP_LIMIT + 10 + ZONE_R;            // schließt fast nahtlos an den Rand des Systems an
   const ZONE = { x: GATE_UX * ZONE_D, y: GATE_UY * ZONE_D, r: ZONE_R, d1: ZONE_R + 520 };
   const GATE_HALF_ANG = (GATE_HALF + 22) / 750;       // Winkelbreite der Lücke im Gürtel
   const inGate = ang => Math.abs(angDiff(ang, GATE_ANG)) < GATE_HALF_ANG;
@@ -715,15 +715,17 @@
         const x = ZONE.x + gx + (r() - 0.5) * 30, y = ZONE.y + gy + (r() - 0.5) * 30;
         if (Math.hypot(x - ZONE.x, y - ZONE.y) > ZONE.r + 10) continue;
         const p = Math.min(2, Math.floor(vnoise(x / 170, y / 170, 3, 21) * 3));
-        fogBack.push({ x, y, p, s: 1 + ((r() * 2) | 0), ph: r() * TAU, dx: 0, dy: 0 });
-        if (r() < 0.12) fogFront.push({ x: x + 10, y: y - 10, p, s: 2, ph: r() * TAU, dx: 0, dy: 0 });
+        const fade = clamp((ZONE.r + 10 - Math.hypot(x - ZONE.x, y - ZONE.y)) / 120, 0.18, 1);
+        fogBack.push({ x, y, p, s: 1 + ((r() * 2) | 0), ph: r() * TAU, dx: 0, dy: 0, fade });
+        if (r() < 0.12) fogFront.push({ x: x + 10, y: y - 10, p, s: 2, ph: r() * TAU, dx: 0, dy: 0, fade });
       }
     }
-    // Schwaden an den Wänden des Korridors
-    for (let t = 690; t <= ZONE_D - ZONE.r + 30; t += 16) {
-      for (const side of [-1, 1]) for (let layer = 0; layer < 2; layer++) {
-        const off = side * (GATE_HALF + 18 + layer * 30 + r() * 10);
-        fogFront.push({ x: GATE_UX * t - GATE_UY * off, y: GATE_UY * t + GATE_UX * off, p: 0, s: (r() * 3) | 0, ph: r() * TAU, wall: true, dx: 0, dy: 0 });
+    // ein paar zarte Schwaden im Übergang, damit der Nebel allmählich beginnt
+    for (let t = SHIP_LIMIT - 30; t <= ZONE_D - ZONE.r + 40; t += 22) {
+      for (let k = 0; k < 4; k++) {
+        const off = (r() * 2 - 1) * (GATE_HALF + 30);
+        const x = GATE_UX * t - GATE_UY * off, y = GATE_UY * t + GATE_UX * off;
+        fogBack.push({ x, y, p: (r() * 3) | 0, s: (r() * 2) | 0, ph: r() * TAU, dx: 0, dy: 0, fade: 0.12 + r() * 0.12 });
       }
     }
   }
@@ -817,11 +819,11 @@
   // zweite Runde: fünf Kometen auf langen Ellipsenbahnen um die Sonne, schneller als das Schiff im Standardflug
   const COMET_TOTAL = 5;
   const comets = [
-    { a: 380, e: 0.70, w: 0.4, v: 115 },
-    { a: 330, e: 0.60, w: 2.1, v: 122 },
-    { a: 360, e: 0.72, w: 3.6, v: 130 },
-    { a: 300, e: 0.50, w: 5.0, v: 137 },
-    { a: 410, e: 0.58, w: 1.2, v: 145 },
+    { a: 380, e: 0.70, w: 0.4, v: 68 },
+    { a: 330, e: 0.60, w: 2.1, v: 72 },
+    { a: 360, e: 0.72, w: 3.6, v: 76 },
+    { a: 300, e: 0.50, w: 5.0, v: 80 },
+    { a: 410, e: 0.58, w: 1.2, v: 84 },
   ].map((c, i) => Object.assign(c, { id: i, b: c.a * Math.sqrt(1 - c.e * c.e), E: i * 1.3 + 0.5, x: 0, y: 0, vx: 0, vy: 0, active: false, caught: false }));
   function cometPos(c, E) {
     const px = c.a * (Math.cos(E) - c.e), py = c.b * Math.sin(E); // Sonne im Brennpunkt
@@ -1731,7 +1733,7 @@
       burst(c.x, c.y, 'gold');
       sfx.play('crystal');
       updateHUD('coin');
-      pickupText(`${TEXTS.pickup.crystal} ${collected.size} / ${COIN_TOTAL} · +1 %`);
+      pickupText(`${TEXTS.pickup.crystal} ${collected.size} / ${COIN_TOTAL}`, TEXTS.pickup.crystalBoost);
       if (collected.size >= COIN_TOTAL) setTimeout(() => milestone('meistererkunder', 0.2, TEXTS.rewards.coins), 900);
     }
     for (const c of crates) {
@@ -2254,7 +2256,7 @@
       const sx = toSX(f.x + f.dx + Math.sin(time * 0.15 + f.ph) * 7), sy = toSY(f.y + f.dy + Math.cos(time * 0.12 + f.ph) * 7);
       if (!onScreen(sx, sy, spr.R + 4)) continue;
       const thin = 1 - Math.min(0.85, Math.hypot(f.dx, f.dy) / FOG_PUSH);
-      ctx.globalAlpha = (f.wall ? alphaWall : alphaInner) * thin;
+      ctx.globalAlpha = (f.wall ? alphaWall : alphaInner) * thin * (f.fade ?? 1);
       ctx.drawImage(spr.cv, Math.round(sx - spr.R), Math.round(sy - spr.R));
     }
     ctx.globalAlpha = 1;
@@ -2558,8 +2560,8 @@
 
   // großer Text im Bild beim Einsammeln
   const pickupEl = document.getElementById('pickup');
-  function pickupText(text) {
-    pickupEl.textContent = text;
+  function pickupText(text, sub) {
+    pickupEl.innerHTML = `<span class="main">${esc(text)}</span>` + (sub ? `<span class="sub">${esc(sub)}</span>` : '');
     pickupEl.classList.remove('show');
     void pickupEl.offsetWidth;
     pickupEl.classList.add('show');
