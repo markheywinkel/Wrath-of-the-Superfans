@@ -47,15 +47,15 @@ window.SPACE_TEXTS = {
   items: {
     brief: {
       name: 'Liebesbrief', target: 'aqua',
-      deliver: [['du', 'Über den grünen Kontinenten von Ayathla gebe ich den Brief ab. Hoffentlich schreibt sie zurück.']],
+      deliver: [['du', 'Auf Ayathla liefere ich den Liebesbrief ab. Die Empfängerin ist überglücklich.']],
     },
     aquarium: {
       name: 'Seltener Fisch', target: 'thalassa',
-      deliver: [['du', 'Zwischen den Städten von Thalyssa lasse ich den Fisch ins türkisfarbene Meer. Schon ist er verschwunden.']],
+      deliver: [['du', 'Auf Thalyssa lasse ich den Fisch im türkisfarbenen Meer frei. Schon ist er verschwunden.']],
     },
     fotobuch: {
       name: 'Fotoalbum', target: 'glacies',
-      deliver: [['du', 'In einer Mine auf Cies übergebe ich das Album. Sie blättert lange darin und lächelt.']],
+      deliver: [['du', 'In einer Mine auf Cies übergebe ich das Fotoalbum. Die Besitzerin blättert lange darin und lächelt.']],
     },
     kaesekuchen: {
       name: 'Leckerer Kuchen', target: 'gigas',
@@ -72,7 +72,7 @@ window.SPACE_TEXTS = {
     },
     koffer: {
       name: 'Geheimnisvoller Koffer', target: 'glacies',
-      deliver: [['du', 'Im Archiv tief im Eis von Cies stelle ich den Koffer ab. Er tickt leise. Oder bilde ich mir das nur ein?']],
+      deliver: [['du', 'Im Archiv tief im Eis von Cies stelle ich den Koffer ab. Er brummt leise. Oder bilde ich mir das nur ein?']],
     },
     mineral: {
       name: 'Kostbares Mineral', target: 'thalassa',
@@ -93,11 +93,11 @@ window.SPACE_TEXTS = {
     },
     koffer2: {
       name: 'Geheimnisvoller Koffer', target: 'glacies',
-      deliver: [['du', 'Im Archiv auf Cies stelle ich den zweiten Koffer neben den ersten. Jetzt ticken beide im Takt.']],
+      deliver: [['du', 'Im Archiv auf Cies stelle ich den zweiten Koffer neben den ersten. Jetzt brummen beide im Takt …']],
     },
     ocarina: {
       name: 'Ocarina der Zeit', target: 'ignis',
-      deliver: [['du', 'In einer Station über den Vulkanen von Ignis übergebe ich die Ocarina. Ein leiser Ton klingt durch die Gänge.']],
+      deliver: [['du', 'Auf Ignis übergebe ich die Ocarina der Zeit. Die Empfängerin spielt eine fröhliche Melodie.']],
     },
   },
 
@@ -112,22 +112,36 @@ window.SPACE_TEXTS = {
       with: 'quentin',
       quest: 'brief',
       offer: [
-        ['quentin', 'Ahoi! Gut, dass ich dich treffe. Die Normandy hat noch drei Wochen Fracht vor sich.'],
-        ['quentin', 'Auf Ayathla wartet jemand auf Nachricht von mir. Bringst du ihr diesen Brief?'],
-        ['du', 'Gern. Ich halte ihn gut fest.'],
+        ['quentin', 'Ahoi, Bote! Gut, dass ich dich treffe. Die Normandy hat noch drei Wochen Flug vor sich.'],
+        ['quentin', 'Aber auf Ayathla wartet jemand auf Nachricht von mir. Und unser Funk ist mal wieder kaputt.'],
+        ['quentin', 'Bringst du meiner Liebsten diesen Brief?'],
+        ['du', 'Gern. Du kannst dich auf mich verlassen. Gute Reise!'],
       ],
-      waiting: [['quentin', 'Ayathla ist der Planet mit den weiten grünen Kontinenten. Du kannst ihn nicht verfehlen.']],
-      thanks: [['quentin', 'Sie hat geantwortet! Danke dir. Ich zähle die Tage bis zum nächsten Landgang.']],
-      // zweite Runde
+      waiting: [
+        ['quentin', 'Hast du meinen Brief schon abgegeben?'],
+        ['du', 'Noch nicht. Es gibt viel zu tun.'],
+        ['quentin', 'Ayathla ist der Planet mit den weiten grünen Kontinenten. Du kannst ihn nicht verfehlen.'],
+      ],
+      thanks: [
+        ['quentin', 'Danke, dass du meiner Liebsten den Brief überbracht hast!'],
+        ['quentin', 'Ich zähle die Tage bis zum nächsten Landgang …'],
+        ['du', 'Ich hoffe, du bist bald wieder mit deiner Liebsten vereint.'],
+      ],
       round2: {
         quest: 'kraeuter',
         offer: [
-          ['quentin', 'Da bist du ja wieder! Der Brief hat Wunder gewirkt.'],
+          ['quentin', 'Da bist du ja wieder, Bote!'],
           ['quentin', 'Die Köche unter den Kuppeln von Gigas warten auf sieben Kräuter aus meinem Laderaum. Nimmst du sie mit?'],
-          ['du', 'Mache ich. Es duftet herrlich.'],
+          ['du', 'Mache ich. Sie duften herrlich.'],
+          ['quentin', 'Lass schön die Finger von ihnen! Du sollst sie nur abliefern …'],
         ],
-        waiting: [['quentin', 'Sieben Kräuter, keins weniger. Die Köche zählen nach.']],
-        thanks: [['quentin', 'Ich habe gehört, es gab ein Festessen. Danke dir!']],
+        waiting: [
+          ['quentin', 'Sieben Kräuter, keins weniger. Die Köche zählen nach …'],
+        ],
+        thanks: [
+          ['quentin', 'Ich habe gehört, es gab ein Festessen auf Gigas.'],
+          ['quentin', 'Danke, dass du die Kräuter geliefert hast!'],
+        ],
       },
     },
     {
@@ -136,21 +150,32 @@ window.SPACE_TEXTS = {
       with: 'norman',
       quest: 'aquarium',
       offer: [
-        ['norman', 'Hallo! Ich habe einen ungewöhnlichen Passagier an Bord.'],
+        ['norman', 'Hallo, Bote! Ich habe einen ungewöhnlichen Passagier an Bord …'],
         ['norman', 'Einen seltenen Fisch aus den Meeren von Thalyssa. Er ist bei einem Händler gelandet und gehört zurück nach Hause.'],
-        ['du', 'Ich bringe ihn heim.'],
+        ['du', 'Der arme Kerl! Ich bringe ihn heim.'],
       ],
-      waiting: [['norman', 'Flieg ruhig und gleichmäßig. Er mag keine Wellen im Becken.']],
-      thanks: [['norman', 'Wieder zu Hause. Danke, dass du das übernommen hast.']],
+      waiting: [
+        ['norman', 'Flieg ruhig und gleichmäßig. Der Fisch mag keine Wellen, da wird ihm übel.'],
+      ],
+      thanks: [
+        ['norman', 'Ich habe gehört, dass der Fisch gut zu Hause angekommen ist!'],
+        ['norman', 'Danke, dass du den Auftrag übernommen hast.'],
+      ],
       round2: {
         quest: 'perlenkette',
         offer: [
-          ['norman', 'Schön, dich zu sehen. Eine Passagierin hat bei mir etwas liegen lassen.'],
+          ['norman', 'Schön, dich zu sehen, Bote!'],
+          ['norman', 'Eine Passagierin hat bei mir etwas liegen lassen …'],
           ['norman', 'Eine Perlenkette aus den Meeren von Thalyssa. Die Besitzerin wohnt auf Ayathla. Bringst du sie ihr?'],
-          ['du', 'Natürlich.'],
+          ['du', 'Na klar!'],
         ],
-        waiting: [['norman', 'Die Kette ist ein Erbstück. Pass gut auf sie auf.']],
-        thanks: [['norman', 'Sie hat mir eine Karte geschickt. Danke!']],
+        waiting: [
+          ['norman', 'Die Perlenkette ist ein Erbstück. Pass gut auf sie auf.'],
+        ],
+        thanks: [
+          ['norman', 'Die Passagierin mit der Perlenkette hat mir eine Karte geschickt.'],
+          ['norman', 'Danke, dass du die Kette überbracht hast!'],
+        ],
       },
     },
     {
@@ -159,21 +184,37 @@ window.SPACE_TEXTS = {
       with: 'adele',
       quest: 'fotobuch',
       offer: [
-        ['adele', 'Guten Tag. Keine Sorge, nur eine Fundsache.'],
-        ['adele', 'Dieses Fotoalbum wurde bei uns abgegeben. Es gehört einer Bergarbeiterin auf Cies und zeigt Bilder aus ihrer Schulzeit.'],
-        ['du', 'Ich bringe es ihr.'],
+        ['adele', 'Guten Tag, Bote! Keine Sorge, das ist keine Kontrolle …'],
+        ['adele', 'Dieses Fotoalbum wurde bei uns abgegeben. Es gehört einer Bergarbeiterin auf Cies.'],
+        ['adele', 'Die Fotos zeigen Partys, die sie wohl während des Studiums gefeiert hat. Ein wertvolles Andenken.'],
+        ['du', 'Ich bringe ihr das Album.'],
       ],
-      waiting: [['adele', 'Cies liegt ganz außen. Zieh dich warm an.']],
-      thanks: [['adele', 'Fall abgeschlossen. So mag ich das. Danke dir.']],
+      waiting: [
+        ['adele', 'Cies liegt ganz außen im System. Zieh dich warm an.'],
+      ],
+      thanks: [
+        ['adele', 'Fall abgeschlossen, Fotoalbum überbracht. Danke dir, Bote!'],
+      ],
       round2: {
         quest: 'koffer',
         offer: [
-          ['adele', 'Da bist du ja. Ich habe wieder etwas für dich.'],
-          ['adele', 'Einen geheimnisvollen Koffer, fest verschlossen. Er soll ins Archiv auf Cies. Frag lieber nicht, was drin ist.'],
-          ['du', 'Ich frage nicht.'],
+          ['adele', 'Da bist du ja, Bote. Ich habe wieder einen Auftrag für dich.'],
+          ['du', 'Worum geht’s diesmal?'],
+          ['adele', 'Um einen geheimnisvollen Koffer, fest verschlossen.'],
+          ['du', 'Oh …'],
+          ['adele', 'Wage es nicht, ihn zu öffnen. Er soll ins Archiv auf Cies. Frag lieber nicht, was drin ist.'],
+          ['du', 'Na gut, ich frage nicht.'],
         ],
-        waiting: [['adele', 'Und bitte nicht schütteln.']],
-        thanks: [['adele', 'Der Koffer ist sicher verwahrt. Gute Arbeit.']],
+        waiting: [
+          ['adele', 'Hast du den geheimnisvollen Koffer schon abgegeben?'],
+          ['du', 'Nein …'],
+          ['adele', 'Du wirst ihn doch wohl nicht geöffnet haben?'],
+          ['du', 'Natürlich nicht …'],
+          ['adele', 'Das will ich auch hoffen!'],
+        ],
+        thanks: [
+          ['adele', 'Der Koffer ist sicher verwahrt. Gute Arbeit, Bote!'],
+        ],
       },
     },
   ],
@@ -186,22 +227,30 @@ window.SPACE_TEXTS = {
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
-        ['ivy', 'Willkommen auf Genesis! Du kommst genau richtig.'],
+        ['ivy', 'Willkommen auf Genesis, Bote! Du kommst genau richtig.'],
+        ['du', 'Was gibt’s zu tun?'],
         ['ivy', 'Mein Bruder lebt auf Gigas unter den Kristallkuppeln und hat heute Geburtstag. Bringst du ihm diesen Kuchen?'],
-        ['du', 'Gern. Ich fliege vorsichtig.'],
+        ['du', 'Natürlich! Ich fliege vorsichtig.'],
       ],
-      waiting: [['ivy', 'Und nicht unterwegs naschen!']],
-      thanks: [['ivy', 'Er hat mir geschrieben, der Kuchen war ein Traum. Danke!']],
-      // zweite Runde: Kometen fangen (keine Lieferung)
+      waiting: [
+        ['ivy', 'Denk dran, der Kuchen soll nach Gigas. Und nicht unterwegs naschen!'],
+      ],
+      thanks: [
+        ['ivy', 'Mein Bruder hat mir geschrieben, der Kuchen war ein Traum. Danke, Bote!'],
+      ],
       round2: {
         quest: 'kometen',
         offer: [
-          ['ivy', 'Gut, dass du da bist! Unsere Instrumente zeigen fünf Kometen im System.'],
-          ['ivy', 'Sie sind schnell, schneller als dein Schiff. Kannst du alle fünf für unsere Forschung einfangen?'],
+          ['ivy', 'Gut, dass du da bist, Bote! Unsere Instrumente zeigen fünf Kometen im System.'],
+          ['ivy', 'Kannst du alle fünf für unsere Forschung einfangen?'],
           ['du', 'Ich versuche es.'],
         ],
-        waiting: [['ivy', 'Mit jedem Erfolg wird dein Antrieb schneller. Dann holst du sie ein.']],
-        thanks: [['ivy', 'Fünf Kometen! Die Proben werden uns jahrelang beschäftigen. Danke!']],
+        waiting: [
+          ['ivy', 'Mit jedem Erfolg wird dein Antrieb schneller. Dann holst du die Kometen locker ein.'],
+        ],
+        thanks: [
+          ['ivy', 'Fünf Kometen! Die Proben werden uns jahrelang beschäftigen. Danke, Bote!'],
+        ],
       },
     },
     outer: {
@@ -210,21 +259,34 @@ window.SPACE_TEXTS = {
       with: 'west',
       quest: 'ocarina',
       offer: [
-        ['west', 'Willkommen auf Orion. Ich habe eine Übergabe zu beurkunden.'],
-        ['west', 'Die Ocarina der Zeit, ein seltenes Relikt aus einer fernen Galaxis. Sie wurde einer Forscherin auf Ignis vermacht.'],
+        ['west', 'Willkommen auf Orion, Bote! Kannst du etwas für mich überbringen?'],
+        ['du', 'Das ist mein Job! Worum geht’s?'],
+        ['west', 'Um diese Ocarina der Zeit …'],
+        ['du', 'Was ist das für ein Ding?'],
+        ['west', 'Ein seltenes Relikt aus einer fernen Galaxis. Eine Forscherin auf Ignis will sie untersuchen.'],
         ['du', 'Ich bringe sie sicher hin.'],
       ],
-      waiting: [['west', 'Ignis ist der heiße Planet nah an der Sonne. Bleib über den Wolken.']],
-      thanks: [['west', 'Die Übergabe ist beurkundet. Vielen Dank für deine Hilfe.']],
+      waiting: [
+        ['west', 'Die Ocarina muss nach Ignis.'],
+        ['west', 'Das ist der heiße Planet nah an der Sonne. Bleib über den Wolken.'],
+      ],
+      thanks: [
+        ['west', 'Die Ocarina der Zeit ist gut angekommen. Vielen Dank für deine Hilfe, Bote!'],
+      ],
       round2: {
         quest: 'mineral',
         offer: [
-          ['west', 'Willkommen zurück. Ein Kaufvertrag ist unterzeichnet.'],
+          ['west', 'Willkommen zurück, Bote. Es gäbe mal wieder was zu erledigen …'],
+          ['du', 'Ich bin bereit!'],
           ['west', 'Dieses kostbare Mineral aus den Minen von Cies gehört nun einem Juwelier auf Thalyssa. Lieferst du es aus?'],
-          ['du', 'Gern.'],
+          ['du', 'Sicher doch.'],
         ],
-        waiting: [['west', 'Laut Vertrag muss es unversehrt ankommen.']],
-        thanks: [['west', 'Lieferung bestätigt. Alles hat seine Ordnung.']],
+        waiting: [
+          ['west', 'Laut Vertrag muss das Mineral unversehrt ankommen.'],
+        ],
+        thanks: [
+          ['west', 'Lieferung bestätigt. Alles hat seine Ordnung. Danke, Bote!'],
+        ],
       },
     },
   },
@@ -238,19 +300,35 @@ window.SPACE_TEXTS = {
     desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
     with: 'balthasar',
     intro: [
-      ['balthasar', 'Willkommen in der Wunderkammer! Ich sammle Kuriositäten aus allen Ecken des Alls.'],
-      ['balthasar', 'In diesem System sind fünf seltsame Relikte aufgetaucht. Bringst du sie mir? Ich möchte sie untersuchen.'],
+      ['balthasar', 'Willkommen in der Wunderkammer, Bote!'],
+      ['du', 'Wunderkammer?'],
+      ['balthasar', 'Ich sammle Kuriositäten aus allen Ecken des Alls.'],
+      ['du', 'Oh …!'],
+      ['balthasar', 'Ja, da staunst du!'],
+      ['balthasar', 'In diesem System sind fünf seltsame Relikte aufgetaucht. Bringst du sie mir?'],
       ['du', 'Ich halte die Augen offen.'],
     ],
-    handIn: [['balthasar', 'Ah, wunderbar! Damit habe ich {n} von 5 Relikten.']],
-    missing: [['balthasar', 'Es fehlen noch {rest} Relikte. Sie schimmern leise im Dunkeln.']],
-    complete: [
-      ['balthasar', 'Das ist das letzte! Lass mich kurz nachsehen …'],
-      ['balthasar', 'Unglaublich. Die Relikte stammen von einer längst untergegangenen Zivilisation. Sie war lange vor uns in diesem System.'],
-      ['du', 'Dann sind wir nicht die Ersten hier.'],
-      ['balthasar', 'Nein. Danke, dass du ihre Spuren gefunden hast.'],
+    handIn: [
+      ['balthasar', 'Ah, wunderbar! Damit habe ich {n} von 5 Relikten.'],
     ],
-    thanks: [['balthasar', 'Ich studiere die Relikte noch immer. Jeden Tag entdecke ich etwas Neues.']],
+    missing: [
+      ['balthasar', 'Es fehlen noch {rest} Relikte. Sie schimmern im Dunkeln.'],
+    ],
+    complete: [
+      ['balthasar', 'Das ist das letzte Relikt!'],
+      ['du', 'Und nun?'],
+      ['balthasar', 'Jetzt untersuche ich sie. Warte einen Moment …'],
+      ['balthasar', 'Unglaublich! Die Relikte stammen von einer längst untergegangenen Zivilisation. Sie war lange vor uns in diesem System.'],
+      ['du', 'Dann sind wir nicht die Ersten hier …?'],
+      ['balthasar', 'Ganz und gar nicht. Danke, dass du diese Spuren gefunden hast.'],
+      ['balthasar', 'Womöglich findest du noch mehr Hinweise auf diese fremde Zivilisation …'],
+      ['du', 'Ich halte die Augen offen!'],
+    ],
+    thanks: [
+      ['balthasar', 'Ich studiere die Relikte noch immer. Jeden Tag entdecke ich etwas Neues.'],
+      ['balthasar', 'Vielleicht findest du ja noch mehr Hinweise …'],
+      ['du', 'Ich halte die Augen offen!'],
+    ],
   },
 
   /*
@@ -324,10 +402,10 @@ window.SPACE_TEXTS = {
    * Schlüssel = Figur; »default« gilt für alle anderen.
    */
   wormholeTalk: {
-    quentin: 'Hast du schon dieses neue Wurmloch gesehen? Ich frage mich, was wohl dahinter liegt.',
-    norman: 'Das neue Wurmloch macht mir Angst. Ich halte mich lieber davon fern.',
+    quentin: 'Hast du schon dieses neue Wurmloch gesehen, Bote? Ich frage mich, was wohl dahinter liegt …',
+    norman: 'Das neue Wurmloch macht mir Angst. Ich halte mich lieber davon fern!',
     ivy: 'Wurmlöcher sind völlig ungefährliche Phänomene. Wenn ich die Zeit hätte, würde ich sofort hindurchfliegen.',
-    default: 'Ein Wurmloch ist aufgetaucht! Bestimmt werden bald die mutigsten Abenteurer hindurchfliegen!',
+    default: 'Ein Wurmloch ist aufgetaucht! Bestimmt werden bald die mutigsten Abenteurer hindurchfliegen …',
   },
 
   /*
