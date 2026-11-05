@@ -1219,7 +1219,7 @@
   window.addEventListener('pointerdown', () => sfx.init(), { capture: true });
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
-    if (cine.active) return;
+    if (menuOpen || cine.active) return;
     if (dialog.open) { dialogNext(); return; }
     const ix = e.clientX * pxPerCss, iy = e.clientY * pxPerCss;
 
@@ -1916,7 +1916,7 @@
 
   /** Begegnung: Spieler und Schiff treiben nebeneinander, Dialog öffnet sich. */
   function checkEncounters() {
-    if (dialog.open || ship.mode === 'drift' || modal.open || cine.active || notify.queue.some(n => n.type === 'modal' || n.type === 'cine')) return;
+    if (menuOpen || dialog.open || ship.mode === 'drift' || modal.open || cine.active || notify.busy || notify.queue.length) return;
     for (const npc of npcs) {
       if (npc.hidden || npc.cooldown > 0 || npc.state === 'drift') continue;
       if (Math.hypot(npc.x - ship.x, npc.y - ship.y) > 28) continue;
@@ -2003,12 +2003,8 @@
       pickupText(`${TEXTS.pickup.alien} ${aliensFound} / ${ALIEN_TOTAL}`);
       if (aliensFound >= ALIEN_TOTAL) {
         quests.alien = 'done';
-        setTimeout(() => {
-          speedBonus += 0.1;
-          makeGolden();
-          toast(TEXTS.toast.golden, speedLine(0.1), 'badge');
-          checkFinal();
-        }, 2000);
+        speedBonus += 0.1;
+        queueGoldenTransform();
       }
       renderQuests();
     }
@@ -2080,23 +2076,72 @@
     [WH.a.x, WH.a.y] = projectAllowed(ship.x + Math.cos(h) * 80, ship.y + Math.sin(h) * 80, 30);
   }
 
-  const cine = { active: false, t: 0, dur: 0, focus: null };
+  const cine = { active: false, t: 0, dur: 0, focus: null, item: null };
   function runCine(it) {
-    cine.active = true; cine.t = 0; cine.dur = it.dur; cine.focus = it.focus || null;
+    cine.active = true; cine.t = 0; cine.dur = it.dur; cine.focus = it.focus || null; cine.item = it;
     document.body.classList.add('cine');
     hideInfo();
     ship.mode = 'idle'; ship.goal = null; ship.route = []; marker = null;
     if (it.start) it.start();
-    setTimeout(() => showChapter(it.chapter), 300);
+    if (it.chapter != null) setTimeout(() => showChapter(it.chapter), 300);
   }
   function updateCine(dt) {
     if (!cine.active) return;
     cine.t += dt;
+    if (cine.item && cine.item.tick) cine.item.tick(cine.t, dt);
     if (cine.t < cine.dur) return;
     cine.active = false;
     document.body.classList.remove('cine');
+    const it = cine.item; cine.item = null;
+    if (it && it.end) it.end();
     notify.busy = false;
     setTimeout(pump, 300);
+  }
+
+  /** Die Alien-Relikte verwandeln das Schiff: es hält an, leuchtet auf und wird golden */
+  const goldenFx = { on: false, t: 0, done: false };
+  function queueGoldenTransform() {
+    const T = TEXTS.zone.gwynn.alien.transform;
+    notify.queue.push({
+      type: 'cine', dur: 4.6, focus: () => ship,
+      start: () => { ship.speed = 0; ship.turnVel = 0; goldenFx.on = true; goldenFx.t = 0; goldenFx.done = false; sfx.play('relic'); },
+      tick: (t, dt) => {
+        ship.speed *= Math.exp(-dt * 4);
+        goldenFx.t = t;
+        if (t > 2.4 && !goldenFx.done) {
+          goldenFx.done = true;
+          makeGolden();
+          for (let i = 0; i < 3; i++) burst(ship.x, ship.y, 'gold');
+          const fl = document.getElementById('flash');
+          fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go');
+          sfx.play('badge');
+        }
+      },
+      end: () => {
+        goldenFx.on = false;
+        toast(TEXTS.toast.golden, `${esc(T.message)}` + speedLine(0.1));
+        openDialog(null, T.lines, '', () => checkFinal());
+      },
+    });
+    pump();
+  }
+  /** Leuchten ums Schiff während der Verwandlung */
+  function drawGoldenGlow() {
+    if (!goldenFx.on) return;
+    const t = goldenFx.t, sx = toSX(ship.x), sy = toSY(ship.y, 4);
+    const grow = Math.min(1, t / 2.4), fade = t > 2.4 ? Math.max(0, 1 - (t - 2.4) / 1.8) : 1;
+    for (let k = 0; k < 4; k++) {
+      const r = 6 + grow * 22 * (1 - k * 0.2) + Math.sin(time * 6 + k) * 1.5;
+      const n = Math.round(r * 3);
+      ctx.globalAlpha = (0.25 + 0.15 * k) * fade;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * TAU + time * (1 + k * 0.6) * (k % 2 ? -1 : 1);
+        px(sx + Math.cos(a) * r, sy + Math.sin(a) * r * SIN_E * 1.3, ['#a8741a', '#f0b632', '#ffe48a', '#fffbe8'][k]);
+      }
+    }
+    ctx.globalAlpha = 0.18 * grow * fade;
+    px(sx - 14, sy - 10, '#fff2c0', 29, 21);
+    ctx.globalAlpha = 1;
   }
 
   function updateZone() {
@@ -2839,6 +2884,7 @@
       }
     }
     drawFog();
+    drawGoldenGlow();
     drawQuestMarkers();
     positionInfo();
     updateLabels();
@@ -2913,6 +2959,10 @@
   // großer Text im Bild beim Einsammeln
   const pickupEl = document.getElementById('pickup');
   function pickupText(text, sub) {
+    notify.queue.push({ type: 'pickup', text, sub });
+    pump();
+  }
+  function showPickupNow(text, sub) {
     pickupEl.innerHTML = `<span class="main">${esc(text)}</span>` + (sub ? `<span class="sub">${esc(sub)}</span>` : '');
     pickupEl.classList.remove('show');
     void pickupEl.offsetWidth;
@@ -3091,8 +3141,13 @@
   const dialog = { open: false, lines: [], idx: 0, onEnd: null, partner: null };
 
   /** Die Spielfigur (»Du«) spricht immer mit genau einer Figur (partner) – oder allein (partner = null). */
+  /** Dialoge laufen über die gemeinsame Warteschlange, damit nie zwei Einblendungen zugleich im Bild stehen */
   function openDialog(partner, lines, role, onEnd) {
     if (!lines || !lines.length) { if (onEnd) onEnd(); return; }
+    notify.queue.push({ type: 'dialog', partner, lines, role, onEnd });
+    pump();
+  }
+  function showDialogNow(partner, lines, role, onEnd) {
     document.body.classList.add('talk');
     dialog.open = true;
     dialog.lines = lines;
@@ -3133,7 +3188,7 @@
     const cb = dialog.onEnd;
     dialog.onEnd = null;
     if (cb) cb();
-    setTimeout(pump, 500);
+    setTimeout(() => { notify.busy = false; pump(); }, 450);
   }
   dialogEl.querySelector('.next').addEventListener('click', dialogNext);
 
@@ -3154,6 +3209,7 @@
   const reward = document.getElementById('reward');
   const modal = { open: false, current: null };
   const notify = { queue: [], busy: false };
+  let menuOpen = true;
   const TOAST_TIME = 2800;
   /** Einblendung: Titel (groß, ExtraBold) und darunter der Inhalt (HTML, bereits maskiert). */
   function toast(title, bodyHtml, sound) {
@@ -3168,6 +3224,11 @@
     notify.busy = true;
     if (it.type === 'cine') {
       runCine(it);
+    } else if (it.type === 'dialog') {
+      showDialogNow(it.partner, it.lines, it.role, it.onEnd);
+    } else if (it.type === 'pickup') {
+      showPickupNow(it.text, it.sub);
+      setTimeout(() => { notify.busy = false; pump(); }, 1950);   // so lange läuft die Animation (.pickup.show)
     } else if (it.type === 'toast') {
       if (it.sound) sfx.play(it.sound);
       const el = document.createElement('div');
@@ -3185,6 +3246,7 @@
       reward.querySelector('[data-action=restart]').textContent = it.restart || '';
       reward.classList.toggle('final', !!it.final);
       reward.classList.add('show');
+      document.body.classList.add('talk');
     }
   }
   function closeModal() {
@@ -3192,6 +3254,7 @@
     modal.open = false;
     modal.current = null;
     reward.classList.remove('show');
+    document.body.classList.remove('talk');
     setTimeout(() => { notify.busy = false; pump(); }, 500);
   }
   reward.addEventListener('click', e => {
@@ -3221,9 +3284,20 @@
     n.y = b.y + Math.sin(n.orbitAng) * n.orbitR;
     n.heading = n.orbitAng + n.orbitDir * Math.PI / 2;
   }
-  // Kapitel 1: Tafel mit Filmbalken wie bei den anderen Kapiteln
-  notify.queue.push({ type: 'cine', chapter: 0, dur: 4.6 });
-  pump();
+  // Startmenü; nach »Start« folgt Kapitel 1 mit Filmbalken wie die anderen Kapitel
+  const menuEl = document.getElementById('menu');
+  menuEl.querySelector('h1').textContent = TEXTS.menu.title;
+  menuEl.querySelector('button').textContent = TEXTS.menu.start;
+  menuEl.querySelector('button').addEventListener('click', () => {
+    if (!menuOpen) return;
+    menuOpen = false;
+    sfx.init();
+    menuEl.classList.add('gone');
+    document.body.classList.remove('menu');
+    setTimeout(() => menuEl.remove(), 900);
+    notify.queue.push({ type: 'cine', chapter: 0, dur: 4.6 });
+    pump();
+  });
   requestAnimationFrame(frame);
 
   // --- Mobil: kein versehentliches Hineinzoomen (iOS Safari ignoriert user-scalable=no)
@@ -3247,7 +3321,7 @@
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
     fogBack, comets, fastComets, resortCrates, alienRelics, relics, dealerNpc, startRound2, relicsFound, RESORT, WH, resortNpcs, cine,
-    get chapter() { return chapter; }, setChapter: v => { chapter = v; updateHUD(); }, alienState, CITY, ALIEN, WH2, get golden() { return golden; }, setRelicsGiven: n => { relicsGiven = n; }, get speedBonusPct() { return Math.round(speedBonus * 100); }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
+    get chapter() { return chapter; }, get menuOpen() { return menuOpen; }, setChapter: v => { chapter = v; updateHUD(); }, alienState, CITY, ALIEN, WH2, get golden() { return golden; }, setRelicsGiven: n => { relicsGiven = n; }, get speedBonusPct() { return Math.round(speedBonus * 100); }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
     get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
     award, step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,

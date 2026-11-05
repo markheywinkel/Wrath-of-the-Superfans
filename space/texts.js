@@ -4,6 +4,8 @@
  * Dialogzeilen sind Paare aus [Sprecher, Text]; Sprecher = Schlüssel aus »characters«.
  */
 window.SPACE_TEXTS = {
+  // Startmenü
+  menu: { title: 'Space Delivery', start: 'Start' },
   intro: 'Gute Reise!',
   /* Kapitel: erscheinen groß im Bild (Kapitel 2 und 3 mit kurzer Zwischensequenz) */
   chapters: [
@@ -415,6 +417,15 @@ window.SPACE_TEXTS = {
         waiting: [
           ['gwynn', 'Noch {rest} Alien-Relikte. Eines im Nebel, eines im Sonnensystem, eines hinter dem Wurmloch.'],
         ],
+        // Verwandlung ins goldene Schiff, sobald alle drei Relikte gefunden sind
+        transform: {
+          message: 'Die Relikte haben dein Schiff widerstandsfähiger gemacht.',
+          lines: [
+            ['du', 'Wow, mein Schiff hat ein Update bekommen!'],
+            ['du', 'Die Schilde sind bedeutend stärker.'],
+            ['du', 'Damit kann ich durch jedes Wurmloch fliegen …'],
+          ],
+        },
         thanks: [
           ['gwynn', 'Dein Schiff glänzt wie die Relikte selbst.'],
           ['gwynn', 'Ich frage mich …'],

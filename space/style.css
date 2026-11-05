@@ -451,3 +451,48 @@ body.talk .hud-left, body.talk .top-right, body.talk .pickup { opacity: 0.25; }
 /* ---------- Badge-Meldung: Geschwindigkeitsbonus in Regular darunter ---------- */
 .toast .t-sub { margin-top: 2px; font-size: 15px; font-weight: 400; color: #eef2ff; }
 .counter[hidden] { display: none; }
+
+/* ---------- Startmenü ---------- */
+.startmenu {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 0 16px;
+  text-align: center;
+  transition: opacity 0.8s ease;
+}
+.startmenu h1 {
+  margin: 0;
+  font-size: clamp(44px, 11vw, 112px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.startmenu.gone { opacity: 0; pointer-events: none; }
+.startmenu .start, .reward-panel .btn {
+  min-height: 44px;
+  padding: 10px 34px;
+  font-size: 18px;
+  border: 1px solid var(--accent);
+  background: rgba(127, 224, 255, 0.08);
+  text-shadow: none;
+}
+.startmenu .start:hover, .reward-panel .btn:hover { background: rgba(127, 224, 255, 0.16); }
+.startmenu .start::after, .reward-panel .btn::after { content: ''; }
+body.menu #game, body.menu #labels { filter: blur(7px) brightness(0.7); }
+body.menu .hud-left, body.menu .top-right { opacity: 0; }
+
+/* ---------- Abschlussfenster wie ein Dialog, Hintergrund unscharf ---------- */
+.modal { background: rgba(2, 3, 10, 0.2); z-index: 6; }
+.reward-panel { width: min(560px, 100%); }
+.reward-panel h2 { font-size: clamp(28px, 6vw, 40px); font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 14px; }
+.reward-panel .body { font-size: 19px; line-height: 1.5; color: #eef2ff; margin-bottom: 26px; }
+.reward-panel .btn:not(.primary) { border-color: var(--muted); background: none; }
+@media (max-width: 480px) { .reward-panel .body { font-size: 17px; } }
