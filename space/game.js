@@ -676,8 +676,8 @@
   const WRECK = Object.assign({ id: 'wreck', zone: true, fixed: true, avoidR: 54, coreR: 40, size: 40 }, inZone(40, -150));
 
   /*
-   * Sektor der Aliens: viele große Schiffe treiben wie eine Stadt. Die ersten sieben sind
-   * Wohnschiffe der Aliens, mit denen man sprechen kann.
+   * Sektor der Aliens: viele metallische Sphären treiben wie eine Stadt. Die ersten sieben sind
+   * Wohnsphären der Aliens, mit denen man sprechen kann.
    */
   const ALIEN_IDS = Object.keys(TEXTS.aliens.list);
   const CITY = (() => {
@@ -690,10 +690,7 @@
       if (list.some(o => Math.hypot(o.x - x, o.y - y) < o.size + size + 46)) continue;
       if (Math.hypot(x - WH2.b.x, y - WH2.b.y) < size + 90) continue;
       const alien = ALIEN_IDS[list.length] || null;
-      // Bauform passend zum Namen (Kuppel-, Turm-, Ringschiff), sonst zufällig
-      const home = alien ? TEXTS.aliens.list[alien].home : '';
-      const rt = ['dome', 'tower', 'ring'][(r() * 3) | 0];
-      const type = /^Kuppel/.test(home) ? 'dome' : /^Turm/.test(home) ? 'tower' : /^Ring/.test(home) ? 'ring' : rt;
+      const type = 'sphere';
       list.push({ id: 'city' + list.length, city: true, fixed: true, alien, x, y, size,
         avoidR: Math.round(size + 14), coreR: Math.round(size * 0.8), type,
         seed: (r() * 1e6) | 0, phase: r() * TAU });
@@ -767,87 +764,120 @@
   }
 
   // altes Raumschiffwrack: einmal vorgezeichnet
+  /*
+   * Metallische Pixel-Kugel (Silber, Gold, Bronze …): Licht von oben links, Glanzpunkt,
+   * Panelnähte, auf Wunsch abgewetzt (Flecken, Kratzer, Risse, Loch).
+   * pal = fünf Töne von dunkel nach hell.
+   */
+  const METALS = {
+    silver: ['#22262f', '#525867', '#9198aa', '#cfd5e2', '#ffffff'],
+    steel: ['#1c2430', '#46566c', '#8496b0', '#c4d2e6', '#f4f8ff'],
+    gold: ['#33220a', '#765412', '#c38f26', '#efcc68', '#fff6d6'],
+    palegold: ['#3a2e14', '#7e6a34', '#c4ac68', '#ece0a8', '#fffbe8'],
+    bronze: ['#2a1608', '#673818', '#a6663a', '#d69e6e', '#fff0dc'],
+    copper: ['#2c120c', '#6e2e1e', '#b25a3a', '#e49a74', '#fff0e6'],
+    tarnish: ['#141210', '#3a342c', '#6e6250', '#a29478', '#d8ccb0'],
+  };
+  function paintSphere(c, cx, cy, R, pal, o = {}) {
+    const rnd = mulberry32(o.seed || 1);
+    const Lx = -0.52, Ly = -0.62, Lz = 0.59;
+    const hole = o.hole;   // {x, y, r}: Loch in der Hülle (Wrack)
+    for (let y = -R; y <= R; y++) for (let x = -R; x <= R; x++) {
+      const d2 = x * x + y * y;
+      if (d2 > R * R) continue;
+      const nx = x / R, ny = y / R, nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+      if (hole) {
+        const hd = Math.hypot(x - hole.x, y - hole.y) / (hole.r * (0.75 + 0.5 * vnoise(x * 0.35, y * 0.35, 0, 77)));
+        if (hd < 1) {
+          // Blick ins dunkle Innere, ein paar Streben
+          const rib = (Math.abs(x - hole.x + y * 0.3) % 6) < 1 || (Math.abs(y - hole.y) % 7) < 1;
+          c.fillStyle = rib ? '#2a2420' : '#07060a';
+          c.fillRect(cx + x, cy + y, 1, 1);
+          continue;
+        }
+        if (hd < 1.18) { c.fillStyle = pal[3]; c.fillRect(cx + x, cy + y, 1, 1); continue; } // aufgerissene Kante
+      }
+      const diff = Math.max(0, nx * Lx + ny * Ly + nz * Lz);
+      const rz = 2 * diff * nz - Lz;                      // Reflexion Richtung Betrachter
+      const spec = Math.pow(Math.max(0, rz), 18);
+      const env = 0.12 * (1 - ny) * 0.5;                   // Himmel spiegelt sich oben etwas heller
+      const rim = Math.pow(1 - nz, 3) * 0.25;
+      let v = 0.08 + diff * 0.62 + spec * 0.9 + env + rim;
+      // Panelnähte (Längen- und Breitengrade)
+      const lon = Math.atan2(nx, nz), lat = Math.asin(Math.max(-1, Math.min(1, ny)));
+      const seam = Math.abs(Math.sin(lon * (o.seams || 4))) < 0.07 || Math.abs(Math.sin(lat * 3)) < 0.05;
+      if (seam) v -= 0.16;
+      if (o.worn) {
+        v -= 0.28 * Math.max(0, vnoise(x * 0.18, y * 0.18, 3, o.seed || 9) - 0.45);   // Flecken
+        v -= 0.12 * vnoise(x * 0.6, y * 0.6, 5, 31);
+      }
+      const q = Math.max(0, Math.min(4, Math.floor(v * 4.2 + BAYER[((y + 64) & 3) * 4 + ((x + 64) & 3)] - 0.25)));
+      c.fillStyle = pal[q];
+      c.fillRect(cx + x, cy + y, 1, 1);
+    }
+    // Kontur
+    c.fillStyle = '#0a080c';
+    for (let a = 0; a < 360; a += 1) {
+      const t = (a / 180) * Math.PI;
+      c.fillRect(Math.round(cx + Math.cos(t) * (R + 0.6)), Math.round(cy + Math.sin(t) * (R + 0.6)), 1, 1);
+    }
+    if (o.lights) {
+      // Fensterband knapp unter dem Äquator
+      const yb = Math.round(R * 0.18), half = Math.sqrt(R * R - yb * yb) - 2;
+      for (let x = -half; x <= half; x += 3) {
+        if (rnd() < 0.25) continue;
+        c.fillStyle = o.lights[(rnd() * o.lights.length) | 0];
+        c.fillRect(Math.round(cx + x), cy + yb, 1, 1);
+      }
+    }
+    if (o.worn) {
+      // Kratzer (hell), Risse (dunkel, vom Loch aus)
+      for (let k = 0; k < 9; k++) {
+        let x = (rnd() * 2 - 1) * R * 0.7, y = (rnd() * 2 - 1) * R * 0.7;
+        const dx = 0.8 + rnd() * 0.4, dy = rnd() * 0.8 - 0.4, n = 3 + ((rnd() * 6) | 0);
+        for (let s = 0; s < n; s++, x += dx, y += dy) if (x * x + y * y < (R - 2) * (R - 2)) { c.fillStyle = pal[3]; c.fillRect(Math.round(cx + x), Math.round(cy + y), 1, 1); }
+      }
+      if (hole) for (let k = 0; k < 6; k++) {
+        let a = rnd() * Math.PI * 2, x = hole.x + Math.cos(a) * hole.r, y = hole.y + Math.sin(a) * hole.r;
+        for (let s = 0; s < 6 + rnd() * 8; s++) {
+          a += (rnd() - 0.5) * 0.9; x += Math.cos(a) * 1.2; y += Math.sin(a) * 1.2;
+          if (x * x + y * y < (R - 1) * (R - 1)) { c.fillStyle = '#0a080c'; c.fillRect(Math.round(cx + x), Math.round(cy + y), 1, 1); }
+        }
+      }
+    }
+  }
+
+  // altes Raumschiffwrack: eine zerschrammte, aufgerissene Metallkugel mit Trümmern drumherum
   const wreckSprite = (() => {
-    const Wd = 104, Ht = 52, cv = document.createElement('canvas');
+    const R = 30, Wd = 2 * R + 40, Ht = 2 * R + 24, cv = document.createElement('canvas');
     cv.width = Wd; cv.height = Ht;
     const c = cv.getContext('2d');
-    const P = (x, y, col, w = 1, h = 1) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
-    const out = '#0c0a12';
-    // vorderes Rumpfstück
-    P(6, 18, out, 48, 16); P(2, 22, out, 6, 8);
-    P(7, 19, '#8a8f9e', 46, 14); P(3, 23, '#7a7f8e', 5, 6);
-    P(7, 19, '#b4b8c4', 46, 3); P(7, 29, '#5a5e6c', 46, 4);
-    for (let x = 12; x < 50; x += 6) P(x, 24, '#1a1c26', 3, 2);
-    P(24, 24, '#e8c86a', 1, 1); P(42, 24, '#7fe0ff', 1, 1);
-    P(16, 27, '#8a5a3a', 6, 2); P(36, 21, '#8a5a3a', 4, 2);
-    P(30, 12, out, 10, 8); P(31, 13, '#9aa0ae', 8, 6); P(31, 13, '#c4c8d2', 8, 2);   // Brückenturm
-    // Bruchkante mit Spanten
-    for (let y = 19; y < 33; y += 3) P(53, y, '#4a4e5a', 3, 1);
-    // hinteres Rumpfstück, leicht versetzt
-    P(60, 22, out, 36, 18); P(61, 23, '#7e8392', 34, 16); P(61, 23, '#a8adb9', 34, 3); P(61, 35, '#50545f', 34, 4);
-    for (let y = 25; y < 37; y += 5) P(95, y, '#2a2c36', 6, 3);                     // Triebwerke
-    P(70, 28, '#8a5a3a', 8, 2); P(84, 26, '#1a1c26', 3, 2);
-    for (let x = 58; x < 62; x++) P(x, 24 + (x % 2) * 8, '#4a4e5a', 1, 6);
-    P(72, 8, out, 6, 15); P(73, 9, '#8a8f9e', 4, 13);                                 // abgeknickte Flosse
-    // Trümmer
-    P(50, 40, '#6a6e7a', 3, 2); P(46, 10, '#6a6e7a', 2, 2); P(98, 14, '#6a6e7a', 2, 3); P(20, 40, '#5a5e6c', 4, 2);
-    // Schäden: ausgefranste Kanten, Löcher, Brandspuren, Rost, Kabel, mehr Trümmer
-    const C = (x, y, w = 1, h = 1) => c.clearRect(x, y, w, h);
-    C(26, 19, 3, 2); C(47, 31, 4, 2); C(18, 32, 2, 1); C(66, 22, 4, 2); C(90, 37, 3, 2); C(80, 22, 2, 1); C(36, 12, 2, 2);
-    P(10, 27, '#2a1a14', 9, 3); P(12, 26, '#3a2418', 5, 1); P(63, 33, '#2a1a14', 11, 3); P(40, 29, '#3a2418', 6, 2); P(84, 23, '#2a1a14', 6, 2);
-    for (const [x, y, w, h] of [[20, 22, 3, 3], [46, 26, 4, 2], [77, 25, 3, 4], [88, 31, 2, 3], [33, 30, 2, 2], [64, 27, 2, 2]]) {
-      P(x - 1, y - 1, '#3a3e48', w + 2, h + 2); P(x, y, '#05040a', w, h);
+    const cx = Wd / 2, cy = Ht / 2;
+    paintSphere(c, cx, cy, R, METALS.tarnish, { worn: true, seed: 4401, seams: 5, hole: { x: -9, y: 5, r: 10 } });
+    // abgeplatzte Panele
+    c.fillStyle = '#2a2420'; c.fillRect(cx + 10, cy - 14, 5, 3); c.fillRect(cx + 16, cy + 6, 3, 4); c.fillRect(cx - 4, cy - 22, 4, 2);
+    // Trümmer: Kugelsplitter
+    const r = mulberry32(99);
+    for (let k = 0; k < 9; k++) {
+      const a = r() * Math.PI * 2, d = R + 5 + r() * 12;
+      const x = Math.round(cx + Math.cos(a) * d), y = Math.round(cy + Math.sin(a) * d * 0.7);
+      const w = 1 + ((r() * 3) | 0), h = 1 + ((r() * 2) | 0);
+      c.fillStyle = '#0a080c'; c.fillRect(x - 1, y - 1, w + 2, h + 2);
+      c.fillStyle = r() < 0.5 ? METALS.tarnish[2] : METALS.tarnish[3]; c.fillRect(x, y, w, h);
     }
-    for (const [x, y, h] of [[29, 25, 4], [43, 22, 3], [70, 30, 5], [86, 34, 4], [15, 23, 3]]) P(x, y, '#8a4a2a', 1, h);
-    P(24, 20, '#6a5040', 6, 1); P(62, 24, '#6a5040', 8, 1);
-    for (let y = 22; y < 40; y += 3) P(58, y, '#4a4e5a', 2, 1);
-    P(53, 33, '#c8a040'); P(54, 34, '#c8a040'); P(55, 36, '#c8a040'); P(55, 37, '#a87a30'); P(56, 39, '#a87a30');
-    P(57, 44, '#5a5e6c', 2, 2); P(84, 46, '#4a4e5a', 3, 1); P(12, 12, '#6a6e7a', 2, 1); P(100, 42, '#5a5e6c', 2, 2); P(30, 46, '#4a4e5a', 2, 1); P(64, 6, '#6a6e7a', 1, 2);
     return { cv, Wd, Ht };
   })();
 
-  /** Pixel-Sprite eines Stadtschiffs (elfenbein, gold, türkise Glaskuppeln, bunte Lichter) */
+  /** Wohnsphären der Aliens: metallische Kugeln in Silber, Gold, Bronze, unterschiedlich groß */
+  const CITY_METALS = ['silver', 'gold', 'bronze', 'steel', 'palegold', 'copper'];
   function makeCityShip(o) {
-    const s = Math.round(o.size), Wd = s * 2 + 10, Ht = Math.round(s * 1.5) + 14;
+    const R = Math.round(o.size * 0.82), Wd = 2 * R + 6, Ht = 2 * R + 6;
     const cv = document.createElement('canvas'); cv.width = Wd; cv.height = Ht;
     const c = cv.getContext('2d');
-    const P = (x, y, col, w = 1, h = 1) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
     const r = mulberry32(o.seed);
-    const out = '#1a1408', hull = '#e8dcb8', hullL = '#fff4d8', hullD = '#a89870', hullDD = '#6a5a38';
-    const glass = '#3affd0', glassL = '#c8fff0', lights = ['#ffd84a', '#ff7ae0', '#7fe0ff', '#ffffff'];
-    const cx = Wd / 2, base = Ht - 8;
-    const ell = (ex, ey, rx, ry, fn) => {
-      for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) {
-        const q = (x * x) / (rx * rx) + (y * y) / (ry * ry);
-        if (q <= 1) fn(ex + x, ey + y, q, x, y);
-      }
-    };
-    if (o.type === 'ring') {
-      const rx = s, ry = Math.round(s * 0.36);
-      ell(cx, base - ry, rx + 1, ry + 1, (x, y, q) => { if (q > 0.5) P(x, y, out); });
-      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => { if (q > 0.55) P(x, y, dy > 0 ? hullD : (dy < -ry * 0.5 ? hullL : hull)); });
-      ell(cx, base - ry - 6, 7, 7, (x, y, q, dx, dy) => P(x, y, q > 0.75 ? out : dy < -2 ? glassL : glass));
-      for (let i = 0; i < 14; i++) { const a = (i / 14) * TAU; P(cx + Math.cos(a) * rx * 0.78, base - ry + Math.sin(a) * ry * 0.78, lights[i % 4]); }
-    } else if (o.type === 'tower') {
-      const rx = Math.round(s * 0.8), ry = Math.round(s * 0.28), tw = Math.max(6, Math.round(s * 0.36)), th = Math.round(s * 1.0);
-      ell(cx, base - ry, rx + 1, ry + 1, (x, y) => P(x, y, out));
-      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => P(x, y, dy > 0 ? hullD : hull));
-      P(cx - tw / 2 - 1, base - ry - th - 1, out, tw + 2, th + 2);
-      P(cx - tw / 2, base - ry - th, hull, tw, th);
-      P(cx - tw / 2, base - ry - th, hullL, 2, th); P(cx + tw / 2 - 2, base - ry - th, hullD, 2, th);
-      for (let y = base - ry - th + 3; y < base - ry - 2; y += 4) for (let x = cx - tw / 2 + 2; x < cx + tw / 2 - 2; x += 3) P(x, y, r() < 0.7 ? lights[(r() * 4) | 0] : hullDD);
-      P(cx - 1, base - ry - th - 7, out, 3, 7); P(cx, base - ry - th - 6, glassL, 1, 6);
-      ell(cx, base - ry - th - 1, Math.round(tw * 0.7), 3, (x, y, q) => P(x, y, q > 0.6 ? out : glass));
-    } else {
-      const rx = s, ry = Math.round(s * 0.34), dr = Math.round(s * 0.5);
-      ell(cx, base - ry, rx + 1, ry + 1, (x, y) => P(x, y, out));
-      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => P(x, y, dy > ry * 0.3 ? hullDD : dy > 0 ? hullD : (q > 0.7 ? hullL : hull)));
-      for (let i = -rx + 4; i < rx - 3; i += 4) P(cx + i, base - ry + 2, lights[(r() * 4) | 0]);
-      ell(cx, base - ry - 2, dr + 1, dr + 1, (x, y, q, dx, dy) => { if (dy <= 0) P(x, y, out); });
-      ell(cx, base - ry - 2, dr, dr, (x, y, q, dx, dy) => { if (dy <= 0) P(x, y, dy < -dr * 0.5 && dx < 0 ? glassL : glass); });
-      for (let i = 0; i < 5; i++) P(cx - dr * 0.6 + r() * dr * 1.2, base - ry - 2 - r() * dr * 0.7, '#0a4a3a');
-      P(cx + rx * 0.6, base - ry - 9, out, 1, 6); P(cx + rx * 0.6, base - ry - 10, '#ff7ae0');
-    }
+    o.R = R;
+    o.metal = CITY_METALS[(r() * CITY_METALS.length) | 0];
+    paintSphere(c, Wd / 2, Ht / 2, R, METALS[o.metal], { seed: o.seed, seams: 3 + ((r() * 4) | 0), lights: ['#ffd84a', '#fff4c0', '#7fe0ff', '#ff9ae0'] });
     return { cv, Wd, Ht };
   }
   for (const o of CITY) o.spr = makeCityShip(o);
@@ -1213,7 +1243,7 @@
     }
     for (const o of CITY) {
       if (!o.alien) continue;
-      const d = Math.hypot(ix - toSX(o.x), iy - (toSY(o.y, 6) - o.size * 0.4));
+      const d = Math.hypot(ix - toSX(o.x), iy - (toSY(o.y, 4) - o.R * 1.4));
       if (d <= o.size + 4 && d < best) { best = d; hit = o; }
     }
     // Treffer auf ein anderes Raumschiff: hinfliegen und ansprechen
@@ -2457,12 +2487,12 @@
     if (quests.elixier !== 'done') {
       const p = 0.5 + 0.5 * Math.sin(time * 1.4);
       ctx.globalAlpha = 0.12 + 0.12 * p;
-      px(sx - 30 + Math.sin(time * 0.7) * 6, sy - 8, '#bff6ff', 9, 9);
+      px(sx - 14 + Math.sin(time * 0.7) * 2, sy, '#bff6ff', 9, 9);
       ctx.globalAlpha = 0.35 + 0.35 * p;
-      px(sx - 27 + Math.sin(time * 0.7) * 6, sy - 5, '#e8fdff', 3, 3);
+      px(sx - 11 + Math.sin(time * 0.7) * 2, sy + 3, '#e8fdff', 3, 3);
       ctx.globalAlpha = 1;
     }
-    if ((time % 2.4) < 0.3) px(sx + 22, sy - 14, '#7fe0ff');
+    if ((time % 2.4) < 0.3) px(sx + 14, sy - 12, '#ff9a4a');   // letzte flackernde Warnlampe
   }
 
   /** Stadtschiff der Aliens: sanft schwebend, mit blinkenden Lichtern */
@@ -2471,9 +2501,13 @@
     const sx = toSX(o.x), sy = toSY(o.y, 4 + bob);
     const sp = o.spr;
     if (!onScreen(sx, sy, sp.Wd)) return;
-    ctx.drawImage(sp.cv, Math.round(sx - sp.Wd / 2), Math.round(sy - sp.Ht + 8));
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.ellipse(Math.round(sx), Math.round(toSY(o.y) + 2), o.R * 0.8, o.R * 0.28, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.drawImage(sp.cv, Math.round(sx - sp.Wd / 2), Math.round(sy - o.R * 1.4 - sp.Ht / 2));
     const blink = ((time * 1.5 + o.phase) % 2) < 0.25;
-    if (blink) px(sx + o.size * 0.5, sy - o.size * 0.35, '#ffffff');
+    if (blink) px(sx - o.R * 0.35, sy - o.R * 1.4 - o.R * 0.45, '#ffffff');
   }
 
   /** Alien-Relikt: schwebender, türkis leuchtender Kristallkörper mit kreisenden Funken */
@@ -2899,8 +2933,8 @@
   function objScreen(o) {
     if (o.texts) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 12, sy + 9]; }
     if (o.station) { const sx = toSX(o.x), sy = toSY(o.y, 3); return [sx, sy - o.hub - 16, sy + o.size * SIN_E + 5]; }
-    if (o.id === 'wreck') { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 28, sy + 24]; }
-    if (o.city) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - o.size * 1.5 - 4, sy + 8]; }
+    if (o.id === 'wreck') { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 34, sy + 34]; }
+    if (o.city) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - o.R * 2.4 - 4, sy + 6]; }
     const sx = toSX(o.x), sy = toSY(o.y); return [sx, sy - o.r - 6, sy + o.r + 4];
   }
   function showInfo(o) {

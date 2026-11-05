@@ -455,13 +455,13 @@ window.SPACE_TEXTS = {
    */
   aliens: {
     sector: 'Sektor der Alten',
-    city: 'Stadtschiff', cityDesc: 'Ein Schiff der alten Zivilisation. Überall blinken Lichter.',
+    city: 'Sphäre', cityDesc: 'Eine Sphäre der alten Zivilisation. Überall blinken Lichter.',
     locked: 'Dein Schiff ist für das goldene Wurmloch noch nicht gewappnet.',
     translator: 'Übersetzer',
     list: {
       gnyyyk: {
-        home: 'Kuppelschiff Gnyyyk',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Wohnsphäre Gnyyyk',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['gnyyyk', 'Gnyk-gnyk! Brrlaap zoo? Shkiii tamp-tamp!'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -471,8 +471,8 @@ window.SPACE_TEXTS = {
         ],
       },
       shzzzn: {
-        home: 'Turmschiff Shzzzn',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Wohnsphäre Shzzzn',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['shzzzn', 'Shzzz … wroonk? Trrryyypb! Trrryyypb blaaarp!'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -482,8 +482,8 @@ window.SPACE_TEXTS = {
         ],
       },
       napppaap: {
-        home: 'Ringschiff Napppaap',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Wohnsphäre Napppaap',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['napppaap', 'Napp-napp-paap. Trrryyypb gluu mmmh, ooh-wiip!'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -493,8 +493,8 @@ window.SPACE_TEXTS = {
         ],
       },
       kikkyyyk: {
-        home: 'Kuppelschiff Kikkyyyk',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Wohnsphäre Kikkyyyk',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['kikkyyyk', 'Kik! Kik! Yyyrk zammo plinnk, flubbo-dee!'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -504,8 +504,8 @@ window.SPACE_TEXTS = {
         ],
       },
       szyyypp: {
-        home: 'Garküchenschiff Szyyypp',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Garküchensphäre Szyyypp',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['szyyypp', 'Szyp szyp? Trrryyypb skoolp! Hmmm-blorp?'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -523,8 +523,8 @@ window.SPACE_TEXTS = {
         ],
       },
       ikkk: {
-        home: 'Turmschiff Ikkk',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Wohnsphäre Ikkk',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['ikkk', 'Ikk. Ikk-ikk … tsss, trrryyypb nnnöööp. Pssst!'],
           ['du', 'Ich verstehe kein Wort …'],
@@ -534,8 +534,8 @@ window.SPACE_TEXTS = {
         ],
       },
       bbbipp: {
-        home: 'Archivschiff Bbbipp',
-        desc: 'Ein Wohnschiff der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
+        home: 'Archivsphäre Bbbipp',
+        desc: 'Eine Wohnsphäre der alten Zivilisation.', // kurze Beschreibung, erscheint am Objekt
         gibberish: [
           ['bbbipp', 'Bbbip-bbbop. Vrooomli zaa, ooomba Sonnnsystmmm?'],
           ['du', 'Ich verstehe kein Wort …'],
