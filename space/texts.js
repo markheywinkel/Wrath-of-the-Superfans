@@ -701,6 +701,7 @@ window.SPACE_TEXTS = {
     helfer: { name: 'Helfer in der Not', text: 'Justus’ Raumschiff wieder zusammengesetzt' },
     muellabfuhr: { name: 'Müllabfuhr', text: 'Alle 10 Frachtcontainer im Urlaubssystem geborgen' },
     alienforscher: { name: 'Alienforscher', text: 'Den Sektor der alten Zivilisation entdeckt' },
+    foody: { name: 'Foody', text: 'Trrryyypb bei den Aliens probiert' },
     weltenbummler: { name: 'Weltenbummler', text: 'Alle Badges gesammelt' },
   },
 
@@ -737,7 +738,9 @@ window.SPACE_TEXTS = {
     relics: 'Relikte',
     alien: 'Alien-Relikte',
     understand: 'Die Aliens verstehen',
-    tryTranslator: 'Übersetzer ausprobieren',
+    flyAliens: 'Flieg zu den Aliens',
+    findBalthasar: 'Balthasar finden',
+    talkAliens: 'Sprich mit den Aliens',
   },
 
   /* Belohnungsdialoge */

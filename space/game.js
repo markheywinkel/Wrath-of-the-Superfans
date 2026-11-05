@@ -1126,7 +1126,7 @@
   for (const id of CH3) quests[id] = 'open';
   quests.alien = 'open';   // Kapitel 3: Gwynns Alien-Relikte
   // Sektor der Aliens: entdeckt? Übersetzer? schon mit einem Alien gesprochen? Balthasar umgezogen?
-  const alienState = { found: false, translator: false, talked: new Set(), moved: false };
+  const alienState = { found: false, hinted: false, translator: false, talked: new Set(), moved: false };
   let golden = false;
   const ALL_QUESTS = () => ROUND1.concat(ROUND2, ['elixier', 'teile', 'alien'], CH3);
   const PLANETS = BODIES.filter(b => b.orbit > 0 && !b.resort);
@@ -1377,6 +1377,8 @@
     const withTr = alienState.translator;
     openDialog(o.alien, withTr ? t.talk : t.gibberish, t.home, () => {
       if (withTr && !alienState.talked.has(o.alien)) { alienState.talked.add(o.alien); renderQuests(); }
+      // Trrryyypb probiert → Badge Foody
+      if (withTr && o.alien === 'szyyypp') milestone('foody', 0.1);
       showInfo(o);
     });
   }
@@ -1600,7 +1602,10 @@
   /** Kapitel 3: Gwynn sucht drei Alien-Relikte */
   function alienLines() {
     const A = TEXTS.zone.gwynn.alien, st = quests.alien;
-    if (alienState.found) return { lines: alienState.translator ? A.later : A.found };
+    if (alienState.found) {
+      if (alienState.translator) return { lines: A.later };
+      return { lines: A.found, after: () => { alienState.hinted = true; renderQuests(); } };
+    }
     if (st === 'open') return { lines: A.offer, after: () => acceptQuest('alien') };
     if (st === 'active') return { lines: A.waiting.map(([w, t]) => [w, t.replace('{rest}', ALIEN_TOTAL - aliensFound)]) };
     return { lines: A.thanks };
@@ -1654,6 +1659,7 @@
     helfer: ['#c99a1c', ['..###..', '..###..', '#######', '#######', '#######', '..###..', '..###..']],
     muellabfuhr: ['#5a8a3a', ['.#####.', '#######', '.#+#+#.', '.#+#+#.', '.#+#+#.', '.#+#+#.', '..###..']],
     alienforscher: ['#2ab89a', ['.#...#.', '..#.#..', '.#####.', '#+#+#+#', '#######', '.#####.', '..#.#..']],
+    foody: ['#d0603a', ['..#.#..', '.#.#...', '.......', '#######', '#+++++#', '.#+++#.', '..###..']],
     weltenbummler: ['#f0b632', ['...#...', '...#...', '#######', '.#####.', '..###..', '.##.##.', '.#...#.']],
   };
   const badgeIcons = {};
@@ -2119,6 +2125,7 @@
       },
       end: () => {
         goldenFx.on = false;
+        renderQuests();
         toast(TEXTS.toast.golden, `${esc(T.message)}` + speedLine(0.1));
         openDialog(null, T.lines, '', () => checkFinal());
       },
@@ -2703,7 +2710,7 @@
       const wants = n.dealer
         ? (alienState.found && relicsGiven >= RELIC_TOTAL && !alienState.moved && (!alienState.translator || alienState.talked.size > 0))
           || (relicsGiven < RELIC_TOTAL && (!dealerMet || relicsFound.size > relicsGiven))
-        : n === gwynnNpc ? chapter >= 3 && ((quests.alien === 'open' && !alienState.found) || (alienState.found && !alienState.translator))
+        : n === gwynnNpc ? chapter >= 3 && ((quests.alien === 'open' && !alienState.found) || (alienState.found && !alienState.translator && !alienState.hinted))
         : n.texts.talk ? false : quests[currentQuest(n.texts).quest] === 'open';
       if (!wants) continue;
       const sx = toSX(n.x), sy = toSY(n.y, 4);
@@ -2933,9 +2940,12 @@
       const it = TEXTS.items[id];
       add(`<span class="nm">${esc(it.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`);
     }
-    if (alienState.found && !alienState.talked.size) {
-      add(`<span class="nm">${esc(alienState.translator ? TEXTS.questList.tryTranslator : TEXTS.questList.understand)}</span>`);
-    }
+    // Ziele der Alien-Geschichte: hinfliegen → (Gwynn) → Balthasar finden → mit den Aliens sprechen
+    const Q = TEXTS.questList;
+    const alienGoal = !alienState.found ? (golden ? Q.flyAliens : null)
+      : alienState.translator ? (alienState.talked.size ? null : Q.talkAliens)
+      : alienState.hinted ? Q.findBalthasar : Q.understand;
+    if (alienGoal) add(`<span class="nm">${esc(alienGoal)}</span>`);
     if (quests.alien === 'active') {
       add(`<span class="nm">${esc(TEXTS.questList.alien)}</span> <span class="to">${aliensFound} / ${ALIEN_TOTAL}</span>`);
     }

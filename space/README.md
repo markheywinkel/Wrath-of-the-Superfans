@@ -35,7 +35,7 @@ Das Spiel ist in Kapitel eingeteilt:
    - Zwei sehr schnelle Kometen umkreisen die Doppelsonne; jeder gefangene Komet bringt +10 %.
    - Gwynn (im Nebel) bittet um drei Alien-Relikte: eines im Nebel, eines im Sonnensystem, eines im Urlaubssystem. Alle drei gefunden → kurze Zwischensequenz: das Schiff hält an, leuchtet auf und wird golden (Antrieb +10 %), danach freut sich »Du« über die stärkeren Schilde.
    - Im Norden des Urlaubssystems liegt ein goldenes Wurmloch. Erst mit goldenem Schiff kommt man hindurch und landet im Sektor der Alten: viele schwebende Metallsphären der alten Zivilisation (Silber, Gold, Bronze), sieben davon Wohnsphären von Aliens (Gnyyyk, Shzzzn, Napppaap, Kikkyyyk, Szyyypp, Ikkk, Bbbipp). Betreten → Badge Alienforscher, Antrieb +10 %.
-   - Ohne Übersetzer sprechen die Aliens nur Kauderwelsch. Gwynn schickt einen zu Balthasar; er baut aus den Relikten einen Übersetzer (sobald alle fünf Relikte bei ihm sind). Hat man mit einem Alien gesprochen und erzählt es Balthasar, zieht er selbst in den Sektor der Alten und fliegt dort umher.
+   - Ohne Übersetzer sprechen die Aliens nur Kauderwelsch. Gwynn schickt einen zu Balthasar; er baut aus den Relikten einen Übersetzer (sobald alle fünf Relikte bei ihm sind). Hat man mit einem Alien gesprochen und erzählt es Balthasar, zieht er selbst in den Sektor der Alten und fliegt dort umher. Die Aufgabenliste oben links führt durch die Geschichte: »Flieg zu den Aliens« (mit goldenem Schiff) → »Die Aliens verstehen« → nach Gwynns Hinweis »Balthasar finden« → mit Übersetzer »Sprich mit den Aliens«.
 
 - Die Spielfigur heißt **Du**: Astronautin mit Helm im hellblauen Anzug. Die anderen Figuren sind Astronautinnen und Astronauten, mal mit Helm, mal ohne, in grellen Anzügen. Tippen/Klicken auf eine Stelle: Das Schiff fliegt geradlinig hin, Planeten werden umflogen.
 - Tippen auf Sonne, Planet oder Mond: hinfliegen, Orbit. Name und Beschreibung erscheinen direkt am Objekt, um das man kreist.
@@ -64,6 +64,7 @@ Das Spiel ist in Kapitel eingeteilt:
   - Helfer in der Not: Justus’ Raumschiff zusammengesetzt
   - Müllabfuhr: alle zehn Container im Urlaubssystem → Antrieb +10 %
   - Alienforscher: den Sektor der Alten betreten → Antrieb +10 %
+  - Foody: bei Szyyypp (mit Übersetzer) Trrryyypb probiert → Antrieb +10 %
   - Weltenbummler: alle anderen Badges und alle Aufträge → Abschlussdialog in der Bildmitte (Hintergrund unscharf) mit »Weiterfliegen« oder »Neu beginnen«
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
