@@ -88,11 +88,11 @@ window.SPACE_TEXTS = {
     // --- Kapitel 3 (hinter dem Wurmloch)
     cocktail: {
       name: 'Cocktailrezept', target: 'qratos',
-      deliver: [['du', 'In der Lagunenbar von Qratos übergebe ich das Rezept. Der erste Sternenstaub-Cocktail schimmert schon im Glas.']],
+      deliver: [['du', 'In der Lagunenbar von Qratos übergebe ich das Rezept. Der erste Sternenstaub-Cocktail schimmert bald im Glas.']],
     },
     champagner: {
       name: 'Edle Champagnerflasche', target: 'monos',
-      deliver: [['du', 'Im Bungalow auf Monos knallen die Korken. Das Brautpaar stößt auf die Galaxis an.']],
+      deliver: [['du', 'Im Bungalow auf Monos knallen die Korken. Das Brautpaar stößt auf die Ehe an.']],
     },
     ring: {
       name: 'Verlobungsring', target: 'stypos',
@@ -599,7 +599,7 @@ window.SPACE_TEXTS = {
     ships: [
       {
         name: 'Kreuzfahrtschiff Vida',
-        desc: 'Siebzig Decks mit einem großen Unterhaltungsangebot.',
+        desc: 'Was für ein Kahn! Siebzig Decks mit einem großen Unterhaltungsangebot.',
         with: 'marisol',
         quest: 'cocktail',
         offer: [
@@ -607,18 +607,35 @@ window.SPACE_TEXTS = {
           ['marisol', 'Die Lagunenbar auf Qratos wartet darauf. Bringst du es hin?'],
           ['du', 'Mache ich.'],
         ],
-        waiting: [['marisol', 'Die Gäste auf Qratos werden schon durstig.']],
-        thanks: [['marisol', 'Auf Qratos wird wieder gemixt. Danke dir!']],
-        // danach ein zweiter Auftrag
+        waiting: [
+          ['marisol', 'Die Gäste auf Qratos werden schon durstig …'],
+          ['du', 'Ich bin schon unterwegs.'],
+          ['marisol', 'Bitte beeile dich!'],
+        ],
+        thanks: [
+          ['marisol', 'Den Sternen sei’s gedankt! Auf Qratos werden wieder Cocktails gemixt.'],
+        ],
+        // Folgeauftrag nach dem ersten
         next: {
           quest: 'koffer2',
           offer: [
-            ['marisol', 'Ein Gast hat diesen geheimnisvollen Koffer an Bord vergessen.'],
-            ['marisol', 'Er gehört ins Archiv auf Cies, auf der anderen Seite des Wurmlochs.'],
-            ['du', 'Schon wieder ein Koffer …'],
+            ['marisol', 'Bote, ein Gast hat diesen geheimnisvollen Koffer an Bord vergessen.'],
+            ['du', 'Schon wieder so ein Koffer. Was da wohl drin ist?'],
+            ['marisol', 'Die Luxusschiffehre verbietet es uns, Privatsachen zu durchstöbern.'],
+            ['du', 'Aber ich könnte doch einen Blick hineinwerfen …'],
+            ['marisol', 'Untersteh dich! Manche Geheimnisse sollen Geheimnisse bleiben.'],
+            ['marisol', 'Der Koffer gehört ins Archiv auf Cies, auf der anderen Seite des Wurmlochs.'],
+            ['du', 'Na gut, ich bring ihn hin.'],
           ],
-          waiting: [['marisol', 'Durch das Wurmloch und dann ganz nach außen, nach Cies.']],
-          thanks: [['marisol', 'Der Koffer ist angekommen? Wunderbar, danke!']],
+          waiting: [
+            ['marisol', 'Der Koffer muss durch das Wurmloch und dann ganz nach außen, nach Cies.'],
+          ],
+          thanks: [
+            ['marisol', 'Der Koffer ist angekommen? Wunderbar, danke!'],
+            ['du', 'Willst du nicht wissen, was darin ist?'],
+            ['marisol', 'Was macht das für einen Unterschied?'],
+            ['du', '…'],
+          ],
         },
       },
       {
@@ -627,25 +644,34 @@ window.SPACE_TEXTS = {
         with: 'pio',
         quest: 'champagner',
         offer: [
-          ['pio', 'Auf Monos feiert ein Brautpaar in seinem Bungalow.'],
-          ['pio', 'Ihr Champagner ist hier an Bord geblieben. Fliegst du ihn hin, bevor er warm wird?'],
+          ['pio', 'Bote! Auf Monos feiert ein Brautpaar in seinem Bungalow.'],
+          ['pio', 'Ihren Champagner haben sie hier an Bord vergessen. Fliegst du ihn hin, bevor er warm wird?'],
           ['du', 'Ich beeile mich.'],
         ],
-        waiting: [['pio', 'Monos ist der Planet mit den Bungalows. Schnell, die Feier läuft schon!']],
-        thanks: [['pio', 'Das Brautpaar lässt dich grüßen. Danke!']],
+        waiting: [
+          ['pio', 'Monos ist der Planet mit den Bungalows. Schnell, die Feier läuft schon!'],
+        ],
+        thanks: [
+          ['pio', 'Das Brautpaar lässt dich grüßen. Danke, dass du ihnen den Champagner gebracht hast!'],
+        ],
       },
       {
         name: 'Kreuzfahrtschiff Yipa',
-        desc: 'Besser entspannen kann man kaum, sofern man das nötige Kleingeld hat.',
+        desc: 'Besser entspannen kann man kaum – sofern man das nötige Kleingeld hat.',
         with: 'ambrosius',
         quest: 'ring',
         offer: [
-          ['ambrosius', 'Ich möchte meiner Liebsten am Strand von Stypos einen Antrag machen.'],
+          ['ambrosius', 'Bote! Ich möchte meiner Liebsten am Strand von Stypos einen Antrag machen.'],
+          ['du', 'Das klingt romantisch …'],
           ['ambrosius', 'Fliegst du den Ring voraus und versteckst ihn dort im Sand?'],
           ['du', 'Ehrensache.'],
         ],
-        waiting: [['ambrosius', 'Bitte vorsichtig, der Ring war nicht ganz billig.']],
-        thanks: [['ambrosius', 'Sie hat Ja gesagt! Ich danke dir von Herzen.']],
+        waiting: [
+          ['ambrosius', 'Bitte vorsichtig, der Ring war nicht ganz billig.'],
+        ],
+        thanks: [
+          ['ambrosius', 'Bote! Oh, Bote! Sie hat Ja gesagt! Ich danke dir von Herzen.'],
+        ],
       },
     ],
   },
@@ -797,7 +823,7 @@ window.SPACE_TEXTS = {
     qratos: {
       kicker: '',
       name: 'Qratos',
-      body: 'Die Lagunen von Qratos sind ein Urlaubsparadies für den gesamten Sektor.',
+      body: 'Die Lagunen von Qratos sind über den Sektor hinaus bekannt.',
     },
     stypos: {
       kicker: '',
