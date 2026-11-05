@@ -27,7 +27,7 @@ window.SPACE_TEXTS = {
     du: { name: 'Du', tier: 'Astronautin', look: { suit: '#8fd8ff', helmet: true, visor: '#ffd84a' } },
     quentin: { name: 'Quentin', tier: 'Kapitän', look: { suit: '#ff2fa0', helmet: true, visor: '#ffd84a' } },
     norman: { name: 'Norman', tier: 'Navigator', look: { suit: '#ffe81a', helmet: false, skin: '#e8b890', hair: '#6a6a72', hairStyle: 'short' } },
-    adele: { name: 'Adele', tier: 'Kommissarin', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
+    adele: { name: 'Leutnant Adele', tier: 'Leutnant', look: { suit: '#ff2a3a', helmet: false, skin: '#c88a5a', hair: '#ff3fa4', hairStyle: 'mohawk' } },
     ivy: { name: 'Ivy', tier: 'Wissenschaftlerin', look: { suit: '#2aff6a', helmet: false, skin: '#f4d0b0', hair: '#f0e070', hairStyle: 'long' } },
     balthasar: { name: 'Balthasar', tier: 'Kuriositätenhändler', look: { suit: '#ffb31a', helmet: false, skin: '#d8a070', hair: '#5a3aa8', hairStyle: 'long' } },
     entitaet: { name: 'Körperlose Entität', tier: '', look: { ghost: true } },
@@ -115,7 +115,7 @@ window.SPACE_TEXTS = {
   ships: [
     {
       name: 'Handelskreuzer Normandy',
-      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      desc: 'Ein stattliches Schiff mit einem großen Frachthangar.', // kurze Beschreibung, erscheint am Objekt
       with: 'quentin',
       quest: 'brief',
       offer: [
@@ -153,7 +153,7 @@ window.SPACE_TEXTS = {
     },
     {
       name: 'Fährschiff Nostromo',
-      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      desc: 'Die Fähre befördert Dutzende Mitreisende sicher durchs System.', // kurze Beschreibung, erscheint am Objekt
       with: 'norman',
       quest: 'aquarium',
       offer: [
@@ -187,7 +187,7 @@ window.SPACE_TEXTS = {
     },
     {
       name: 'Polizeifregatte Condor',
-      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      desc: 'Dein Freund und Helfer. Es sei denn, du hast was ausgefressen.', // kurze Beschreibung, erscheint am Objekt
       with: 'adele',
       quest: 'fotobuch',
       offer: [
@@ -230,7 +230,7 @@ window.SPACE_TEXTS = {
   stations: {
     inner: {
       name: 'Forschungsstation Genesis',
-      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      desc: 'Auf dieser Station arbeiten Hunderte Wissenschaftler an ihren Projekten.', // kurze Beschreibung, erscheint am Objekt
       with: 'ivy',
       quest: 'kaesekuchen',
       offer: [
@@ -262,7 +262,7 @@ window.SPACE_TEXTS = {
     },
     outer: {
       name: 'Handelsposten Orion',
-      desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+      desc: 'Was man hier nicht kaufen kann, gibt es nicht.', // kurze Beschreibung, erscheint am Objekt
       with: 'west',
       quest: 'ocarina',
       offer: [
@@ -304,7 +304,7 @@ window.SPACE_TEXTS = {
    */
   dealer: {
     name: 'Händlerschiff Wunderkammer',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', // kurze Beschreibung, erscheint am Objekt
+    desc: 'Ein kurioser Frachter unbekannten Typs.', // kurze Beschreibung, erscheint am Objekt
     with: 'balthasar',
     intro: [
       ['balthasar', 'Willkommen in der Wunderkammer, Bote!'],
