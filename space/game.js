@@ -591,8 +591,11 @@
   for (const b of BODIES) if (b.resort) { b.cx = RESORT.x; b.cy = RESORT.y; }
   for (const [id, a] of [['monos', 0.3], ['qratos', 2.4], ['stypos', 4.4]]) BODIES.find(b => b.id === id).a0 = a;
   const resortGlows = { aurel: makeSunGlow(18, '#ffc86a'), azur: makeSunGlow(13, '#8ab8ff') };
+  // Kapitel 3: Sektor der Aliens, nur durch das goldene Wurmloch im Norden des Urlaubssystems erreichbar
+  const ALIEN = { x: 3600, y: 1400, r: 650 };
   // Wurmloch: öffnet sich zu Beginn von Kapitel 3 dort, wo man gerade ist; Gegenstück im Urlaubssystem
   const WH = { open: false, t: 0, cool: 0, a: { x: 0, y: 0 }, b: { x: RESORT.x - 260, y: RESORT.y + 700 } };
+  const WH2 = { cool: 0, a: { x: RESORT.x, y: RESORT.y - 690 }, b: { x: ALIEN.x, y: ALIEN.y + ALIEN.r - 90 } };
   const rocks = makeRocks();
 
   // Raumstationen: eine hinter den bewohnbaren Planeten, eine ganz außen
@@ -619,6 +622,11 @@
 
   /** Nächster erlaubter Punkt: Sonnensystem, Korridor oder neues Gebiet. */
   function projectAllowed(x, y, m = 0) {
+    const da = Math.hypot(x - ALIEN.x, y - ALIEN.y);
+    if (da < ALIEN.r + 900) {   // Sektor der Aliens: kreisförmige Grenze
+      if (da <= ALIEN.r - m) return [x, y];
+      return [ALIEN.x + (x - ALIEN.x) * (ALIEN.r - m) / da, ALIEN.y + (y - ALIEN.y) * (ALIEN.r - m) / da];
+    }
     const dr = Math.hypot(x - RESORT.x, y - RESORT.y);
     if (dr < RESORT.r + 900) {   // im Urlaubssystem: eigene, kreisförmige Grenze
       if (dr <= RESORT.r - m) return [x, y];
@@ -644,6 +652,7 @@
 
   /** Liegt ein Punkt im Sonnensystem, im neuen Gebiet oder im Korridor dazwischen? */
   function regionOf(x, y) {
+    if (Math.hypot(x - ALIEN.x, y - ALIEN.y) <= ALIEN.r + 900) return 'alien';
     if (Math.hypot(x - RESORT.x, y - RESORT.y) <= RESORT.r + 900) return 'resort';
     if (Math.hypot(x, y) <= SHIP_LIMIT + 2) return 'sys';
     if (Math.hypot(x - ZONE.x, y - ZONE.y) <= ZONE.r + 2) return 'zone';
@@ -654,7 +663,7 @@
     const G1 = [GATE_UX * (SHIP_LIMIT - 70), GATE_UY * (SHIP_LIMIT - 70)];
     const G2 = [GATE_UX * (ZONE_D - ZONE_R + 40), GATE_UY * (ZONE_D - ZONE_R + 40)];
     const a = regionOf(fx, fy), b = regionOf(tx, ty);
-    if (a === b || a === 'resort' || b === 'resort') return [];
+    if (a === b || a === 'resort' || b === 'resort' || a === 'alien' || b === 'alien') return [];
     if (a === 'sys') return b === 'zone' ? [G1, G2] : [G1];
     if (a === 'zone') return b === 'sys' ? [G2, G1] : [G2];
     return b === 'sys' ? [G1] : [G2];
@@ -666,7 +675,32 @@
   Object.assign(DARK, inZone(250, 200));
   const WRECK = Object.assign({ id: 'wreck', zone: true, fixed: true, avoidR: 54, coreR: 40, size: 40 }, inZone(40, -150));
 
-  const OBSTACLES = [...BODIES, ...STATIONS, WRECK];
+  /*
+   * Sektor der Aliens: viele große Schiffe treiben wie eine Stadt. Die ersten sieben sind
+   * Wohnschiffe der Aliens, mit denen man sprechen kann.
+   */
+  const ALIEN_IDS = Object.keys(TEXTS.aliens.list);
+  const CITY = (() => {
+    const r = mulberry32(2718), list = [];
+    let tries = 0;
+    while (list.length < 28 && tries++ < 30000) {
+      const size = list.length < ALIEN_IDS.length ? 26 + r() * 10 : 14 + r() * 24;
+      const a = r() * TAU, d = 60 + Math.sqrt(r()) * (ALIEN.r - 130);
+      const x = ALIEN.x + Math.cos(a) * d, y = ALIEN.y + Math.sin(a) * d;
+      if (list.some(o => Math.hypot(o.x - x, o.y - y) < o.size + size + 46)) continue;
+      if (Math.hypot(x - WH2.b.x, y - WH2.b.y) < size + 90) continue;
+      const alien = ALIEN_IDS[list.length] || null;
+      // Bauform passend zum Namen (Kuppel-, Turm-, Ringschiff), sonst zufällig
+      const home = alien ? TEXTS.aliens.list[alien].home : '';
+      const rt = ['dome', 'tower', 'ring'][(r() * 3) | 0];
+      const type = /^Kuppel/.test(home) ? 'dome' : /^Turm/.test(home) ? 'tower' : /^Ring/.test(home) ? 'ring' : rt;
+      list.push({ id: 'city' + list.length, city: true, fixed: true, alien, x, y, size,
+        avoidR: Math.round(size + 14), coreR: Math.round(size * 0.8), type,
+        seed: (r() * 1e6) | 0, phase: r() * TAU });
+    }
+    return list;
+  })();
+  const OBSTACLES = [...BODIES, ...STATIONS, WRECK, ...CITY];
   const DESTINATIONS = [...BODIES.slice(1), ...STATIONS].filter(d => !d.zone && !d.resort);
   // Wegpunkte, zwischen denen Gwynn und Justus später im Gebiet umherfliegen
   const ZONE_DESTS = [DARK, WRECK,
@@ -771,6 +805,52 @@
     P(57, 44, '#5a5e6c', 2, 2); P(84, 46, '#4a4e5a', 3, 1); P(12, 12, '#6a6e7a', 2, 1); P(100, 42, '#5a5e6c', 2, 2); P(30, 46, '#4a4e5a', 2, 1); P(64, 6, '#6a6e7a', 1, 2);
     return { cv, Wd, Ht };
   })();
+
+  /** Pixel-Sprite eines Stadtschiffs (elfenbein, gold, türkise Glaskuppeln, bunte Lichter) */
+  function makeCityShip(o) {
+    const s = Math.round(o.size), Wd = s * 2 + 10, Ht = Math.round(s * 1.5) + 14;
+    const cv = document.createElement('canvas'); cv.width = Wd; cv.height = Ht;
+    const c = cv.getContext('2d');
+    const P = (x, y, col, w = 1, h = 1) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
+    const r = mulberry32(o.seed);
+    const out = '#1a1408', hull = '#e8dcb8', hullL = '#fff4d8', hullD = '#a89870', hullDD = '#6a5a38';
+    const glass = '#3affd0', glassL = '#c8fff0', lights = ['#ffd84a', '#ff7ae0', '#7fe0ff', '#ffffff'];
+    const cx = Wd / 2, base = Ht - 8;
+    const ell = (ex, ey, rx, ry, fn) => {
+      for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) {
+        const q = (x * x) / (rx * rx) + (y * y) / (ry * ry);
+        if (q <= 1) fn(ex + x, ey + y, q, x, y);
+      }
+    };
+    if (o.type === 'ring') {
+      const rx = s, ry = Math.round(s * 0.36);
+      ell(cx, base - ry, rx + 1, ry + 1, (x, y, q) => { if (q > 0.5) P(x, y, out); });
+      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => { if (q > 0.55) P(x, y, dy > 0 ? hullD : (dy < -ry * 0.5 ? hullL : hull)); });
+      ell(cx, base - ry - 6, 7, 7, (x, y, q, dx, dy) => P(x, y, q > 0.75 ? out : dy < -2 ? glassL : glass));
+      for (let i = 0; i < 14; i++) { const a = (i / 14) * TAU; P(cx + Math.cos(a) * rx * 0.78, base - ry + Math.sin(a) * ry * 0.78, lights[i % 4]); }
+    } else if (o.type === 'tower') {
+      const rx = Math.round(s * 0.8), ry = Math.round(s * 0.28), tw = Math.max(6, Math.round(s * 0.36)), th = Math.round(s * 1.0);
+      ell(cx, base - ry, rx + 1, ry + 1, (x, y) => P(x, y, out));
+      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => P(x, y, dy > 0 ? hullD : hull));
+      P(cx - tw / 2 - 1, base - ry - th - 1, out, tw + 2, th + 2);
+      P(cx - tw / 2, base - ry - th, hull, tw, th);
+      P(cx - tw / 2, base - ry - th, hullL, 2, th); P(cx + tw / 2 - 2, base - ry - th, hullD, 2, th);
+      for (let y = base - ry - th + 3; y < base - ry - 2; y += 4) for (let x = cx - tw / 2 + 2; x < cx + tw / 2 - 2; x += 3) P(x, y, r() < 0.7 ? lights[(r() * 4) | 0] : hullDD);
+      P(cx - 1, base - ry - th - 7, out, 3, 7); P(cx, base - ry - th - 6, glassL, 1, 6);
+      ell(cx, base - ry - th - 1, Math.round(tw * 0.7), 3, (x, y, q) => P(x, y, q > 0.6 ? out : glass));
+    } else {
+      const rx = s, ry = Math.round(s * 0.34), dr = Math.round(s * 0.5);
+      ell(cx, base - ry, rx + 1, ry + 1, (x, y) => P(x, y, out));
+      ell(cx, base - ry, rx, ry, (x, y, q, dx, dy) => P(x, y, dy > ry * 0.3 ? hullDD : dy > 0 ? hullD : (q > 0.7 ? hullL : hull)));
+      for (let i = -rx + 4; i < rx - 3; i += 4) P(cx + i, base - ry + 2, lights[(r() * 4) | 0]);
+      ell(cx, base - ry - 2, dr + 1, dr + 1, (x, y, q, dx, dy) => { if (dy <= 0) P(x, y, out); });
+      ell(cx, base - ry - 2, dr, dr, (x, y, q, dx, dy) => { if (dy <= 0) P(x, y, dy < -dr * 0.5 && dx < 0 ? glassL : glass); });
+      for (let i = 0; i < 5; i++) P(cx - dr * 0.6 + r() * dr * 1.2, base - ry - 2 - r() * dr * 0.7, '#0a4a3a');
+      P(cx + rx * 0.6, base - ry - 9, out, 1, 6); P(cx + rx * 0.6, base - ry - 10, '#ff7ae0');
+    }
+    return { cv, Wd, Ht };
+  }
+  for (const o of CITY) o.spr = makeCityShip(o);
 
   // Asteroidengürtel: nur ein Bogen über 20 % des Umfangs (unten links), an den Enden ausgedünnt
   const BELT_ARC_C = Math.PI * 0.75, BELT_ARC_HALF = Math.PI * 0.2;
@@ -909,6 +989,7 @@
 
   /** Belohnung der Alien-Relikte: das Schiff wird golden */
   function makeGolden() {
+    golden = true;
     ship.colors = pal({ hull: '#ffd86a', accent: '#fff4c8', under: '#8a6420', glass: '#fffbe8' });
     ship.beam = ['#ffffff', '#fff6d0', '#ffe48a', '#ffd04a', '#f0b632', '#d0901a', '#a86a10', '#6a4008'];
     ship.trail = ['#fff6d0', '#ffd04a', '#a86a10'];
@@ -1014,6 +1095,9 @@
   for (const t of TEXTS.resort.ships) { CH3.push(t.quest); if (t.next) CH3.push(t.next.quest); }
   for (const id of CH3) quests[id] = 'open';
   quests.alien = 'open';   // Kapitel 3: Gwynns Alien-Relikte
+  // Sektor der Aliens: entdeckt? Übersetzer? schon mit einem Alien gesprochen? Balthasar umgezogen?
+  const alienState = { found: false, translator: false, talked: new Set(), moved: false };
+  let golden = false;
   const ALL_QUESTS = () => ROUND1.concat(ROUND2, ['elixier', 'teile', 'alien'], CH3);
   const PLANETS = BODIES.filter(b => b.orbit > 0 && !b.resort);
 
@@ -1021,7 +1105,7 @@
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d', { alpha: false });
   let W = 320, H = 240, pxPerCss = 1;
-  let nebula = null, nebulaResort = null, stars = [];
+  let nebula = null, nebulaResort = null, nebulaAlien = null, stars = [];
 
   function resize() {
     const dpr = window.devicePixelRatio || 1;
@@ -1065,6 +1149,7 @@
     // Nebel: nur minimale Parallaxe, daher ohne Kachelung
     nebula = makeNebula('#04050d', '#2c1a52', '#0f3a4c', 0.55);
     nebulaResort = makeNebula('#22163f', '#7a48b0', '#b066b8', 0.7);
+    nebulaAlien = makeNebula('#141008', '#8a6a1a', '#1a7a6a', 0.65);
 
     const r = mulberry32(4242);
     stars = [];
@@ -1126,6 +1211,11 @@
       const d = Math.hypot(ix - toSX(WRECK.x), iy - toSY(WRECK.y, 4));
       if (d <= 34 && d < best) { best = d; hit = WRECK; }
     }
+    for (const o of CITY) {
+      if (!o.alien) continue;
+      const d = Math.hypot(ix - toSX(o.x), iy - (toSY(o.y, 6) - o.size * 0.4));
+      if (d <= o.size + 4 && d < best) { best = d; hit = o; }
+    }
     // Treffer auf ein anderes Raumschiff: hinfliegen und ansprechen
     let npcHit = null;
     for (const n of npcs) {
@@ -1160,6 +1250,7 @@
       const edge = !moved ? null
         : reg === 'zone' && Math.hypot(x - ZONE.x, y - ZONE.y) > ZONE.r ? 'zone'
         : reg === 'resort' ? 'resort'
+        : reg === 'alien' ? 'alien'
         : reg === 'sys' && Math.hypot(x, y) > SHIP_LIMIT ? 'sys' : null;
       flyToPoint(px2, py2);
       if (edge) ship.goal.warn = edge;
@@ -1193,6 +1284,7 @@
     marker = null;
   }
   function arriveAt(b) {
+    if (b.city) { arriveAlien(b); return; }
     if (b.id === 'wreck') { arriveWreck(); return; }
     if (b.id === 'dark') { arriveDark(); return; }
     if (b.station) {
@@ -1245,6 +1337,18 @@
       };
     }
     openDialog(E.with, lines, bodyName('wreck'), () => { if (after) after(); showInfo(WRECK); });
+  }
+
+  /** Wohnschiff eines Aliens: ohne Übersetzer nur Kauderwelsch */
+  function arriveAlien(o) {
+    const t = TEXTS.aliens.list[o.alien];
+    showInfo(o);
+    if (!t) return;
+    const withTr = alienState.translator;
+    openDialog(o.alien, withTr ? t.talk : t.gibberish, t.home, () => {
+      if (withTr && !alienState.talked.has(o.alien)) { alienState.talked.add(o.alien); renderQuests(); }
+      showInfo(o);
+    });
   }
 
   /** Dunkler Planet: ein einsamer Reisender sucht die Teile seines Raumschiffs. */
@@ -1453,9 +1557,20 @@
     setTimeout(() => { milestone('kometenjaeger', 0.3); checkChapter3(); checkFinal(); }, 900);
   }
 
+  /** Balthasar bricht zu den Aliens auf und fliegt fortan dort umher */
+  function moveDealerToAliens() {
+    const homes = CITY.filter(o => o.alien);
+    const h = homes[(Math.random() * homes.length) | 0];
+    dealerNpc.x = h.x + h.avoidR + 20; dealerNpc.y = h.y;
+    dealerNpc.dests = homes;
+    dealerNpc.state = 'travel'; dealerNpc.cooldown = 8;
+    pickDestination(dealerNpc);
+  }
+
   /** Kapitel 3: Gwynn sucht drei Alien-Relikte */
   function alienLines() {
     const A = TEXTS.zone.gwynn.alien, st = quests.alien;
+    if (alienState.found) return { lines: alienState.translator ? A.later : A.found };
     if (st === 'open') return { lines: A.offer, after: () => acceptQuest('alien') };
     if (st === 'active') return { lines: A.waiting.map(([w, t]) => [w, t.replace('{rest}', ALIEN_TOTAL - aliensFound)]) };
     return { lines: A.thanks };
@@ -1463,7 +1578,17 @@
 
   /** Was sagt der Kuriositätenhändler? Übergibt dabei alle gefundenen Relikte. */
   function dealerLines() {
-    const D = TEXTS.dealer;
+    const D = TEXTS.dealer, AB = TEXTS.aliens.balthasar;
+    if (alienState.moved) return { lines: AB.there };
+    if (alienState.found && relicsGiven >= RELIC_TOTAL) {
+      if (!alienState.translator) return { lines: AB.give, after: () => {
+        alienState.translator = true;
+        toast(TEXTS.toast.received, esc(TEXTS.aliens.translator), 'deliver');
+        renderQuests();
+      } };
+      if (!alienState.talked.size) return { lines: AB.waiting };
+      return { lines: AB.done, after: () => { alienState.moved = true; renderQuests(); setTimeout(moveDealerToAliens, 600); } };
+    }
     const fill = (arr, n, rest) => arr.map(([w, t]) => [w, t.replace('{n}', n).replace('{rest}', rest)]);
     if (relicsGiven >= RELIC_TOTAL) return { lines: chapter >= 3 ? wormLine(D.with) : D.thanks };
     let lines = dealerMet ? [] : D.intro.slice();
@@ -1498,6 +1623,7 @@
     ghostbuster: ['#7a4fc0', ['..###..', '.#####.', '.#+#+#.', '.#####.', '.#####.', '.#####.', '.#.#.#.']],
     helfer: ['#c99a1c', ['..###..', '..###..', '#######', '#######', '#######', '..###..', '..###..']],
     muellabfuhr: ['#5a8a3a', ['.#####.', '#######', '.#+#+#.', '.#+#+#.', '.#+#+#.', '.#+#+#.', '..###..']],
+    alienforscher: ['#2ab89a', ['.#...#.', '..#.#..', '.#####.', '#+#+#+#', '#######', '.#####.', '..#.#..']],
     weltenbummler: ['#f0b632', ['...#...', '...#...', '#######', '.#####.', '..###..', '.##.##.', '.#...#.']],
   };
   const badgeIcons = {};
@@ -1708,7 +1834,7 @@
           if (g.warn) {
             // zu weit hinaus: Warnung und automatisch umkehren
             pickupText(TEXTS.warnEdge);
-            const c = g.warn === 'zone' ? ZONE : g.warn === 'sys' ? { x: 0, y: 0 } : RESORT;
+            const c = g.warn === 'zone' ? ZONE : g.warn === 'sys' ? { x: 0, y: 0 } : g.warn === 'alien' ? ALIEN : RESORT;
             const k = g.warn === 'sys' ? 0.8 : 0.62;
             flyToPoint(c.x + (ship.x - c.x) * k, c.y + (ship.y - c.y) * k);
           }
@@ -1886,6 +2012,7 @@
   }
 
   function teleportTo(to, towardX, towardY) {
+    WH2.cool = 2.5;
     const dx = towardX - to.x, dy = towardY - to.y, d = Math.hypot(dx, dy) || 1;
     [ship.x, ship.y] = projectAllowed(to.x + (dx / d) * 48, to.y + (dy / d) * 48, 12);
     ship.heading = Math.atan2(dy, dx);
@@ -1899,6 +2026,18 @@
     sfx.play('comet');
   }
   function updateWormhole(dt) {
+    // goldenes Wurmloch (ab Kapitel 3) zwischen Urlaubssystem und Sektor der Aliens
+    WH2.cool = Math.max(0, WH2.cool - dt);
+    if (chapter >= 3 && WH2.cool <= 0 && !cine.active) {
+      if (Math.hypot(ship.x - WH2.a.x, ship.y - WH2.a.y) < 16) {
+        if (golden) { teleportTo(WH2.b, ALIEN.x, ALIEN.y); WH2.cool = 2.5; }
+        else {
+          pickupText(TEXTS.aliens.locked);
+          WH2.cool = 2.5;
+          flyToPoint(WH2.a.x, WH2.a.y + 90);
+        }
+      } else if (Math.hypot(ship.x - WH2.b.x, ship.y - WH2.b.y) < 16) { teleportTo(WH2.a, RESORT.x, RESORT.y); WH2.cool = 2.5; }
+    }
     if (!WH.open) return;
     WH.t = Math.min(1, WH.t + dt * 0.45);
     WH.cool = Math.max(0, WH.cool - dt);
@@ -1938,6 +2077,11 @@
       burst(p.x, p.y, 'crate');
       sfx.play('crate');
       pickupText(`${TEXTS.pickup.part} ${partsFound} / ${PART_TOTAL}`);
+      renderQuests();
+    }
+    if (!alienState.found && Math.hypot(ship.x - ALIEN.x, ship.y - ALIEN.y) < ALIEN.r) {
+      alienState.found = true;
+      milestone('alienforscher', 0.1);
       renderQuests();
     }
     if (!badges.has('grenzgaenger') && Math.hypot(ship.x - ZONE.x, ship.y - ZONE.y) < ZONE.r - 20) {
@@ -2029,6 +2173,8 @@
     ctx.drawImage(nebula, ox, oy);
     const fr = clamp((RESORT.r + 700 - Math.hypot(cam.x - RESORT.x, cam.y - RESORT.y)) / 500, 0, 1);
     if (fr > 0) { ctx.globalAlpha = fr; ctx.drawImage(nebulaResort, ox, oy); ctx.globalAlpha = 1; }
+    const fa = clamp((ALIEN.r + 700 - Math.hypot(cam.x - ALIEN.x, cam.y - ALIEN.y)) / 500, 0, 1);
+    if (fa > 0) { ctx.globalAlpha = fa; ctx.drawImage(nebulaAlien, ox, oy); ctx.globalAlpha = 1; }
     for (const s of stars) {
       let x = (s.x - cam.x * s.p) % W; if (x < 0) x += W;
       let y = (s.y - cam.y * SIN_E * s.p) % H; if (y < 0) y += H;
@@ -2319,6 +2465,17 @@
     if ((time % 2.4) < 0.3) px(sx + 22, sy - 14, '#7fe0ff');
   }
 
+  /** Stadtschiff der Aliens: sanft schwebend, mit blinkenden Lichtern */
+  function drawCity(o) {
+    const bob = Math.sin(time * 0.5 + o.phase) * 2;
+    const sx = toSX(o.x), sy = toSY(o.y, 4 + bob);
+    const sp = o.spr;
+    if (!onScreen(sx, sy, sp.Wd)) return;
+    ctx.drawImage(sp.cv, Math.round(sx - sp.Wd / 2), Math.round(sy - sp.Ht + 8));
+    const blink = ((time * 1.5 + o.phase) % 2) < 0.25;
+    if (blink) px(sx + o.size * 0.5, sy - o.size * 0.35, '#ffffff');
+  }
+
   /** Alien-Relikt: schwebender, türkis leuchtender Kristallkörper mit kreisenden Funken */
   function drawAlien(o) {
     const bob = Math.sin(time * 1.5 + o.phase) * 1.5;
@@ -2411,10 +2568,11 @@
   function drawFog() { drawFogLayer(fogFront, 0.2, 0.85); }
 
   /** Wurmloch: wirbelnde Ringe in Violett und Türkis mit hellem Kern */
-  function drawWormhole(p, s) {
+  const WH_COLS = ['#3a1a6a', '#6a3ab0', '#a87aff', '#7fe0ff', '#e8fdff'];
+  const WH_GOLD = ['#5a3a08', '#a8741a', '#f0b632', '#ffe48a', '#fffbe8'];
+  function drawWormhole(p, s, cols = WH_COLS) {
     const sx = toSX(p.x), sy = toSY(p.y, 4);
     if (!onScreen(sx, sy, 40) || s <= 0) return;
-    const cols = ['#3a1a6a', '#6a3ab0', '#a87aff', '#7fe0ff', '#e8fdff'];
     for (let k = 0; k < 5; k++) {
       const r = 24 * s * (1 - k * 0.17), n = Math.max(6, Math.round(r * 2.6));
       const dir = k % 2 ? -1 : 1;
@@ -2464,8 +2622,9 @@
     for (const n of npcs) {
       if (n.hidden || n.state === 'drift') continue;
       const wants = n.dealer
-        ? relicsGiven < RELIC_TOTAL && (!dealerMet || relicsFound.size > relicsGiven)
-        : n === gwynnNpc ? chapter >= 3 && quests.alien === 'open'
+        ? (alienState.found && relicsGiven >= RELIC_TOTAL && !alienState.moved && (!alienState.translator || alienState.talked.size > 0))
+          || (relicsGiven < RELIC_TOTAL && (!dealerMet || relicsFound.size > relicsGiven))
+        : n === gwynnNpc ? chapter >= 3 && ((quests.alien === 'open' && !alienState.found) || (alienState.found && !alienState.translator))
         : n.texts.talk ? false : quests[currentQuest(n.texts).quest] === 'open';
       if (!wants) continue;
       const sx = toSX(n.x), sy = toSY(n.y, 4);
@@ -2598,6 +2757,8 @@
     for (const r of relics) if (r.active && !r.taken) drawList.push({ y: r.y, k: 8, o: r });
     drawList.push({ y: WRECK.y, k: 9, o: WRECK });
     if (WH.open) { drawList.push({ y: WH.a.y, k: 11, o: WH.a }); drawList.push({ y: WH.b.y, k: 11, o: WH.b }); }
+    if (chapter >= 3) { drawList.push({ y: WH2.a.y, k: 13, o: WH2.a }); drawList.push({ y: WH2.b.y, k: 13, o: WH2.b }); }
+    for (const o of CITY) drawList.push({ y: o.y, k: 14, o });
     for (const p of zoneParts) if (p.active && !p.taken) drawList.push({ y: p.y, k: 10, o: p });
     const rotA = (time * TAU) / BELT_PERIOD;
     for (const a of asteroids) {
@@ -2639,6 +2800,8 @@
         case 11: drawWormhole(it.o, it.o === WH.a ? WH.t : 1); break;
         case 10: drawPart(it.o); break;
         case 12: drawAlien(it.o); break;
+        case 13: drawWormhole(it.o, 1, WH_GOLD); break;
+        case 14: drawCity(it.o); break;
       }
     }
     drawFog();
@@ -2690,6 +2853,9 @@
       const it = TEXTS.items[id];
       add(`<span class="nm">${esc(it.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName(it.target))}</span></span>`);
     }
+    if (alienState.found && !alienState.talked.size) {
+      add(`<span class="nm">${esc(alienState.translator ? TEXTS.questList.tryTranslator : TEXTS.questList.understand)}</span>`);
+    }
     if (quests.alien === 'active') {
       add(`<span class="nm">${esc(TEXTS.questList.alien)}</span> <span class="to">${aliensFound} / ${ALIEN_TOTAL}</span>`);
     }
@@ -2726,6 +2892,7 @@
     if (!o) return null;
     if (o.texts) return { kicker: '', name: o.texts.name, body: o.texts.desc || '' };   // Raumschiff
     if (o.station) { const t = TEXTS.stations[o.id]; return t ? { kicker: '', name: t.name, body: t.desc || '' } : null; }
+    if (o.city) { const t = o.alien && TEXTS.aliens.list[o.alien]; return t ? { kicker: '', name: t.home, body: t.desc || '' } : null; }
     return TEXTS.bodies[o.id] || null;
   }
   /** Bildschirmposition eines Objekts: [x, Oberkante, Unterkante] in Spielpixeln */
@@ -2733,6 +2900,7 @@
     if (o.texts) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 12, sy + 9]; }
     if (o.station) { const sx = toSX(o.x), sy = toSY(o.y, 3); return [sx, sy - o.hub - 16, sy + o.size * SIN_E + 5]; }
     if (o.id === 'wreck') { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - 28, sy + 24]; }
+    if (o.city) { const sx = toSX(o.x), sy = toSY(o.y, 4); return [sx, sy - o.size * 1.5 - 4, sy + 8]; }
     const sx = toSX(o.x), sy = toSY(o.y); return [sx, sy - o.r - 6, sy + o.r + 4];
   }
   function showInfo(o) {
@@ -2763,7 +2931,7 @@
   const LABEL_NEAR = 190;
   function updateLabels() {
     const seen = new Set();
-    const cands = [...BODIES, ...STATIONS, WRECK, ...npcs.filter(n => !n.hidden)];
+    const cands = [...BODIES, ...STATIONS, WRECK, ...CITY, ...npcs.filter(n => !n.hidden)];
     for (const o of cands) {
       if (o === infoTarget) continue;
       const d = Math.hypot(o.x - ship.x, o.y - ship.y);
@@ -2798,7 +2966,23 @@
     const suitD = shade(L.suit, 0.72), suitL = shade(L.suit, 1.25);
     const white = '#eef0f6', grey = '#a8b0c4', greyD = '#6a7290';
 
-    if (L.ghost) {
+    if (L.alien) {
+      // Alien: Anzug wie die Astronauten, großer runder Kopf, Fühler und große Augen
+      rect(2, 12, 1, 5, greyD); rect(13, 12, 1, 5, greyD);
+      rect(3, 12, 10, 6, L.suit);
+      rect(3, 14, 1, 3, suitD); rect(12, 14, 1, 3, suitD);
+      rect(6, 13, 4, 3, white); set(7, 14, '#4aff8a'); set(8, 14, '#ff7ae0');
+      rect(4, 17, 8, 1, suitD); rect(5, 11, 6, 1, grey);
+      const sk = L.skin, skD = shade(L.skin, 0.75);
+      rect(4, 3, 8, 8, sk); rect(3, 4, 10, 6, sk); set(4, 3, null); set(11, 3, null);
+      rect(4, 9, 8, 1, skD); set(3, 9, null); set(12, 9, null);
+      set(5, 1, L.antenna); set(5, 2, skD); set(10, 1, L.antenna); set(10, 2, skD);
+      const eye = (x, y) => { rect(x, y, 2, 2, dark); set(x, y, '#ffffff'); };
+      if (L.eyes === 1) { rect(6, 5, 4, 3, dark); set(6, 5, '#ffffff'); set(7, 5, '#ffffff'); }
+      else if (L.eyes === 3) { eye(4, 6); eye(7, 5); eye(10, 6); }
+      else { eye(5, 6); eye(9, 6); }
+      set(7, 9, dark); set(8, 9, dark);
+    } else if (L.ghost) {
       // körperlose, leuchtende Gestalt mit wehendem Saum
       const g1 = '#e8fdff', g2 = '#9fe8ff', g3 = '#5ab8e8';
       rect(4, 2, 8, 8, g2); rect(3, 3, 10, 6, g2); rect(5, 1, 6, 1, g2);
@@ -3029,7 +3213,7 @@
     ship, npcs, coins, crates, BODIES, STATIONS, collected, cratesTaken, dialog, modal, quests, badges, visited,
     get speedBonus() { return speedBonus; }, closeModal, notify,
     fogBack, comets, fastComets, resortCrates, alienRelics, relics, dealerNpc, startRound2, relicsFound, RESORT, WH, resortNpcs, cine,
-    get chapter() { return chapter; }, setChapter: v => { chapter = v; updateHUD(); }, get speedBonusPct() { return Math.round(speedBonus * 100); }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
+    get chapter() { return chapter; }, setChapter: v => { chapter = v; updateHUD(); }, alienState, CITY, ALIEN, WH2, get golden() { return golden; }, setRelicsGiven: n => { relicsGiven = n; }, get speedBonusPct() { return Math.round(speedBonus * 100); }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
     get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
     award, step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
