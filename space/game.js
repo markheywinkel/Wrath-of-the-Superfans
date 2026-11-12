@@ -1463,11 +1463,241 @@
         else ac.resume().then(go, () => {}); // erster Ton direkt nach dem Start
       },
       get muted() { return muted; },
+      get ctx() { return ac; },
       setMuted(m) {
         muted = m;
         try { localStorage.setItem('space.muted', m ? '1' : '0'); } catch (_) { /* egal */ }
       },
     };
+  })();
+
+  // ----------------------------------------------------------------- musik
+  /*
+   * Sphärische 16-Bit-Hintergrundmusik, direkt im Browser erzeugt (keine Dateien).
+   * Vier Stücke, eines je Gebiet: Sonnensystem, Nebel, Urlaubssystem, Sektor der Alten.
+   * Jedes Stück besteht aus Akkordfolge, Flächenklang, Bass, Arpeggio, Glocken und einer
+   * Pulswellen-Melodie, die bei jedem Durchlauf etwas anders ausfällt. Beim Gebietswechsel
+   * wird weich übergeblendet.
+   */
+  const music = (() => {
+    const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+    const waves = new WeakMap();
+    function pulse(ctx, duty) {
+      let m = waves.get(ctx); if (!m) { m = {}; waves.set(ctx, m); }
+      if (m[duty]) return m[duty];
+      const n = 40, re = new Float32Array(n), im = new Float32Array(n);
+      for (let k = 1; k < n; k++) re[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
+      return (m[duty] = ctx.createPeriodicWave(re, im));
+    }
+    let noiseBuf = null;
+    function noise(ctx) {
+      if (noiseBuf && noiseBuf.sampleRate === ctx.sampleRate) return noiseBuf;
+      const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return (noiseBuf = b);
+    }
+    // Hüllkurve: anschwellen, halten, ausklingen
+    function env(ctx, t, a, hold, r, v) {
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(v, t + a);
+      g.gain.setValueAtTime(v, t + a + hold);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + a + hold + r);
+      return g;
+    }
+    function osc(ctx, type, f, t, end, out, detune = 0) {
+      const o = ctx.createOscillator();
+      if (typeof type === 'number') o.setPeriodicWave(pulse(ctx, type)); else o.type = type;
+      o.frequency.setValueAtTime(f, t); o.detune.setValueAtTime(detune, t);
+      o.connect(out); o.start(t); o.stop(end);
+      return o;
+    }
+    function lp(ctx, f, q, out) { const b = ctx.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = f; b.Q.value = q; b.connect(out); return b; }
+    // --- Stimmen
+    const V = {
+      pad(ctx, out, t, m, dur, v, o = {}) {
+        const g = env(ctx, t, o.att || 1.4, Math.max(0, dur - (o.att || 1.4)), o.rel || 2.2, v);
+        g.connect(out);
+        const f = lp(ctx, o.cut || 1100, 0.4, g), end = t + dur + (o.rel || 2.2) + 0.2;
+        osc(ctx, 'triangle', mtof(m), t, end, f, -6);
+        const s = ctx.createGain(); s.gain.value = o.bright || 0.28; s.connect(f);
+        osc(ctx, 0.5, mtof(m), t, end, s, 7);
+      },
+      bass(ctx, out, t, m, dur, v) {
+        const g = env(ctx, t, 0.02, dur * 0.6, dur * 0.5 + 0.2, v); g.connect(out);
+        osc(ctx, 'triangle', mtof(m), t, t + dur * 1.2 + 0.3, g);
+      },
+      pluck(ctx, out, t, m, v, o = {}) {
+        const g = env(ctx, t, 0.005, 0.02, o.dec || 0.35, v); g.connect(out);
+        const f = lp(ctx, o.cut || 2400, 1, g);
+        osc(ctx, o.wave || 0.25, mtof(m), t, t + (o.dec || 0.35) + 0.1, f);
+      },
+      bell(ctx, out, t, m, v, dec = 2.6) {
+        const g = env(ctx, t, 0.004, 0.01, dec, v); g.connect(out);
+        osc(ctx, 'sine', mtof(m), t, t + dec + 0.1, g);
+        const g2 = env(ctx, t, 0.004, 0.0, dec * 0.4, v * 0.35); g2.connect(out);
+        osc(ctx, 'sine', mtof(m) * 2.76, t, t + dec * 0.4 + 0.1, g2);
+      },
+      lead(ctx, out, t, m, dur, v, o = {}) {
+        const g = env(ctx, t, 0.04, Math.max(0, dur - 0.12), o.rel || 0.5, v); g.connect(out);
+        const f = lp(ctx, o.cut || 1800, 0.8, g);
+        const end = t + dur + (o.rel || 0.5) + 0.1;
+        const a = osc(ctx, o.wave != null ? o.wave : 0.125, mtof(m), t, end, f);
+        // Vibrato setzt verzögert ein
+        const lfo = ctx.createOscillator(), lg = ctx.createGain();
+        lfo.frequency.value = 5.2; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(o.vib || 9, t + Math.min(dur, 0.6));
+        lfo.connect(lg); lg.connect(a.detune); lfo.start(t); lfo.stop(end);
+        if (o.glide) a.frequency.setValueAtTime(mtof(m - o.glide), t), a.frequency.exponentialRampToValueAtTime(mtof(m), t + 0.12);
+      },
+      shaker(ctx, out, t, v) {
+        const s = ctx.createBufferSource(); s.buffer = noise(ctx);
+        const b = ctx.createBiquadFilter(); b.type = 'highpass'; b.frequency.value = 6000;
+        const g = env(ctx, t, 0.003, 0.0, 0.07, v);
+        s.connect(b); b.connect(g); g.connect(out); s.start(t, Math.random()); s.stop(t + 0.12);
+      },
+      wind(ctx, out, t, dur, v, f0) {
+        const s = ctx.createBufferSource(); s.buffer = noise(ctx); s.loop = true;
+        const b = ctx.createBiquadFilter(); b.type = 'bandpass'; b.Q.value = 6;
+        b.frequency.setValueAtTime(f0, t); b.frequency.linearRampToValueAtTime(f0 * 1.6, t + dur);
+        const g = env(ctx, t, dur * 0.45, dur * 0.1, dur * 0.6, v);
+        s.connect(b); b.connect(g); g.connect(out); s.start(t); s.stop(t + dur * 1.2 + 0.2);
+      },
+    };
+    // --- die vier Stücke
+    const C = (...n) => n;
+    const TRACKS = {
+      // Sonnensystem: warm, hoffnungsvoll, C-Dur mit Lydisch-Farbe
+      sys: { bpm: 76, seed: 11, vol: 1,
+        chords: [C(48, 55, 59, 64), C(45, 52, 55, 60), C(41, 48, 52, 57), C(43, 50, 55, 62), C(48, 55, 59, 66), C(40, 47, 52, 55), C(41, 48, 53, 57), C(43, 50, 53, 59)],
+        scale: [60, 62, 64, 66, 67, 69, 71, 72, 74, 76], lead: { wave: 0.125, cut: 1900, v: 0.07, density: 0.55 },
+        arp: { step: 0.5, oct: 12, v: 0.035, wave: 0.25, cut: 2200 }, bells: 0.25 },
+      // Nebel: geheimnisvoll, D-Dorisch, langsam, Wind
+      zone: { bpm: 60, seed: 23, vol: 1, barsPerChord: 2,
+        chords: [C(38, 45, 50, 53, 57), C(34, 41, 46, 50, 53), C(36, 43, 48, 52, 55), C(33, 40, 45, 48, 52)],
+        scale: [62, 64, 65, 67, 69, 71, 72, 74], lead: { wave: 0.5, cut: 1100, v: 0.05, density: 0.25, vib: 14 },
+        bells: 0.5, bellOct: 12, wind: 0.05, padCut: 800 },
+      // Urlaubssystem: entspannt, F-Dur mit Septimen, leichter Bossa-Schwung
+      resort: { bpm: 84, seed: 37, vol: 1, bossa: true,
+        chords: [C(41, 52, 57, 60, 64), C(38, 50, 53, 57, 60), C(43, 50, 53, 58, 62), C(36, 46, 50, 52, 55)],
+        scale: [65, 67, 69, 72, 74, 76, 77, 79, 81], lead: { wave: 'triangle', cut: 2600, v: 0.09, density: 0.6 },
+        arp: { step: 0.5, oct: 12, v: 0.05, wave: 'sine', cut: 3000, dec: 0.5, swing: 0.08 }, shaker: 0.03, bells: 0.15 },
+      // Sektor der Alten: golden, fremdartig, Ganztonleiter und schimmernde Glocken
+      alien: { bpm: 70, seed: 53, vol: 1, barsPerChord: 2,
+        chords: [C(39, 46, 50, 55, 57), C(41, 48, 52, 57, 59), C(37, 44, 48, 53, 55), C(43, 47, 51, 55, 61)],
+        scale: [63, 65, 67, 69, 71, 73, 75, 77], lead: { wave: 0.25, cut: 2400, v: 0.06, density: 0.4, glide: 2, vib: 18 },
+        arp: { step: 0.25, oct: 24, v: 0.022, wave: 0.125, cut: 3200, dec: 0.25 }, bells: 0.7, bellOct: 24 },
+    };
+    const mul = s => () => { s |= 0; s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+
+    /** Einen Takt eines Stücks ab Zeit t planen */
+    function scheduleBar(ctx, out, tr, bar, t) {
+      const beat = 60 / tr.bpm, barLen = beat * 4, bpc = tr.barsPerChord || 1;
+      const ci = Math.floor(bar / bpc) % tr.chords.length, chord = tr.chords[ci];
+      const first = bar % bpc === 0;
+      const r = mul(tr.seed * 1000 + bar * 7 + Math.floor(bar / (tr.chords.length * bpc)) * 131);
+      // Fläche (nur am Akkordanfang, über die ganze Akkorddauer)
+      if (first) chord.slice(1).forEach(m => V.pad(ctx, out, t, m + 12, barLen * bpc, 0.05, { cut: tr.padCut || 1100 }));
+      // Bass
+      if (tr.bossa) { V.bass(ctx, out, t, chord[0], beat * 1.4, 0.16); V.bass(ctx, out, t + beat * 1.5, chord[0] + 7, beat * 1.2, 0.12); V.bass(ctx, out, t + beat * 3, chord[0], beat, 0.12); }
+      else if (first) V.bass(ctx, out, t, chord[0], barLen * bpc * 0.9, 0.15);
+      else V.bass(ctx, out, t + beat * 2, chord[0] + 12, beat * 2, 0.07);
+      // Arpeggio
+      if (tr.arp) {
+        const A = tr.arp, tones = chord.slice(1).map(m => m + A.oct);
+        const n = Math.round(4 / A.step);
+        for (let i = 0; i < n; i++) {
+          const up = (bar % 2 === 0);
+          const k = up ? i % tones.length : tones.length - 1 - (i % tones.length);
+          const sw = A.swing && i % 2 ? A.swing : 0;
+          V.pluck(ctx, out, t + i * A.step * beat + sw, tones[k], A.v * (i % 2 ? 0.7 : 1), A);
+        }
+      }
+      // Shaker
+      if (tr.shaker) for (let i = 0; i < 8; i++) V.shaker(ctx, out, t + i * beat / 2 + (i % 2 ? 0.06 : 0), tr.shaker * (i % 2 ? 0.6 : 1));
+      // Glocken
+      if (tr.bells && r() < tr.bells) {
+        const m = tr.scale[(r() * tr.scale.length) | 0] + (tr.bellOct || 12);
+        V.bell(ctx, out, t + beat * ((r() * 4) | 0), m, 0.045);
+        if (r() < 0.4) V.bell(ctx, out, t + beat * (2 + ((r() * 2) | 0)) + beat / 2, m + (r() < 0.5 ? 7 : 5), 0.03);
+      }
+      // Wind im Nebel
+      if (tr.wind && first) V.wind(ctx, out, t, barLen * bpc, tr.wind, 300 + r() * 500);
+      // Melodie: Pulswelle, schrittweise durch die Tonleiter, auf Akkordtöne bezogen
+      const L = tr.lead;
+      if (tr._mel == null || bar === 0) tr._mel = 3;
+      let pos = 0;
+      while (pos < 4) {
+        const len = [0.5, 1, 1, 1.5, 2, 2, 3][(r() * 7) | 0];
+        if (r() < L.density && pos + len <= 4.01) {
+          tr._mel = Math.max(0, Math.min(tr.scale.length - 1, tr._mel + [-2, -1, -1, 0, 1, 1, 2][(r() * 7) | 0]));
+          let m = tr.scale[tr._mel];
+          if (pos === 0) { const ct = chord.map(c => c % 12); if (!ct.includes(m % 12)) m = tr.scale[Math.max(0, tr._mel - 1)]; }
+          V.lead(ctx, out, t + pos * beat, m, len * beat * 0.95, L.v, L);
+        }
+        pos += len;
+      }
+    }
+    /** Ausgangskette: warmer Tiefpass, Echo, Lautstärke */
+    function chain(ctx, dest) {
+      const inp = ctx.createGain(), warm = lp(ctx, 5200, 0.3, dest);
+      inp.connect(warm);
+      const d1 = ctx.createDelay(2); d1.delayTime.value = 0.42;
+      const fb = ctx.createGain(); fb.gain.value = 0.38;
+      const wet = ctx.createGain(); wet.gain.value = 0.32;
+      const dl = lp(ctx, 2600, 0.3, fb);
+      inp.connect(d1); d1.connect(dl); fb.connect(d1); d1.connect(wet); wet.connect(warm);
+      return inp;
+    }
+
+    // --- live im Spiel
+    let ac = null, master = null, muted = false, current = null;
+    const players = {};   // id -> { gain, bar, next, stopAt }
+    const VOL = 0.3;   // leise im Hintergrund, unter den Soundeffekten
+    function start(audioCtx, isMuted) {
+      if (ac || !audioCtx) return;
+      ac = audioCtx; muted = isMuted;
+      master = ac.createGain(); master.gain.value = muted ? 0 : VOL; master.connect(ac.destination);
+      setInterval(tick, 120);
+      document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
+    }
+    function tick() {
+      if (!ac || ac.state !== 'running') return;
+      const now = ac.currentTime;
+      for (const [id, p] of Object.entries(players)) {
+        if (p.stopAt && now > p.stopAt) { p.gain.disconnect(); delete players[id]; continue; }
+        if (p.stopAt) continue;
+        const tr = TRACKS[id], barLen = 240 / tr.bpm;
+        while (p.next < now + 0.6) { scheduleBar(ac, p.inp, tr, p.bar++, p.next); p.next += barLen; }
+      }
+    }
+    /** Gebiet wechseln: altes Stück ausblenden, neues einblenden */
+    function setArea(id) {
+      if (!ac || id === current || !TRACKS[id]) return;
+      const now = ac.currentTime;
+      if (current && players[current]) {
+        const p = players[current];
+        p.gain.gain.cancelScheduledValues(now); p.gain.gain.setValueAtTime(p.gain.gain.value, now);
+        p.gain.gain.linearRampToValueAtTime(0.0001, now + 3); p.stopAt = now + 3.2;
+      }
+      current = id;
+      const g = ac.createGain(); g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(TRACKS[id].vol, now + 3);
+      g.connect(master);
+      players[id] = { gain: g, inp: chain(ac, g), bar: 0, next: now + 0.15, stopAt: 0 };
+      tick();
+    }
+    function setMuted(m) { muted = m; if (master) master.gain.setTargetAtTime(m ? 0 : VOL, ac.currentTime, 0.3); }
+
+    /** Für Hörproben: ein Stück offline rendern (Float32-Samples, mono) */
+    async function render(id, seconds, rate = 22050) {
+      const ctx = new OfflineAudioContext(1, Math.ceil(seconds * rate), rate);
+      const g = ctx.createGain(); g.gain.value = VOL; g.connect(ctx.destination);
+      const inp = chain(ctx, g), tr = TRACKS[id], barLen = 240 / tr.bpm;
+      tr._mel = 3;
+      for (let b = 0, t = 0.05; t < seconds; b++, t += barLen) scheduleBar(ctx, inp, tr, b, t);
+      const buf = await ctx.startRendering();
+      return buf.getChannelData(0);
+    }
+    return { start, setArea, setMuted, render, TRACKS, get area() { return current; }, get playing() { return Object.keys(players); } };
   })();
 
   // ---------------------------------------------------------------- quests
@@ -2183,8 +2413,15 @@
     }
   }
 
+  /** Welches Musikstück passt zur Position des Schiffs? */
+  function musicArea() {
+    const r = regionOf(ship.x, ship.y);
+    if (r === 'gate') return Math.hypot(ship.x - ZONE.x, ship.y - ZONE.y) < Math.hypot(ship.x, ship.y) ? 'zone' : 'sys';
+    return r;
+  }
   function updateWorld(dt) {
     time += dt;
+    if (!menuOpen && Math.floor(time * 2) !== Math.floor((time - dt) * 2)) music.setArea(musicArea());
     updateFog(dt);
     for (const b of BODIES) {
       if (b.binary) {
@@ -3211,7 +3448,7 @@
     soundBtn.title = m ? 'Ton an' : 'Ton aus';
     soundBtn.setAttribute('aria-label', soundBtn.title);
   }
-  soundBtn.addEventListener('click', () => { sfx.setMuted(!sfx.muted); renderSound(); if (!sfx.muted) sfx.play('crystal'); });
+  soundBtn.addEventListener('click', () => { sfx.setMuted(!sfx.muted); music.setMuted(sfx.muted); renderSound(); if (!sfx.muted) sfx.play('crystal'); });
   renderSound();
 
   // --- Meldungen und Belohnungen: eine Warteschlange, alles nacheinander
@@ -3302,6 +3539,8 @@
     if (!menuOpen) return;
     menuOpen = false;
     sfx.init();
+    music.start(sfx.ctx, sfx.muted);
+    music.setArea(musicArea());
     menuEl.classList.add('gone');
     document.body.classList.remove('menu');
     setTimeout(() => menuEl.remove(), 900);
@@ -3334,6 +3573,6 @@
     get chapter() { return chapter; }, get menuOpen() { return menuOpen; }, setChapter: v => { chapter = v; updateHUD(); }, alienState, CITY, ALIEN, WH2, get golden() { return golden; }, setRelicsGiven: n => { relicsGiven = n; }, get speedBonusPct() { return Math.round(speedBonus * 100); }, ZONE, WRECK, DARK, zoneParts, gwynnNpc, justusNpc, projectAllowed,
     get partsFound() { return partsFound; },
     get round() { return round; }, get relicsGiven() { return relicsGiven; }, get cometsCaught() { return cometsCaught; },
-    award, step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
+    music, award, step: dt => updateWorld(dt), flyToPoint, flyToBody, dialogNext, portrait, sfx,
   };
 })();

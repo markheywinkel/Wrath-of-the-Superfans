@@ -66,6 +66,7 @@ Das Spiel ist in Kapitel eingeteilt:
   - Alienforscher: den Sektor der Alten betreten → Antrieb +10 %
   - Foody: bei Szyyypp (mit Übersetzer) Trrryyypb probiert → Antrieb +10 %
   - Weltenbummler: alle anderen Badges und alle Aufträge → Abschlussdialog in der Bildmitte (Hintergrund unscharf) mit »Weiterfliegen« oder »Neu beginnen«
+- **Musik:** sphärische 16-Bit-Hintergrundmusik, direkt im Browser erzeugt (keine Dateien), ein eigenes Stück je Gebiet: Sonnensystem (warm, C-Dur/Lydisch), Nebel (geheimnisvoll, D-Dorisch, Wind), Urlaubssystem (entspannt, F-Dur mit leichtem Bossa-Schwung), Sektor der Alten (golden, Ganztonklänge, Glocken). Beim Gebietswechsel wird übergeblendet; die Melodie variiert bei jedem Durchlauf. Startet nach »Start«, der Lautsprecher-Schalter schaltet auch die Musik aus. Die Stücke stehen in `game.js` unter `TRACKS`.
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 
