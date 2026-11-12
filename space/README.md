@@ -68,6 +68,7 @@ Das Spiel ist in Kapitel eingeteilt:
   - Weltenbummler: alle anderen Badges und alle Aufträge → Abschlussdialog in der Bildmitte (Hintergrund unscharf) mit »Weiterfliegen« oder »Neu beginnen«
 - **Musik:** sphärische 16-Bit-Hintergrundmusik, direkt im Browser erzeugt (keine Dateien), ein eigenes Stück je Gebiet: Sonnensystem (warm, C-Dur/Lydisch), Nebel (geheimnisvoll, D-Dorisch, Wind), Urlaubssystem (entspannt, F-Dur mit leichtem Bossa-Schwung), Sektor der Alten (golden, Ganztonklänge, Glocken). Beim Gebietswechsel wird übergeblendet; die Melodie variiert bei jedem Durchlauf. Läuft schon im Startmenü (sofern der Browser Klang ohne Berührung erlaubt, sonst ab der ersten Berührung, dem ersten Klick oder Tastendruck), der Lautsprecher-Schalter schaltet auch die Musik aus. Die Stücke stehen in `game.js` unter `TRACKS`.
 - Weiche Klänge (direkt im Browser erzeugt, keine Dateien) beim Einsammeln von Kristallen und Containern, bei neuen Badges und beim Abliefern. Oben rechts schaltet ein Lautsprecher-Symbol den Ton aus und an (diese Einstellung merkt sich der Browser).
+- Links unten öffnet ein »i« einen Info-Dialog über das Spiel (Hintergrund unscharf, »Zurück zum Spiel«).
 - Es wird nichts gespeichert: Neuladen startet das Spiel von vorn.
 
 ## Deployment auf space.markheywinkel.de

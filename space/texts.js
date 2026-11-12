@@ -4,6 +4,13 @@
  * Dialogzeilen sind Paare aus [Sprecher, Text]; Sprecher = Schlüssel aus »characters«.
  */
 window.SPACE_TEXTS = {
+  // Info-Feld links unten
+  about: {
+    button: 'Info',
+    title: 'Info',
+    body: 'Dieses Spiel wurde von Mark Heywinkel vollständig mit Claude Code erstellt. Es ist ein storygetriebenes Weltraumabenteuer mit drei Akten und vier Spielwelten. Die Spieler:innen erfüllen als »Bote« verschiedene Missionen und erhalten Auszeichnungen.',
+    close: 'Zurück zum Spiel',
+  },
   // Startmenü
   menu: { title: 'Space Delivery', start: 'Start' },
   intro: 'Gute Reise!',

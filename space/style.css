@@ -496,3 +496,30 @@ body.menu .hud-left, body.menu .top-right { opacity: 0; }
 .reward-panel .body { font-size: 19px; line-height: 1.5; color: #eef2ff; margin-bottom: 26px; }
 .reward-panel .btn:not(.primary) { border-color: var(--muted); background: none; }
 @media (max-width: 480px) { .reward-panel .body { font-size: 17px; } }
+
+/* ---------- Info-Feld links unten ---------- */
+.about-btn {
+  position: fixed;
+  left: calc(12px + env(safe-area-inset-left));
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 9;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1.5px solid var(--muted);
+  border-radius: 50%;
+  background: rgba(4, 5, 13, 0.35);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+.about-btn:hover { opacity: 1; }
+body.cine .about-btn { opacity: 0; pointer-events: none; }
+.modal.about { z-index: 10; }
+body.about-open .startmenu, body.about-open .about-btn { opacity: 0; pointer-events: none; }
+body.about-open #game { filter: blur(7px) brightness(0.6); }

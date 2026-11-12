@@ -3192,7 +3192,7 @@
       add(`<span class="nm">${esc(TEXTS.questList.comets)}</span> <span class="to">${cometsCaught} / ${COMET_TOTAL}</span>`);
     }
     if (quests.elixier === 'active') {
-      add(`<span class="nm">${esc(TEXTS.zone.elixir.name)}</span> <span class="to">aus <span class="nm">${esc(bodyName(TEXTS.zone.elixir.from))}</span> holen</span>`);
+      add(`<span class="nm">${esc(TEXTS.zone.elixir.name)}</span> <span class="to">von <span class="nm">${esc(bodyName(TEXTS.zone.elixir.from))}</span> holen</span>`);
     }
     if (quests.elixier === 'carrying') {
       add(`<span class="nm">${esc(TEXTS.zone.elixir.name)}</span> <span class="to">→ <span class="nm">${esc(bodyName('wreck'))}</span></span>`);
@@ -3533,6 +3533,17 @@
     n.y = b.y + Math.sin(n.orbitAng) * n.orbitR;
     n.heading = n.orbitAng + n.orbitDir * Math.PI / 2;
   }
+  // Info-Feld links unten: öffnet einen Dialog über das Spiel
+  const aboutEl = document.getElementById('about'), aboutBtn = document.getElementById('aboutBtn');
+  aboutBtn.setAttribute('aria-label', TEXTS.about.button); aboutBtn.title = TEXTS.about.button;
+  aboutEl.querySelector('h2').textContent = TEXTS.about.title;
+  aboutEl.querySelector('.body').textContent = TEXTS.about.body;
+  aboutEl.querySelector('button').textContent = TEXTS.about.close;
+  const closeAbout = () => { aboutEl.classList.remove('show'); document.body.classList.remove('about-open'); if (!dialog.open && !modal.open) document.body.classList.remove('talk'); };
+  aboutBtn.addEventListener('click', () => { aboutEl.classList.add('show'); document.body.classList.add('talk', 'about-open'); });
+  aboutEl.querySelector('button').addEventListener('click', closeAbout);
+  aboutEl.addEventListener('click', e => { if (e.target === aboutEl) closeAbout(); });
+
   // Musik läuft schon im Startmenü (sofern der Browser Klang ohne Berührung erlaubt, sonst ab der ersten)
   wakeAudio();
   // Startmenü; nach »Start« folgt Kapitel 1 mit Filmbalken wie die anderen Kapitel
