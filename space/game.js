@@ -1216,7 +1216,9 @@
     chapterTimer = setTimeout(() => document.body.classList.remove('blur'), (CHAPTER_TIME - 0.6) * 1000);
   }
 
-  window.addEventListener('pointerdown', () => sfx.init(), { capture: true });
+  // Ton und Musik: Browser erlauben Klang erst nach der ersten Berührung, Klick oder Taste
+  const wakeAudio = () => { sfx.init(); if (sfx.ctx) { music.start(sfx.ctx, sfx.muted); music.setArea(menuOpen ? 'sys' : musicArea()); } };
+  for (const ev of ['pointerdown', 'touchstart', 'keydown']) window.addEventListener(ev, wakeAudio, { capture: true, passive: true });
   canvas.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (menuOpen || cine.active) return;
@@ -3531,6 +3533,8 @@
     n.y = b.y + Math.sin(n.orbitAng) * n.orbitR;
     n.heading = n.orbitAng + n.orbitDir * Math.PI / 2;
   }
+  // Musik läuft schon im Startmenü (sofern der Browser Klang ohne Berührung erlaubt, sonst ab der ersten)
+  wakeAudio();
   // Startmenü; nach »Start« folgt Kapitel 1 mit Filmbalken wie die anderen Kapitel
   const menuEl = document.getElementById('menu');
   menuEl.querySelector('h1').textContent = TEXTS.menu.title;
